@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Utilidades de procesos (psutil, multiplataforma)."""
 
 from __future__ import annotations

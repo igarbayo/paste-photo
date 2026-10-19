@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Envío de combinaciones de teclas en Windows."""
 
 from __future__ import annotations

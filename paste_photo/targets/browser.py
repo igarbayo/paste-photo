@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Cualquier chat de Claude en la web (claude.ai: Chat, Code, Design...) en un navegador.
 
 Soportados en Windows: Chrome, Edge y demás navegadores Chromium.

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Parseo de combinaciones de teclas en texto ("alt+v", "ctrl+shift+v")."""
 
 from __future__ import annotations

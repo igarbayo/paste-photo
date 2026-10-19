@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Genera los manifiestos de winget para una versión publicada.
 
     python packaging/winget/make_manifests.py --version 0.2.0 --sha256 <hash> --out dist/winget \
@@ -44,7 +47,9 @@ def manifests(version: str, url: str, sha256: str) -> dict[str, str]:
             "PublisherUrl: https://github.com/igarbayo\n"
             "PackageName: paste-photo\n"
             "PackageUrl: https://github.com/igarbayo/paste-photo\n"
-            "License: Proprietary\n"
+            "License: MIT\n"
+            "LicenseUrl: https://github.com/igarbayo/paste-photo/blob/main/LICENSE\n"
+            "Copyright: Copyright (c) 2026 igarbayo\n"
             "ShortDescription: Automatically paste your screenshots into Claude.\n"
             "Description: |-\n"
             "  Take a screenshot and it shows up in Claude by itself: Claude Code in Windows\n"

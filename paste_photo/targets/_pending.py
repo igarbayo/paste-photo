@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Utilidad para registrar destinos todavía no implementados."""
 
 from __future__ import annotations

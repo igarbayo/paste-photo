@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 from paste_photo import config as config_module
 from paste_photo.config import ensure_user_config, load_config, save_setting
 

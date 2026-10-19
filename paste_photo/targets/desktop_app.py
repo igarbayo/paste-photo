@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Aplicación oficial de escritorio de Claude (pendiente)."""
 
 from paste_photo.targets._pending import register_pending

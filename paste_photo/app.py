@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Utilidades de aplicación compartidas por las interfaces: instancia única, sondeo, logs y
 la orden con la que el SO debe relanzar la app (inicio automático)."""
 

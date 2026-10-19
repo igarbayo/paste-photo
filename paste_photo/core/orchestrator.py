@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Caso de uso: ante una captura, encontrar Claude y pegarla."""
 
 from __future__ import annotations

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Adaptadores de Windows (pywin32)."""
 
 from __future__ import annotations

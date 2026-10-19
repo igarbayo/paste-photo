@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Rutas de usuario por sistema operativo (configuración y registros)."""
 
 from __future__ import annotations

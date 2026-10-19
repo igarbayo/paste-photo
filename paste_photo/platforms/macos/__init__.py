@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """macOS: pendiente. Pistas en `paste_photo/platforms/CLAUDE.md`."""
 
 from __future__ import annotations

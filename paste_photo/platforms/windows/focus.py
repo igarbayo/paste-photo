@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Gestión del foco de ventanas en Windows."""
 
 from __future__ import annotations

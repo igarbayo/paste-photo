@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Genera los iconos de la app (PNG para la bandeja, ICO para el .exe y el instalador).
 
 Uso: python packaging/make_icon.py   (los escribe en paste_photo/resources/)

@@ -53,6 +53,21 @@ Chrome/Edge.
 
 At least one maintainer must approve the pull request before it is merged.
 
+## Licensing of contributions
+
+paste-photo is licensed under the [MIT License](LICENSE). By opening a pull request you agree
+that your contribution is released under that same license. New Python files start with:
+
+```python
+# SPDX-FileCopyrightText: 2026 <your name>
+# SPDX-License-Identifier: MIT
+```
+
+If your change adds a dependency, check its license first. Permissive licenses and LGPL are
+fine; GPL or AGPL are not accepted without discussing it in an issue, because they would
+change the license of the installer. See
+[docs/COMPONENTS_LICENSE.md](docs/COMPONENTS_LICENSE.md#5-adding-or-updating-a-dependency).
+
 ## Coding standards
 
 - Style is [PEP 8](https://peps.python.org/pep-0008/), enforced by **ruff** as configured in
@@ -90,6 +105,7 @@ A contribution is ready to merge when:
 - [ ] The README describes the product as it is after your change (new or changed
       features, options, platforms).
 - [ ] User-facing options are documented in `paste_photo/resources/default_config.toml`.
+- [ ] New files carry the SPDX header, and new dependencies have a compatible license.
 - [ ] Commits follow Conventional Commits.
 - [ ] A maintainer has approved the pull request.
 

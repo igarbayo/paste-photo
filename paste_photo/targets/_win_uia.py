@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Base para destinos de Windows con pestañas visibles por UI Automation (Template Method).
 
 Las subclases deciden *qué ventanas* mirar, *cómo puntuar* cada pestaña y, opcionalmente,

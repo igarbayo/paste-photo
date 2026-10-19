@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 from paste_photo.core.events import NotPasted, ScreenshotCaptured
 from paste_photo.core.orchestrator import Orchestrator
 from tests.fakes import FakeFocus, FakeTarget

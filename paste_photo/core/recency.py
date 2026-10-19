@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Registro de qué ventanas ha usado el usuario y cuándo (para elegir el Claude más reciente)."""
 
 from __future__ import annotations

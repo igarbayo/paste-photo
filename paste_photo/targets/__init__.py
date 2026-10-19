@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Destinos donde puede estar Claude Code. Cada módulo se registra con `@register_target`."""
 
 from paste_photo.targets.registry import (

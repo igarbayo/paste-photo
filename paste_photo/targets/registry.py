@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Registro de destinos (plugin registry).
 
 Añadir un destino = crear un módulo en `paste_photo/targets/`, decorar su

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Regex del destino browser contra nombres de pestaña y URLs reales de Chrome/Edge."""
 
 import re

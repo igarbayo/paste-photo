@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 r"""Inicio con Windows: valor en HKCU\...\Run (por usuario, sin permisos de administrador).
 
 El instalador escribe y borra el mismo valor, así que el menú de la bandeja y el instalador

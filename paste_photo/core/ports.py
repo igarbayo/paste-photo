@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Puertos (interfaces) que los adaptadores de cada SO y de cada destino implementan."""
 
 from __future__ import annotations

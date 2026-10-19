@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Icono en la bandeja del sistema (pystray): la interfaz por defecto.
 
 Menú:

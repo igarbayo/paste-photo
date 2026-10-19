@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Dobles de prueba de los puertos: permiten testear el núcleo en cualquier SO."""
 
 from __future__ import annotations

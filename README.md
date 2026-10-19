@@ -146,6 +146,18 @@ touching the core.
 Use **Settings → Apps → Installed apps → paste-photo → Uninstall**. This removes the start
 with Windows entry and the PATH entry. Your settings in `%APPDATA%\paste-photo` are kept.
 
+## License
+
+paste-photo is released under the [MIT License](LICENSE). It is provided **without any
+warranty**. The Windows installer bundles third-party components under their own licenses
+(MIT, BSD, Apache-2.0, PSF and LGPL-3.0 for pystray). Their notices ship with the app in
+`THIRD-PARTY-NOTICES.txt`. See [docs/COMPONENTS_LICENSE.md](docs/COMPONENTS_LICENSE.md) for
+the full analysis.
+
+paste-photo is an independent project, not affiliated with or endorsed by Anthropic.
+"Claude" is a trademark of Anthropic and is only used here to describe what paste-photo
+works with.
+
 ## Support
 
 Open an [issue](https://github.com/igarbayo/paste-photo/issues). Contributions are welcome:

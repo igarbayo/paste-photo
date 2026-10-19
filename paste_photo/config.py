@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Carga y guardado de la configuración (`config.toml`).
 
 Una sola fuente de valores por defecto: `resources/default_config.toml`, que también es la

@@ -46,6 +46,7 @@ UninstallDisplayName={#AppName}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+LicenseFile={#RepoRoot}\LICENSE
 ChangesEnvironment=yes
 CloseApplications=no
 

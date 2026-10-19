@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Pequeñas utilidades de escritorio multiplataforma para las interfaces."""
 
 from __future__ import annotations

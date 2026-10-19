@@ -20,6 +20,14 @@ se actualiza el README **en el mismo cambio** (nada de funciones sin documentar 
 promesas de cosas que aún no existen). Una tarea **no está terminada** sin ello.
 El README está en inglés (ver Convenciones).
 
+## ⚠️ Regla obligatoria: licencias
+El proyecto es **MIT** (`LICENSE`, `LICENSES/MIT.txt`). Archivo `.py` nuevo → cabecera
+`# SPDX-FileCopyrightText: 2026 igarbayo` + `# SPDX-License-Identifier: MIT`.
+Dependencia nueva → comprobar su licencia **antes** de añadirla (GPL/AGPL: no sin consultar,
+cambiaría la licencia del instalador; LGPL: añadirla a `module_collection_mode` del spec) y
+actualizar `docs/COMPONENTS_LICENSE.md`. Los avisos de terceros del instalador los genera
+`packaging/third_party.py` automáticamente.
+
 ## Git
 - Repositorio privado `igarbayo/paste-photo`; se trabaja directamente sobre `main`.
 - Tras **cada** cambio: commit + `git push origin main`.

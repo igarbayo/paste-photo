@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Claude Code dentro de WSL: desde Windows solo se ve `wsl.exe`, no `claude`.
 
 Se pregunta a la distro (con `wsl.exe -d <distro> -e sh -c ...`) si hay un `claude` vivo.

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Modo consola: el servicio en primer plano, con logs en pantalla. Ctrl+C para salir."""
 
 from __future__ import annotations

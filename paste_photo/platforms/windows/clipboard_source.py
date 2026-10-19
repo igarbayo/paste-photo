@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Detecta capturas escuchando cambios de imagen en el portapapeles (Win+Shift+S)."""
 
 from __future__ import annotations

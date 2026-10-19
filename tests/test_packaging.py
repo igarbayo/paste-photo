@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Scripts de empaquetado: los usa CI al publicar, así que un fallo rompería la release."""
 
 import importlib.util
@@ -51,5 +54,25 @@ def test_winget_manifests(tmp_path):
     installer = (folder / "igarbayo.paste-photo.installer.yaml").read_text(encoding="utf-8")
     assert "InstallerSha256: " + "AB" * 32 in installer
     assert "InstallerType: inno" in installer and "Scope: user" in installer
+    locale = (folder / "igarbayo.paste-photo.locale.en-US.yaml").read_text(encoding="utf-8")
+    assert "License: MIT" in locale
     for path in folder.iterdir():
         assert re.search(r"^PackageVersion: 1\.2\.3$", path.read_text(encoding="utf-8"), re.M)
+
+
+def test_third_party_notices(tmp_path):
+    third_party = load("packaging/third_party.py")
+    names = {d.metadata["Name"].lower() for d in third_party.runtime_distributions()}
+    assert {"pystray", "pillow", "tomlkit", "psutil"} <= names
+    assert "pytest" not in names and "pyinstaller" not in names  # solo dependencias de ejecución
+    notices = third_party.write_notices(tmp_path)
+    text = notices.read_text(encoding="utf-8")
+    assert "MIT License" in (tmp_path / "LICENSE").read_text(encoding="utf-8")
+    assert "LGPL" in text and "_internal/pystray" in text
+    assert (tmp_path / "licenses" / "pystray" / "COPYING.LGPL").exists()
+
+
+def test_project_license_is_mit():
+    text = (ROOT / "LICENSE").read_text(encoding="utf-8")
+    assert text.startswith("MIT License") and "2026 igarbayo" in text
+    assert (ROOT / "LICENSES" / "MIT.txt").read_text(encoding="utf-8") == text

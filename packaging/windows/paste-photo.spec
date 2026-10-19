@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
 # PyInstaller: dos ejecutables que comparten la misma carpeta (onedir) y dependencias.
 #   paste-photo.exe      sin consola  -> icono en la bandeja (lo que abre el usuario)
 #   paste-photo-cli.exe  con consola  -> `run`, `--probe`... desde una terminal
@@ -25,6 +27,9 @@ a = Analysis(
     hiddenimports=hiddenimports,
     excludes=["tkinter", "pytest", "ruff"],
     noarchive=False,
+    # LGPL-3.0: pystray va como archivos .py sueltos en _internal/pystray (no dentro del
+    # archivo comprimido) para que el usuario pueda sustituirlo. Ver docs/COMPONENTS_LICENSE.md.
+    module_collection_mode={"pystray": "py"},
 )
 pyz = PYZ(a.pure)
 

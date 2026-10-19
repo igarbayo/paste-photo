@@ -7,6 +7,23 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-19
+
+### Added
+- Licencia **MIT** (`LICENSE`, `LICENSES/MIT.txt`) y cabeceras SPDX en todo el código Python.
+- `docs/COMPONENTS_LICENSE.md`: análisis de licencias de todos los componentes
+  (dependencias, binarios nativos del instalador, herramientas, recursos y marcas).
+- El instalador incluye `LICENSE`, `THIRD-PARTY-NOTICES.txt` y los textos completos de las
+  licencias de terceros (`licenses/`), generados por `packaging/third_party.py`, y muestra
+  la licencia durante la instalación.
+- Secciones de licencia en README y CONTRIBUTING, y regla de licencias en `CLAUDE.md`.
+
+### Changed
+- pystray (LGPL-3.0) se distribuye como código fuente sustituible en `_internal/pystray/`
+  para cumplir la LGPL; `build.py` falla si no es así.
+- Manifiestos de winget con `License: MIT`, `LicenseUrl` y `Copyright`.
+- `pyproject.toml` declara `license = "MIT"` (requiere setuptools ≥ 77).
+
 ## [0.2.0] - 2026-10-19
 
 ### Added
@@ -85,6 +102,7 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Configuración `config.toml` y CLI con `--probe`, `--list-targets`, `--debug` y `--config`.
 - Documentación: README, CLAUDE.md (raíz, `core/`, `platforms/`, `targets/`), ADR 0001.
 
-[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/igarbayo/paste-photo/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/igarbayo/paste-photo/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/igarbayo/paste-photo/releases/tag/v0.1.0

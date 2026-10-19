@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Recursos empaquetados (config por defecto, iconos). Funcionan también dentro del .exe."""
 
 from __future__ import annotations

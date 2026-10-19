@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Abstract Factory: cada SO crea su familia coherente de adaptadores."""
 
 from __future__ import annotations

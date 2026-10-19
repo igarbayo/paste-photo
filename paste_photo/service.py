@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Servicio en segundo plano: el motor que comparten todas las interfaces (bandeja, consola...).
 
 Un hilo de trabajo hace todo lo que toca el SO (UI Automation, foco, teclado): procesa las

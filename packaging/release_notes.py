@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Imprime la sección de una versión del CHANGELOG (notas de la release de GitHub).
 
     python packaging/release_notes.py 0.2.0

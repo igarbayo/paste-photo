@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Eventos del dominio. Las interfaces (bandeja, consola...) se suscriben a ellos."""
 
 from __future__ import annotations

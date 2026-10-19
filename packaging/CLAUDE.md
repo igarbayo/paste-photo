@@ -57,7 +57,7 @@ nombre del instalador), el instalador (`/DAppVersion`) y la release (el tag **de
 - Envío automático (`release.yml`, job `winget`): requiere **repo público**, variable
   `WINGET_SUBMIT=true` y secreto `WINGET_TOKEN`. Mientras el repo sea privado, los
   manifiestos van como `winget-manifests-X.Y.Z.zip` en la release.
-- `License: Proprietary` hasta que el repo tenga licencia; actualizar entonces.
+- `License: MIT` (+ `LicenseUrl`, `Copyright`). Si cambia la licencia, actualizar `make_manifests.py`.
 
 ## Otro SO (futuro)
 `build.py` sale con error fuera de Windows. Para macOS/Linux: añadir `packaging/<so>/` y una

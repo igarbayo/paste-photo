@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Construye los artefactos de distribución. Lo usan tanto los desarrolladores como CI.
 
     python packaging/build.py               # .exe (carpeta dist/paste-photo)
@@ -66,6 +69,13 @@ def build_exe(ver: str) -> Path:
     shutil.rmtree(APP_DIR, ignore_errors=True)
     run([sys.executable, "-m", "PyInstaller", str(SPEC), "--noconfirm", "--clean",
          "--distpath", str(DIST), "--workpath", str(BUILD / "pyinstaller")])
+    sys.path.insert(0, str(ROOT / "packaging"))
+    from third_party import write_notices
+
+    print(f"OK: {write_notices(APP_DIR)}")
+    lgpl_source = APP_DIR / "_internal" / "pystray" / "__init__.py"
+    if not lgpl_source.exists():  # requisito LGPL: pystray sustituible por el usuario
+        raise SystemExit(f"pystray debe ir como código fuente en {lgpl_source.parent}")
     cli = APP_DIR / "paste-photo-cli.exe"
     # Humo: el .exe arranca, conoce su versión y encuentra los destinos (plugins empaquetados).
     out = run([str(cli), "--version"], capture=True)

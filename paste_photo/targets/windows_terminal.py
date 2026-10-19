@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Claude Code CLI dentro de una pestaña de Windows Terminal."""
 
 from __future__ import annotations

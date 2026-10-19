@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """Punto de entrada de los .exe (PyInstaller necesita un script, no un módulo)."""
 
 import sys

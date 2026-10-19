@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 igarbayo
+# SPDX-License-Identifier: MIT
+
 """CLI.
 
     paste-photo                  icono en la bandeja (modo por defecto)
