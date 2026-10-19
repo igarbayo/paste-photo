@@ -22,7 +22,7 @@ class Config:
 
 def default_targets(platform: str) -> list[dict[str, Any]]:
     if platform == "windows":
-        return [{"type": "windows_terminal"}]
+        return [{"type": "windows_terminal"}, {"type": "browser"}]
     return []
 
 

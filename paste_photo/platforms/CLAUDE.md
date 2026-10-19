@@ -29,8 +29,12 @@ Pistas:
   (`ydotool`, D-Bus de GNOME/KDE) — documentar limitaciones.
 
 ## Trampas de Windows
-- `SetForegroundWindow` falla si el proceso no recibió la última entrada: por eso
-  `focus.activate()` pulsa Alt sintético antes. No quitarlo.
+- `SetForegroundWindow` falla si el proceso no recibió la última entrada. `focus.activate()`
+  primero se une a la cola de entrada de la ventana activa (`AttachThreadInput`) y, si no
+  basta, pulsa una tecla virtual **sin asignar** (0xE8). Nunca Alt: un Alt suelto llega a la
+  ventana destino y abre la barra de menús en navegadores/apps (verificado en pruebas).
+- Una ventana puede quitarse el foco a sí misma después de restaurarlo (p. ej. Edge durante
+  un inicio de sesión); no es un fallo de paste-photo.
 - El portapapeles puede estar abierto por otro proceso: `_read_image` reintenta.
 - Win+Shift+S puede disparar varios `WM_CLIPBOARDUPDATE` con la misma imagen: lo absorbe
   la deduplicación del Orchestrator.

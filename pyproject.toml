@@ -9,6 +9,7 @@ description = "Pega automáticamente tus capturas de pantalla en Claude Code"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "psutil>=5.9",
     "pywin32>=306; sys_platform == 'win32'",
     "uiautomation>=2.0.18; sys_platform == 'win32'",
 ]

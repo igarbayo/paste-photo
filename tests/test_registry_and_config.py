@@ -33,7 +33,7 @@ def test_config_defaults_when_no_file(tmp_path, monkeypatch):
     monkeypatch.setattr("paste_photo.config.user_config_dir", lambda: tmp_path / "none")
     cfg = load_config("windows")
     assert cfg.source is None
-    assert cfg.targets == [{"type": "windows_terminal"}]
+    assert [t["type"] for t in cfg.targets] == ["windows_terminal", "browser"]
 
 
 def test_config_from_file_skips_disabled(tmp_path):

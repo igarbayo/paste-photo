@@ -24,11 +24,23 @@ settle_ms = 150
 # Vuelve a la pestaña que tenías seleccionada en esa ventana.
 restore_tab = true
 
+# Cualquier chat de Claude en la web (claude.ai: Chat, Code, Design...).
+[[targets]]
+type = "browser"
+# Navegadores (nombre del proceso). Soportados: los basados en Chromium.
+browsers = ["chrome.exe", "msedge.exe", "brave.exe", "vivaldi.exe", "opera.exe"]
+# Coincidencia fuerte: URL de la pestaña visible de cada ventana.
+url_regex = "^(?:https?://)?(?:[\\w-]+\\.)*claude\\.ai(?:[/?#]|$)"
+# Coincidencia débil (pestañas en segundo plano): "... - Claude", "Claude Code"...
+title_regex = "(?:^|\\s)Claude(?:\\s(?:Code|Design))?(?=$|[:(]|\\s[-–|]\\s|\\s\\()"
+# Solo se pega si la pestaña tiene el prompt (editor con esta clase CSS); si no, se
+# prueba la siguiente candidata.
+editor_class = "ProseMirror"
+paste_keys = "ctrl+v"
+settle_ms = 250
+restore_tab = true
+
 # Pendientes de implementar (ver paste_photo/targets/CLAUDE.md):
-# [[targets]]
-# type = "browser"
-# enabled = false
-#
 # [[targets]]
 # type = "desktop_app"
 # enabled = false

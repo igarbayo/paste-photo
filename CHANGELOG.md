@@ -7,6 +7,25 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+- Destino `browser`: pega en cualquier chat de Claude en la web (claude.ai: Chat, Code,
+  Design...) en Chrome, Edge y demás navegadores Chromium. Detecta por URL la pestaña
+  visible y por título las de segundo plano, y solo pega si la pestaña tiene el prompt.
+- Si una pestaña candidata no tiene prompt (falso positivo), se prueba la siguiente.
+- Base `UiaTabTarget` (Template Method) compartida por los destinos con pestañas de Windows.
+- Dependencia `psutil`.
+
+### Changed
+- `browser` forma parte de los destinos por defecto en Windows, detrás de `windows_terminal`.
+
+### Fixed
+- Una pestaña de Windows Terminal cuyo Claude había terminado seguía siendo destino: ahora
+  se exige un proceso `claude` vivo bajo esa ventana (`require_process`, activo por defecto).
+- Ya no llegan pulsaciones sueltas de Alt a la ventana destino al cambiar el foco (abrían la
+  barra de menús en navegadores): se usa `AttachThreadInput` y, si no basta, una tecla
+  virtual sin asignar.
+- Errores COM al recorrer el árbol de UI Automation mientras cambia la página.
+
 ## [0.1.0] - 2026-10-19
 
 ### Added

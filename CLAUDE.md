@@ -71,5 +71,6 @@ python -m venv .venv && .venv/Scripts/python -m pip install -e ".[dev]"   # Wind
 ⚠️ Si lo ejecutas desde una sesión de Claude Code, la imagen se pegará en **esa** sesión.
 
 ## No tocar sin motivo
-- El truco de Alt sintético en `platforms/windows/focus.py` (necesario para `SetForegroundWindow`).
+- `platforms/windows/focus.py`: `AttachThreadInput` + tecla virtual sin asignar (0xE8) para
+  poder hacer `SetForegroundWindow`. **Nunca** usar Alt: abre menús en navegadores.
 - `paste_keys = "alt+v"`: en Windows Terminal, Ctrl+V solo pega texto.

@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import logging
-import re
-import time
 from collections.abc import Mapping
 from typing import Any
 
-from paste_photo.core.ports import TargetHandle
+from paste_photo.targets._win_uia import UiaTabTarget
 from paste_photo.targets.registry import TargetContext, register_target
 
 log = logging.getLogger(__name__)
@@ -17,94 +15,38 @@ WT_WINDOW_CLASS = "CASCADIA_HOSTING_WINDOW_CLASS"
 # Claude Code pone en el título un glifo de estado: ✳ en reposo, ◐◓◑◒ trabajando.
 DEFAULT_TITLE_REGEX = r"^[✳✻✽✶✢·◐◓◑◒]\s|Claude Code"
 DEFAULT_PASTE_KEYS = "alt+v"  # Ctrl+V en Windows Terminal solo pega texto
+DEFAULT_PROCESS_NAMES = ("claude.exe", "claude")
 
 
-class WindowsTerminalTarget:
+class WindowsTerminalTarget(UiaTabTarget):
     name = "windows_terminal"
+    tab_search_depth = 8
 
     def __init__(
         self,
         ctx: TargetContext,
         *,
-        title_regex: str = DEFAULT_TITLE_REGEX,
-        paste_keys: str = DEFAULT_PASTE_KEYS,
-        settle_ms: int = 150,
-        restore_tab: bool = True,
+        require_process: bool = True,
+        process_names: tuple[str, ...] = DEFAULT_PROCESS_NAMES,
+        **kwargs: Any,
     ) -> None:
-        # Imports perezosos: este módulo se importa en cualquier SO para registrarse.
-        import uiautomation
-        import win32gui
+        super().__init__(ctx, **kwargs)
+        self._require_process = require_process
+        self._process_names = process_names
 
-        self._auto = uiautomation
-        self._win32gui = win32gui
-        self._ctx = ctx
-        self._title_re = re.compile(title_regex)
-        self._paste_keys = paste_keys
-        self._settle_s = settle_ms / 1000
-        self._restore_tab = restore_tab
+    def _candidate_windows(self) -> list[int]:
+        windows = self._windows_of_class(WT_WINDOW_CLASS)
+        if not self._require_process:
+            return windows
+        # Una pestaña conserva su título aunque Claude haya terminado: exigimos que el
+        # proceso de esa ventana de WT tenga un `claude` vivo entre sus descendientes.
+        from paste_photo.targets._processes import ancestor_pids_of
 
-    def locate(self) -> TargetHandle | None:
-        matches: list[TargetHandle] = []
-        for hwnd in self._terminal_windows():
-            for tab in self._tabs(hwnd):
-                if self._title_re.search(tab.Name):
-                    matches.append(TargetHandle(window_id=hwnd, label=tab.Name, extra={"tab": tab}))
-        if not matches:
-            return None
-        if len(matches) > 1:
-            log.info("Hay %d pestañas de Claude Code; se usa la más visible", len(matches))
-        # Prioridad: pestaña seleccionada > en la ventana activa > la primera.
-        foreground = self._win32gui.GetForegroundWindow()
-        matches.sort(
-            key=lambda h: (not self._is_selected(h.extra["tab"]), h.window_id != foreground)
-        )
-        return matches[0]
-
-    def paste(self, handle: TargetHandle) -> None:
-        tab = handle.extra["tab"]
-        previous_tab = self._selected_tab(handle.window_id) if self._restore_tab else None
-
-        self._ctx.focus.activate(handle.window_id)
-        if not self._is_selected(tab):
-            tab.GetSelectionItemPattern().Select()
-        time.sleep(self._settle_s)
-        self._ctx.keyboard.send_hotkey(self._paste_keys)
-        time.sleep(self._settle_s)
-
-        if previous_tab is not None and previous_tab.Name != tab.Name:
-            previous_tab.GetSelectionItemPattern().Select()
-
-    # --- helpers -----------------------------------------------------------
-
-    def _terminal_windows(self) -> list[int]:
-        found: list[int] = []
-
-        def collect(hwnd: int, _: Any) -> None:
-            if self._win32gui.GetClassName(hwnd) == WT_WINDOW_CLASS:
-                found.append(hwnd)
-
-        self._win32gui.EnumWindows(collect, None)
-        return found
-
-    def _tabs(self, hwnd: int) -> list[Any]:
-        root = self._auto.ControlFromHandle(hwnd)
-        if root is None:
-            return []
-        return [
-            ctrl
-            for ctrl, _depth in self._auto.WalkControl(root, maxDepth=8)
-            if ctrl.ControlType == self._auto.ControlType.TabItemControl
-        ]
-
-    def _selected_tab(self, hwnd: int) -> Any | None:
-        return next((t for t in self._tabs(hwnd) if self._is_selected(t)), None)
-
-    @staticmethod
-    def _is_selected(tab: Any) -> bool:
-        try:
-            return bool(tab.GetSelectionItemPattern().IsSelected)
-        except Exception:
-            return False
+        hosts = ancestor_pids_of(self._process_names)
+        alive = [w for w in windows if self._window_pid(w) in hosts]
+        if len(alive) < len(windows):
+            log.debug("Ventanas de WT sin Claude vivo descartadas: %d", len(windows) - len(alive))
+        return alive
 
 
 @register_target("windows_terminal")
@@ -117,4 +59,6 @@ def build(options: Mapping[str, Any], ctx: TargetContext) -> WindowsTerminalTarg
         paste_keys=options.get("paste_keys", DEFAULT_PASTE_KEYS),
         settle_ms=int(options.get("settle_ms", 150)),
         restore_tab=bool(options.get("restore_tab", True)),
+        require_process=bool(options.get("require_process", True)),
+        process_names=tuple(options.get("process_names", DEFAULT_PROCESS_NAMES)),
     )
