@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paste-photo"
+dynamic = ["version"]
+description = "Pega automáticamente tus capturas de pantalla en Claude Code"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pywin32>=306; sys_platform == 'win32'",
+    "uiautomation>=2.0.18; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+paste-photo = "paste_photo.__main__:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "paste_photo.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["paste_photo*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

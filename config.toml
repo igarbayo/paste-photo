@@ -1,0 +1,38 @@
+# Configuración de paste-photo.
+# Se busca en este orden: --config RUTA, ./config.toml, %APPDATA%\paste-photo\config.toml
+# (macOS: ~/Library/Application Support/paste-photo, Linux: ~/.config/paste-photo).
+
+[general]
+# Ignora la misma imagen si vuelve a llegar antes de este tiempo (Win+Shift+S
+# puede notificar varias veces la misma captura).
+debounce_ms = 2000
+# Tras pegar, devuelve el foco a la ventana en la que estabas.
+restore_focus = true
+
+# Destinos, en orden de prioridad: se pega en el primero que encuentre Claude Code.
+# Tipos disponibles: `python -m paste_photo --list-targets`
+
+[[targets]]
+type = "windows_terminal"
+# Regex sobre el título de la pestaña. Claude Code lo prefija con ✳ (en reposo)
+# o ◐◓◑◒ (trabajando). Para una pestaña concreta, p. ej.: "mi-proyecto"
+title_regex = "^[✳✻✽✶✢·◐◓◑◒]\\s|Claude Code"
+# Ctrl+V en Windows Terminal solo pega texto; Claude Code usa Alt+V para imágenes.
+paste_keys = "alt+v"
+# Espera (ms) tras enfocar antes de enviar teclas.
+settle_ms = 150
+# Vuelve a la pestaña que tenías seleccionada en esa ventana.
+restore_tab = true
+
+# Pendientes de implementar (ver paste_photo/targets/CLAUDE.md):
+# [[targets]]
+# type = "browser"
+# enabled = false
+#
+# [[targets]]
+# type = "desktop_app"
+# enabled = false
+#
+# [[targets]]
+# type = "vscode"
+# enabled = false
