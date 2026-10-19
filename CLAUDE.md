@@ -64,7 +64,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -e ".[dev]"   # Wind
 - Python ≥ 3.11, type hints en todo, `from __future__ import annotations`.
 - Interfaces con `typing.Protocol` (no ABCs); dataclasses `frozen` para valores.
 - `logging` (nunca `print`, salvo salida de CLI como `--probe`).
-- Código, comentarios, mensajes y docs en **español**.
+- Código, comentarios, mensajes y docs internas en **español**; `README.md` y `CONTRIBUTING.md` en **inglés** (cara pública del repo).
 - Línea máx. 100; ruff con reglas `E,F,I,UP,B`.
 - Tests del núcleo con fakes; nada de tests que dependan de ventanas reales.
 

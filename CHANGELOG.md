@@ -17,6 +17,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   dentro de la distro que hay un `claude` en marcha.
 - Una sola instancia de paste-photo a la vez (bloqueo en el directorio temporal).
 - Tabla de teclas de pegado de imágenes por sistema operativo en `targets/CLAUDE.md`.
+- `CONTRIBUTING.md` (en inglés): entorno, flujo de pull requests, estilo, Conventional
+  Commits y definición de terminado.
 - Destino `browser`: pega en cualquier chat de Claude en la web (claude.ai: Chat, Code,
   Design...) en Chrome, Edge y demás navegadores Chromium. Detecta por URL la pestaña
   visible y por título las de segundo plano, y solo pega si la pestaña tiene el prompt.
@@ -27,6 +29,7 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ### Changed
 - `browser` forma parte de los destinos por defecto en Windows, detrás de `windows_terminal`.
 - Si un destino falla al pegar, se prueba el siguiente en vez de perder la captura.
+- `README.md` reescrito en inglés y simplificado; el detalle de opciones queda en `config.toml`.
 
 ### Removed
 - `general.debounce_ms`: sustituido por `general.remember_images`.

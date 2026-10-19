@@ -1,103 +1,86 @@
 # paste-photo
 
-Haz una captura y aparece sola en Claude.
+<!-- Badges: register the project first, then uncomment.
+     REUSE:      https://api.reuse.software/register
+     OpenSSF BP: https://www.bestpractices.dev/en/projects/new
+     Scorecard:  https://scorecard.dev/ (needs a public repo)
+[![REUSE status](https://api.reuse.software/badge/github.com/igarbayo/paste-photo)](https://api.reuse.software/info/github.com/igarbayo/paste-photo)
+     OpenSSF Best Practices: copy the badge markdown from your project page once registered.
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/igarbayo/paste-photo/badge)](https://scorecard.dev/viewer/?uri=github.com/igarbayo/paste-photo)
+-->
 
-`paste-photo` vigila tus capturas de pantalla y, si tienes Claude abierto (Claude Code en la
-terminal o cualquier chat de claude.ai en el navegador), enfoca su pestaña, pega la imagen
-(sin enviarla) y te devuelve a la ventana y pestaña en las que estabas.
+Take a screenshot and it shows up in Claude by itself.
 
-## Soporte
+paste-photo watches for new screenshots. When Claude is open, it pastes the image into
+the Claude you used last, without sending it, and puts you back where you were.
 
-| Sistema | Destino | Estado |
+## Supported platforms
+
+| System | Where Claude runs | Status |
 |---|---|---|
-| Windows 10/11 | Claude Code en **Windows Terminal** | ✅ |
-| Windows 10/11 | **Navegador**: cualquier chat de claude.ai (Chat, Code, Design) en Chrome, Edge y demás Chromium | ✅ |
-| Windows | Firefox | ⏳ sin probar |
-| Windows/macOS/Linux | App oficial de escritorio | ⏳ pendiente |
-| Windows/macOS/Linux | Extensión de VS Code | ⏳ pendiente |
-| macOS, Linux | Cualquiera | ⏳ pendiente |
+| Windows 10/11 | Claude Code in Windows Terminal (also inside WSL) | ✅ |
+| Windows 10/11 | Any claude.ai chat (Chat, Code, Design) in Chrome, Edge or another Chromium browser | ✅ |
+| macOS, Linux | Any | Planned |
 
-La arquitectura ya está preparada para todos ellos; ver [ADR 0001](docs/adr/0001-arquitectura-hexagonal.md).
+## Quick start
 
-## Requisitos
-- Python 3.11 o superior
-- Claude Code en una pestaña de Windows Terminal (también dentro de WSL), o claude.ai
-  abierto en Chrome/Edge
-
-## Instalación
 ```bash
-pipx install .                      # instalación global con el comando `paste-photo`
-# o, para desarrollo:
+git clone https://github.com/igarbayo/paste-photo.git
+cd paste-photo
 python -m venv .venv
-.venv\Scripts\python -m pip install -e ".[dev]"
+.venv\Scripts\python -m pip install -e .
+.venv\Scripts\python -m paste_photo
 ```
 
-## Uso
+Then press **Win+Shift+S** and select an area. In the terminal the image appears as
+`[Image #1]` in the Claude Code prompt. Add your message and send it whenever you want.
+
+## Examples
+
 ```bash
-paste-photo                 # se queda escuchando; Ctrl+C para salir
-paste-photo --probe         # dice en qué pestaña pegaría, sin pegar nada
-paste-photo --debug         # logs detallados
-paste-photo --config RUTA   # usar otro config.toml
-paste-photo --list-targets  # tipos de destino disponibles
+python -m paste_photo                 # listen until Ctrl+C
+python -m paste_photo --probe         # show where the next screenshot would go (pastes nothing)
+python -m paste_photo --debug         # verbose logs
+python -m paste_photo --config my.toml
 ```
 
-1. Abre Claude Code en Windows Terminal, o claude.ai (Chat, Code o Design) en el navegador.
-2. Lanza `paste-photo`.
-3. Pulsa **Win+Shift+S** y recorta. La imagen queda adjunta en el prompt de Claude
-   (`[Image #N]` en la terminal); escribe tu mensaje y envíalo cuando quieras.
+Sample `--probe` output, with Claude open in both the terminal and the browser:
 
-**¿Terminal y navegador a la vez?** La captura va al Claude que usaste por última vez:
-si estás escribiendo en la terminal, a la terminal; si vienes del chat de Chrome, a Chrome.
-Con `prefer = "order"` manda el orden de `[[targets]]` en `config.toml`.
-`paste-photo --probe` muestra el orden en que lo intentaría.
-
-Cada imagen se pega **una sola vez**: si la quitas del chat, no vuelve aunque otra app la
-devuelva al portapapeles. Solo puede haber una instancia de `paste-photo` a la vez.
-
-## Configuración
-Se busca `config.toml` en: `--config RUTA` → directorio actual →
-`%APPDATA%\paste-photo\config.toml`. Si no hay ninguno, se usan los valores por defecto.
-
-| Clave | Por defecto | Para qué |
-|---|---|---|
-| `general.remember_images` | `100` | Cada imagen se pega una sola vez; se recuerdan las últimas N |
-| `general.prefer` | `recent` | `recent`: el Claude usado por última vez; `order`: el primero de la lista |
-| `general.restore_focus` | `true` | Volver a tu ventana tras pegar |
-| `targets[].type` | `windows_terminal`, `browser` | Tipo de destino (en orden de prioridad) |
-| `targets[].enabled` | `true` | Desactivar un destino sin borrarlo |
-| `title_regex` | según destino | Qué pestaña es Claude (por su título) |
-| `paste_keys` | `alt+v` (terminal), `ctrl+v` (navegador) | Combinación de pegado |
-| `settle_ms` | `150` / `250` | Espera tras enfocar antes de pulsar teclas |
-| `restore_tab` | `true` | Volver a la pestaña que tenías seleccionada |
-| `require_process` (terminal) | `true` | Exigir un Claude vivo en esa ventana de WT |
-| `wsl` (terminal) | `true` | Detectar Claude Code dentro de WSL (`wsl.exe -d <distro>`) |
-| `browsers` (navegador) | Chrome, Edge, Brave, Vivaldi, Opera | Procesos de navegador a mirar |
-| `url_regex` (navegador) | `claude.ai` | URL que identifica la pestaña visible |
-| `editor_class` (navegador) | `ProseMirror` | Solo se pega si existe el prompt |
-
-**¿Solo una pestaña concreta?** Pon en `title_regex` parte de su título, p. ej. `"mi-proyecto"`.
-Comprueba el resultado con `paste-photo --probe`.
-
-Ejemplo completo y comentado: [config.toml](config.toml).
-
-## Arrancar con Windows
-Crea un acceso directo en `shell:startup` (Win+R → `shell:startup`) que ejecute
-`pythonw -m paste_photo` (o `paste-photo` si lo instalaste con pipx).
-
-## Limitaciones
-- Cualquier imagen copiada al portapapeles (no solo capturas) se pega.
-- Terminal: la detección se basa en el título de la pestaña que pone Claude Code; si
-  cambia, ajusta `title_regex`.
-- Navegador: solo se conoce la URL de la pestaña **visible** de cada ventana. Las de
-  segundo plano se reconocen por título, así que un proyecto de Claude Design (titulado
-  con su nombre) solo se detecta si está visible.
-- Durante un instante se enfoca la ventana/pestaña de Claude.
-- Si lo lanzas desde una sesión de Claude Code, esa sesión será el destino.
-
-## Desarrollo
-```bash
-.venv\Scripts\python -m pytest -q
-.venv\Scripts\ruff check .
+```text
+1. windows_terminal   -> '✳ my-project'
+2. browser            -> 'New chat - Claude'
 ```
-- Guía para agentes de IA: [CLAUDE.md](CLAUDE.md) (+ `CLAUDE.md` en `core/`, `platforms/`, `targets/`).
-- Todo cambio se anota en [CHANGELOG.md](CHANGELOG.md) (formato Keep a Changelog).
+
+## How it works
+
+```text
+ screenshot ──► clipboard listener ──► orchestrator ──► most recently used Claude
+ (Win+Shift+S)   (new image only)      (each image      ├─ Windows Terminal tab  (Alt+V)
+                                        pasted once)    └─ claude.ai browser tab (Ctrl+V)
+                                                           then focus goes back to you
+```
+
+The core does not depend on the operating system. Each OS and each place Claude can run
+is a separate adapter, so new ones can be added without touching the core.
+
+## Configuration
+
+Settings live in [`config.toml`](config.toml), and every option is commented there. The most
+useful ones:
+
+- `prefer = "recent"`: paste into the Claude you used last (`"order"` follows the list order instead).
+- `title_regex`: only paste into a specific tab, e.g. `"my-project"`.
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| Nothing gets pasted | Make sure paste-photo is running. Run `--probe` to see whether it finds Claude. |
+| `paste-photo ya se está ejecutando` (already running) | Only one instance is allowed at a time. Close the other one. |
+| It pastes in the wrong place | Use the Claude you want right before taking the screenshot, or set `prefer = "order"`. |
+| A browser tab is not detected | Background tabs are matched by title. A Claude Design project is only detected while it is the visible tab. |
+
+## Support
+
+Open an [issue](https://github.com/igarbayo/paste-photo/issues). Contributions are welcome:
+see [CONTRIBUTING.md](CONTRIBUTING.md). Changes are listed in [CHANGELOG.md](CHANGELOG.md).
