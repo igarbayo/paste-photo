@@ -34,7 +34,7 @@ Error frecuente: creer que Alt+V es para macOS/Linux. Es al revés.
 3. Importa librerías de SO **dentro del constructor o de una función** (el módulo se importa
    en todos los SO). Patrón en `browser.py`: `_windows_browser_target()` define la clase.
 4. Añade el módulo a `_BUILTIN_MODULES` en `registry.py` (o sustituye su stub `_pending`).
-5. Documenta sus opciones en `config.toml` (comentadas) y en el README.
+5. Documenta sus opciones (comentadas) en `paste_photo/resources/default_config.toml` y en el README.
 6. Tests en `tests/`: lógica pura (regex, puntuación) con nombres **reales** observados.
 7. CHANGELOG: `Added`.
 

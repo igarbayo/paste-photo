@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
+
 _TODO = "Linux aún no está soportado (ver paste_photo/platforms/CLAUDE.md)"
 
 
@@ -16,3 +18,9 @@ class LinuxFactory:
 
     def create_keyboard(self):
         raise NotImplementedError(_TODO)
+
+    def create_autostart(self):
+        raise NotImplementedError(_TODO)
+
+    def worker_context(self):
+        return nullcontext()

@@ -24,6 +24,8 @@ Chrome/Edge.
    python -m venv .venv
    .venv\Scripts\python -m pip install -e ".[dev]"     # on macOS/Linux: .venv/bin/python
    ```
+   Add `build` to the extras (`".[dev,build]"`) if you want to build the `.exe` with
+   `python packaging/build.py`.
 3. Check that everything is green before you change anything:
    ```bash
    .venv\Scripts\python -m pytest -q
@@ -85,7 +87,9 @@ A contribution is ready to merge when:
 - [ ] `pytest` and `ruff check .` pass.
 - [ ] New behavior is covered by tests.
 - [ ] `CHANGELOG.md` has an entry under `[Unreleased]`.
-- [ ] User-facing changes are documented (README, `config.toml` comments, `CLAUDE.md`).
+- [ ] The README describes the product as it is after your change (new or changed
+      features, options, platforms).
+- [ ] User-facing options are documented in `paste_photo/resources/default_config.toml`.
 - [ ] Commits follow Conventional Commits.
 - [ ] A maintainer has approved the pull request.
 

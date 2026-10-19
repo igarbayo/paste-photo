@@ -7,7 +7,31 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-19
+
 ### Added
+- **Icono en la bandeja del sistema** (modo por defecto): activar/pausar, elegir dónde pegar,
+  notificaciones, "¿Dónde pegaría ahora?", abrir configuración y registro, iniciar con
+  Windows y salir. Los ajustes del menú se guardan en `config.toml` sin perder comentarios.
+- **Instalador de Windows** (Inno Setup, por usuario, sin permisos de administrador): menú
+  Inicio, inicio automático y PATH opcionales, desinstalador que limpia ambos.
+- Dos ejecutables (PyInstaller): `paste-photo.exe` (bandeja, sin consola) y
+  `paste-photo-cli.exe` (`run`, `--probe`... desde una terminal).
+- **GitHub Actions**: CI (lint y tests en Windows y Linux, build del `.exe`) y release al
+  subir un tag `vX.Y.Z` (instalador, SHA-256 y manifiestos de winget en la release).
+- **winget**: generación y validación de manifiestos (`igarbayo.paste-photo`) y envío
+  automático opcional a microsoft/winget-pkgs.
+- `PasteService`: servicio en segundo plano reutilizable por cualquier interfaz (eventos
+  `Pasted`, `NotPasted`, `StateChanged`; órdenes en el hilo de trabajo).
+- Modo consola explícito: `paste-photo run`.
+- Registro en archivo rotativo (`%LOCALAPPDATA%\paste-photo\logs`).
+- La primera ejecución crea `%APPDATA%\paste-photo\config.toml` desde la plantilla.
+- Si se abre una segunda instancia sin consola, avisa con una ventana.
+- Icono de la aplicación (`packaging/make_icon.py`).
+- Regla en `CLAUDE.md`: el README debe reflejar siempre las funcionalidades desarrolladas.
+- README actualizado: instalación (instalador, winget, código fuente), bandeja, CLI,
+  configuración, desinstalación y problemas frecuentes.
+- `ui/CLAUDE.md` y `packaging/CLAUDE.md` con recetas para ampliar la bandeja y publicar.
 - Prioridad por uso reciente (`general.prefer = "recent"`, por defecto): con Claude abierto
   en varios sitios, la captura va al que usaste por última vez (p. ej. la terminal en la que
   estás escribiendo, aunque también haya un chat en el navegador). `prefer = "order"`
@@ -27,6 +51,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Dependencia `psutil`.
 
 ### Changed
+- `paste-photo` sin argumentos abre la bandeja; el modo consola anterior es `paste-photo run`.
+- La configuración por defecto vive en el paquete (`paste_photo/resources/default_config.toml`).
 - `browser` forma parte de los destinos por defecto en Windows, detrás de `windows_terminal`.
 - Si un destino falla al pegar, se prueba el siguiente en vez de perder la captura.
 - `README.md` reescrito en inglés y simplificado; el detalle de opciones queda en `config.toml`.
@@ -59,5 +85,6 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Configuración `config.toml` y CLI con `--probe`, `--list-targets`, `--debug` y `--config`.
 - Documentación: README, CLAUDE.md (raíz, `core/`, `platforms/`, `targets/`), ADR 0001.
 
-[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/igarbayo/paste-photo/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/igarbayo/paste-photo/releases/tag/v0.1.0

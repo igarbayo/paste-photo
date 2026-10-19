@@ -56,3 +56,49 @@ class FakeTarget:
         if self._fail_paste:
             raise RuntimeError("boom")
         self.pasted.append(handle)
+
+
+class FakeSource:
+    """Fuente de capturas controlable desde el test (`emit`)."""
+
+    def __init__(self) -> None:
+        self.on_capture = None
+        self.stopped = False
+
+    def start(self, on_capture) -> None:
+        self.on_capture = on_capture
+
+    def stop(self) -> None:
+        self.stopped = True
+
+    def emit(self, image_hash: str) -> None:
+        from paste_photo.core.events import ScreenshotCaptured
+
+        self.on_capture(ScreenshotCaptured(image_hash=image_hash, timestamp=0.0))
+
+
+class FakeFactory:
+    """Plataforma falsa: permite probar el servicio sin SO."""
+
+    name = "fake"
+
+    def __init__(self) -> None:
+        self.source = FakeSource()
+        self.focus = FakeFocus()
+
+    def create_screenshot_source(self):
+        return self.source
+
+    def create_focus_manager(self):
+        return self.focus
+
+    def create_keyboard(self):
+        return FakeKeyboard()
+
+    def create_autostart(self):
+        raise NotImplementedError
+
+    def worker_context(self):
+        from contextlib import nullcontext
+
+        return nullcontext()

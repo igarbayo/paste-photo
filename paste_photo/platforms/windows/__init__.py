@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from contextlib import AbstractContextManager
+
+from paste_photo.platforms.windows.autostart import WindowsAutostart
 from paste_photo.platforms.windows.clipboard_source import WindowsClipboardSource
 from paste_photo.platforms.windows.focus import WindowsFocusManager
 from paste_photo.platforms.windows.keyboard import WindowsKeyboard
@@ -18,3 +21,12 @@ class WindowsFactory:
 
     def create_keyboard(self) -> WindowsKeyboard:
         return WindowsKeyboard()
+
+    def create_autostart(self) -> WindowsAutostart:
+        return WindowsAutostart()
+
+    def worker_context(self) -> AbstractContextManager[None]:
+        # UI Automation usa COM: cada hilo que lo use debe inicializarlo.
+        import uiautomation
+
+        return uiautomation.UIAutomationInitializerInThread()

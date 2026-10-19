@@ -1,0 +1,96 @@
+# Release: al subir un tag vX.Y.Z se construye el instalador, se generan los manifiestos de
+# winget y se publica una release de GitHub con ambos.
+#
+# Envío automático a winget (microsoft/winget-pkgs), opcional:
+#   - el repo debe ser público (winget descarga el instalador sin autenticación);
+#   - variable del repo WINGET_SUBMIT=true y secreto WINGET_TOKEN (PAT clásico con public_repo).
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Comprobar que el tag coincide con __version__
+        id: version
+        shell: bash
+        run: |
+          version=$(python packaging/build.py --version)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::El tag $GITHUB_REF_NAME no coincide con __version__ ($version)"; exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - run: python -m pip install -e ".[dev,build]"
+      - run: pytest -q
+
+      - name: Instalar Inno Setup si no está
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup -y --no-progress
+          }
+
+      - name: Construir .exe e instalador
+        run: python packaging/build.py --installer
+
+      - name: Manifiestos de winget
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          installer="dist/paste-photo-setup-$VERSION.exe"
+          sha=$(sha256sum "$installer" | cut -d' ' -f1)
+          echo "$sha  paste-photo-setup-$VERSION.exe" > "dist/paste-photo-setup-$VERSION.exe.sha256"
+          url="https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME/paste-photo-setup-$VERSION.exe"
+          python packaging/winget/make_manifests.py --version "$VERSION" --url "$url" --sha256 "$sha" --out dist/winget
+          (cd dist/winget && 7z a "../winget-manifests-$VERSION.zip" manifests > /dev/null)
+
+      - name: Validar manifiestos de winget
+        shell: pwsh
+        continue-on-error: true  # winget no siempre está disponible en los runners
+        run: winget validate --manifest "dist/winget/manifests/i/igarbayo/paste-photo/${{ steps.version.outputs.version }}"
+
+      - name: Publicar release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python packaging/release_notes.py "$VERSION" > notes.md
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/paste-photo-setup-$VERSION.exe" \
+            "dist/paste-photo-setup-$VERSION.exe.sha256" \
+            "dist/winget-manifests-$VERSION.zip" \
+            --title "paste-photo $VERSION" --notes-file notes.md
+
+  winget:
+    needs: release
+    if: ${{ vars.WINGET_SUBMIT == 'true' }}
+    runs-on: windows-latest
+    steps:
+      - name: Enviar a microsoft/winget-pkgs
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          gh release download "v$env:VERSION" --repo $env:GITHUB_REPOSITORY --pattern "winget-manifests-*.zip"
+          Expand-Archive "winget-manifests-$env:VERSION.zip" -DestinationPath winget
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          .\wingetcreate.exe submit --token $env:WINGET_TOKEN "winget\manifests\i\igarbayo\paste-photo\$env:VERSION"

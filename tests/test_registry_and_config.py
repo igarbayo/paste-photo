@@ -53,5 +53,6 @@ def test_config_from_file_skips_disabled(tmp_path):
 def test_shipped_config_parses():
     from pathlib import Path
 
-    cfg = load_config("windows", Path(__file__).parent.parent / "config.toml")
+    shipped = Path(__file__).parent.parent / "paste_photo" / "resources" / "default_config.toml"
+    cfg = load_config("windows", shipped)
     assert cfg.targets[0]["type"] == "windows_terminal"

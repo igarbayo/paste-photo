@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import sys
+from contextlib import AbstractContextManager
 from typing import Protocol
 
-from paste_photo.core.ports import FocusManager, Keyboard, ScreenshotSource
+from paste_photo.core.ports import Autostart, FocusManager, Keyboard, ScreenshotSource
 
 
 class PlatformFactory(Protocol):
@@ -16,6 +17,13 @@ class PlatformFactory(Protocol):
     def create_focus_manager(self) -> FocusManager: ...
 
     def create_keyboard(self) -> Keyboard: ...
+
+    def create_autostart(self) -> Autostart: ...
+
+    def worker_context(self) -> AbstractContextManager[None]:
+        """Preparación por hilo para usar los adaptadores fuera del hilo principal
+        (p. ej. COM/UI Automation en Windows)."""
+        ...
 
 
 def current_platform_name() -> str:

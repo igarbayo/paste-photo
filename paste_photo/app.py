@@ -1,9 +1,10 @@
-"""Composition root: cablea plataforma, destinos y orquestador, y corre el bucle."""
+"""Utilidades de aplicación compartidas por las interfaces: instancia única, sondeo, logs y
+la orden con la que el SO debe relanzar la app (inicio automático)."""
 
 from __future__ import annotations
 
 import logging
-import queue
+import logging.handlers
 import sys
 import tempfile
 from collections.abc import Iterator
@@ -11,66 +12,26 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from paste_photo.config import Config
-from paste_photo.core.events import ScreenshotCaptured
-from paste_photo.core.orchestrator import Orchestrator
-from paste_photo.core.ports import TargetStrategy
-from paste_photo.core.recency import Recency
 from paste_photo.platforms.factory import PlatformFactory
-from paste_photo.targets import TargetContext, build_target
+from paste_photo.service import build_context, build_orchestrator
 
 log = logging.getLogger(__name__)
 
 LOCK_FILENAME = "paste-photo.lock"
-FOCUS_POLL_S = 0.25  # cada cuánto se apunta la ventana activa (para "el Claude más reciente")
 
 
 class AlreadyRunningError(RuntimeError):
     pass
 
 
-def build_context(factory: PlatformFactory) -> TargetContext:
-    return TargetContext(
-        platform=factory.name,
-        focus=factory.create_focus_manager(),
-        keyboard=factory.create_keyboard(),
-        recency=Recency(),
-    )
+def probe(config: Config, factory: PlatformFactory) -> list[tuple[str, str]]:
+    """Dónde se intentaría pegar ahora, sin pegar nada.
 
-
-def build_targets(config: Config, ctx: TargetContext) -> list[TargetStrategy]:
-    return [build_target(options, ctx) for options in config.targets]
-
-
-def build_orchestrator(config: Config, ctx: TargetContext) -> Orchestrator:
-    return Orchestrator(
-        build_targets(config, ctx),
-        ctx.focus,
-        recency=ctx.recency,
-        prefer=config.prefer,
-        remember_images=config.remember_images,
-        restore_focus=config.restore_focus,
-    )
-
-
-def probe(config: Config, factory: PlatformFactory) -> int:
-    """Muestra, en orden, dónde se intentaría pegar la próxima captura, sin pegar nada.
-
-    Sin historial de uso, solo cuenta la ventana activa ahora (la terminal desde la que
-    lo lanzas, normalmente)."""
-    ctx = build_context(factory)
-    ctx.recency.touch(ctx.focus.capture())
-    candidates = build_orchestrator(config, ctx).candidates()
-    if not candidates:
-        print("No hay ninguna sesión de Claude abierta")
-        return 1
-    for position, (target, handle) in enumerate(candidates, start=1):
-        print(f"{position}. {target.name:<18} -> {handle.label!r}")
-    return 0
-
-
-def run(config: Config, factory: PlatformFactory) -> None:
-    with single_instance():
-        _run(config, factory)
+    Sin historial de uso, solo cuenta la ventana activa en este momento."""
+    with factory.worker_context():
+        ctx = build_context(factory)
+        ctx.recency.touch(ctx.focus.capture())
+        return [(t.name, h.label) for t, h in build_orchestrator(config, ctx).candidates()]
 
 
 @contextmanager
@@ -103,25 +64,34 @@ def _lock(handle) -> None:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
 
 
-def _run(config: Config, factory: PlatformFactory) -> None:
-    ctx = build_context(factory)
-    orchestrator = build_orchestrator(config, ctx)
-    # El listener corre en su hilo; los pegados se hacen en el principal (UI Automation/COM).
-    events: queue.Queue[ScreenshotCaptured] = queue.Queue()
-    source = factory.create_screenshot_source()
-    source.start(events.put)
-    log.info("paste-photo activo (%s). Destinos: %s (prioridad: %s). Ctrl+C para salir.",
-             factory.name, ", ".join(t["type"] for t in config.targets), config.prefer)
-    try:
-        while True:
-            # Mismo hilo que los pegados: mientras se pega no se registra el foco "prestado".
-            ctx.recency.touch(ctx.focus.capture())
-            try:
-                event = events.get(timeout=FOCUS_POLL_S)  # timeout: Ctrl+C sigue respondiendo
-            except queue.Empty:
-                continue
-            orchestrator.handle(event)
-    except KeyboardInterrupt:
-        log.info("Saliendo...")
-    finally:
-        source.stop()
+def launch_command() -> str:
+    """Orden para arrancar la app en modo bandeja (la usa el inicio automático)."""
+    if getattr(sys, "frozen", False):  # .exe de PyInstaller
+        return f'"{sys.executable}"'
+    python = Path(sys.executable)
+    pythonw = python.with_name("pythonw.exe")  # sin ventana de consola en Windows
+    interpreter = pythonw if pythonw.exists() else python
+    return f'"{interpreter}" -m paste_photo'
+
+
+def setup_logging(log_file: Path | None, *, console: bool, debug: bool) -> None:
+    """Archivo rotativo (siempre que haya ruta) + consola (modo `run`)."""
+    handlers: list[logging.Handler] = []
+    if log_file is not None:
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        handlers.append(
+            logging.handlers.RotatingFileHandler(
+                log_file, maxBytes=1_000_000, backupCount=3, encoding="utf-8"
+            )
+        )
+    if console and sys.stderr is not None:
+        handlers.append(logging.StreamHandler())
+    logging.basicConfig(
+        level=logging.DEBUG if debug else logging.INFO,
+        format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
+        datefmt="%H:%M:%S",
+        handlers=handlers or [logging.NullHandler()],
+        force=True,
+    )
+    logging.getLogger("comtypes").setLevel(logging.WARNING)  # ruido de uiautomation
+    logging.getLogger("PIL").setLevel(logging.WARNING)

@@ -1,6 +1,9 @@
 # Configuración de paste-photo.
 # Se busca en este orden: --config RUTA, ./config.toml, %APPDATA%\paste-photo\config.toml
 # (macOS: ~/Library/Application Support/paste-photo, Linux: ~/.config/paste-photo).
+# La primera vez se crea en el directorio del usuario a partir de esta plantilla.
+# Desde el icono de la bandeja: "Abrir configuración". Los cambios se aplican al reiniciar,
+# salvo los que se cambian desde el propio menú (se guardan aquí y se aplican al momento).
 
 [general]
 # Cada imagen se pega una sola vez. Se recuerdan las últimas N para ignorarlas si vuelven
@@ -12,6 +15,8 @@ remember_images = 100
 prefer = "recent"
 # Tras pegar, devuelve el foco a la ventana en la que estabas.
 restore_focus = true
+# Notificación de la bandeja al pegar ("Captura pegada en ...").
+notify = true
 
 # Destinos. Con prefer = "order" el orden es la prioridad; con "recent" solo desempata.
 # Tipos disponibles: `python -m paste_photo --list-targets`

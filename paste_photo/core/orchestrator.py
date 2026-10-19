@@ -6,7 +6,7 @@ import logging
 from collections import OrderedDict
 from collections.abc import Sequence
 
-from paste_photo.core.events import ScreenshotCaptured
+from paste_photo.core.events import NotPasted, Pasted, ScreenshotCaptured
 from paste_photo.core.ports import FocusManager, TargetHandle, TargetStrategy, preserve_focus
 from paste_photo.core.recency import Recency
 
@@ -39,18 +39,26 @@ class Orchestrator:
         remember_images: int = 100,
         restore_focus: bool = True,
     ) -> None:
-        if prefer not in (PREFER_RECENT, PREFER_ORDER):
-            raise ValueError(f"prefer debe ser {PREFER_RECENT!r} u {PREFER_ORDER!r}: {prefer!r}")
         self._targets = list(targets)
         self._focus = focus
         self._recency = recency or Recency()
-        self._prefer = prefer
+        self.prefer = prefer  # valida
         self._restore_focus = restore_focus
         self._remember = max(1, remember_images)
         self._seen: OrderedDict[str, None] = OrderedDict()
 
-    def handle(self, event: ScreenshotCaptured) -> str | None:
-        """Procesa una captura. Devuelve el nombre del destino usado o None."""
+    @property
+    def prefer(self) -> str:
+        return self._prefer
+
+    @prefer.setter
+    def prefer(self, value: str) -> None:
+        if value not in (PREFER_RECENT, PREFER_ORDER):
+            raise ValueError(f"prefer debe ser {PREFER_RECENT!r} u {PREFER_ORDER!r}: {value!r}")
+        self._prefer = value
+
+    def handle(self, event: ScreenshotCaptured) -> Pasted | NotPasted | None:
+        """Procesa una captura. None = imagen ya vista (se ignora en silencio)."""
         short = event.image_hash[:8]
         if event.image_hash in self._seen:
             self._seen.move_to_end(event.image_hash)
@@ -69,10 +77,10 @@ class Orchestrator:
             except Exception:
                 log.exception("Error pegando en %s; se prueba el siguiente", target.name)
                 continue
-            return target.name
+            return Pasted(event.image_hash, target.name, handle.label)
 
         log.info("Imagen %s: no se pudo pegar en ninguna sesión de Claude", short)
-        return None
+        return NotPasted(event.image_hash)
 
     def candidates(self) -> list[tuple[TargetStrategy, TargetHandle]]:
         """Destinos con Claude abierto, en el orden en que se intentará pegar."""

@@ -9,22 +9,32 @@ description = "Pega automáticamente tus capturas de pantalla en Claude Code"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "pillow>=10",
     "psutil>=5.9",
+    "pystray>=0.19",
+    "tomlkit>=0.12",
     "pywin32>=306; sys_platform == 'win32'",
     "uiautomation>=2.0.18; sys_platform == 'win32'",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6"]
+build = ["pyinstaller>=6.10"]
 
 [project.scripts]
 paste-photo = "paste_photo.__main__:main"
+
+[project.gui-scripts]
+paste-photo-gui = "paste_photo.__main__:main"
 
 [tool.setuptools.dynamic]
 version = { attr = "paste_photo.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["paste_photo*"]
+
+[tool.setuptools.package-data]
+paste_photo = ["resources/*.toml", "resources/*.png", "resources/*.ico"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,10 +1,15 @@
-from paste_photo.core.events import ScreenshotCaptured
+from paste_photo.core.events import NotPasted, ScreenshotCaptured
 from paste_photo.core.orchestrator import Orchestrator
 from tests.fakes import FakeFocus, FakeTarget
 
 
 def shot(h: str = "abc", t: float = 0.0) -> ScreenshotCaptured:
     return ScreenshotCaptured(image_hash=h, timestamp=t)
+
+
+def target_of(result) -> str | None:
+    """Nombre del destino si se pegó; None si no se pegó o se ignoró."""
+    return getattr(result, "target", None)
 
 
 def test_first_matching_target_wins():
@@ -14,14 +19,14 @@ def test_first_matching_target_wins():
     second = FakeTarget("second", 20)
     orch = Orchestrator([absent, first, second], focus)
 
-    assert orch.handle(shot()) == "first"
+    assert target_of(orch.handle(shot())) == "first"
     assert len(first.pasted) == 1
     assert second.pasted == []
 
 
 def test_no_target_found_is_noop():
     orch = Orchestrator([FakeTarget("absent", None)], FakeFocus())
-    assert orch.handle(shot()) is None
+    assert target_of(orch.handle(shot())) is None
 
 
 def test_same_image_is_pasted_only_once_even_much_later():
@@ -53,7 +58,7 @@ def test_failed_paste_falls_through_to_next_target():
     good = FakeTarget("good", 20)
     orch = Orchestrator([FakeTarget("bad", 10, fail_paste=True), good], FakeFocus())
 
-    assert orch.handle(shot()) == "good"
+    assert target_of(orch.handle(shot())) == "good"
 
 
 def test_failed_image_is_not_retried():
@@ -61,8 +66,8 @@ def test_failed_image_is_not_retried():
     target = FakeTarget("t", None)
     orch = Orchestrator([target], FakeFocus())
 
-    assert orch.handle(shot("x")) is None
-    assert orch.handle(shot("x")) is None
+    assert isinstance(orch.handle(shot("x")), NotPasted)
+    assert orch.handle(shot("x")) is None  # misma imagen: ni se reintenta ni se notifica
 
 
 def test_different_images_are_both_pasted():
@@ -89,7 +94,7 @@ def test_focus_is_restored_even_if_paste_fails():
     focus = FakeFocus(current=1)
     orch = Orchestrator([FakeTarget("t", 10, focus=focus, fail_paste=True)], focus)
 
-    assert orch.handle(shot()) is None
+    assert target_of(orch.handle(shot())) is None
     assert focus.current == 1
 
 
@@ -106,7 +111,7 @@ def test_failing_locate_falls_through_to_next_target():
     good = FakeTarget("good", 10)
     orch = Orchestrator([FakeTarget("bad", 1, fail_locate=True), good], FakeFocus())
 
-    assert orch.handle(shot()) == "good"
+    assert target_of(orch.handle(shot())) == "good"
 
 
 def test_recent_prefers_last_used_window_over_config_order():
@@ -120,15 +125,15 @@ def test_recent_prefers_last_used_window_over_config_order():
 
     recency.touch(20, at=1.0)   # usó el navegador hace un rato
     recency.touch(10, at=5.0)   # y ahora está en la terminal
-    assert orch.handle(shot("a")) == "terminal"
+    assert target_of(orch.handle(shot("a"))) == "terminal"
 
     recency.touch(20, at=9.0)   # vuelve al navegador
-    assert orch.handle(shot("b")) == "browser"
+    assert target_of(orch.handle(shot("b"))) == "browser"
 
 
 def test_recent_falls_back_to_config_order_without_history():
     orch = Orchestrator([FakeTarget("first", 1), FakeTarget("second", 2)], FakeFocus())
-    assert orch.handle(shot()) == "first"
+    assert target_of(orch.handle(shot())) == "first"
 
 
 def test_order_mode_ignores_recency():
@@ -140,7 +145,7 @@ def test_order_mode_ignores_recency():
         [FakeTarget("first", 1), FakeTarget("second", 2)], FakeFocus(), recency=recency,
         prefer="order",
     )
-    assert orch.handle(shot()) == "first"
+    assert target_of(orch.handle(shot())) == "first"
 
 
 def test_invalid_prefer():

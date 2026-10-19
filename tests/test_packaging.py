@@ -1,0 +1,55 @@
+"""Scripts de empaquetado: los usa CI al publicar, así que un fallo rompería la release."""
+
+import importlib.util
+import re
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def load(relative: str):
+    spec = importlib.util.spec_from_file_location(Path(relative).stem, ROOT / relative)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_build_version_matches_package():
+    from paste_photo import __version__
+
+    assert load("packaging/build.py").version() == __version__
+
+
+def test_current_version_has_changelog_section():
+    from paste_photo import __version__
+
+    notes = load("packaging/release_notes.py")
+    text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert notes.notes(__version__, text).strip()
+
+
+def test_release_notes_extracts_only_that_version():
+    notes = load("packaging/release_notes.py")
+    text = "## [Unreleased]\n\n## [1.1.0] - 2026-01-02\n### Added\n- b\n\n## [1.0.0]\n- a\n"
+    assert notes.notes("1.1.0", text) == "### Added\n- b\n"
+    with pytest.raises(SystemExit):
+        notes.notes("9.9.9", text)
+
+
+def test_winget_manifests(tmp_path):
+    winget = load("packaging/winget/make_manifests.py")
+    folder = winget.write("1.2.3", "https://example.com/setup.exe", "ab" * 32, tmp_path)
+    assert folder == tmp_path / "manifests" / "i" / "igarbayo" / "paste-photo" / "1.2.3"
+    files = sorted(p.name for p in folder.iterdir())
+    assert files == [
+        "igarbayo.paste-photo.installer.yaml",
+        "igarbayo.paste-photo.locale.en-US.yaml",
+        "igarbayo.paste-photo.yaml",
+    ]
+    installer = (folder / "igarbayo.paste-photo.installer.yaml").read_text(encoding="utf-8")
+    assert "InstallerSha256: " + "AB" * 32 in installer
+    assert "InstallerType: inno" in installer and "Scope: user" in installer
+    for path in folder.iterdir():
+        assert re.search(r"^PackageVersion: 1\.2\.3$", path.read_text(encoding="utf-8"), re.M)

@@ -51,6 +51,17 @@ class FocusManager(Protocol):
 
 
 @runtime_checkable
+class Autostart(Protocol):
+    """Arranque automático al iniciar sesión en el SO."""
+
+    def is_enabled(self) -> bool: ...
+
+    def enable(self, command: str) -> None: ...
+
+    def disable(self) -> None: ...
+
+
+@runtime_checkable
 class TargetStrategy(Protocol):
     """Un sitio donde puede estar Claude Code (terminal, app, navegador...)."""
 
