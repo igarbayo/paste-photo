@@ -8,14 +8,19 @@ packaging/
   make_icon.py           genera paste_photo/resources/icon.png e icon.ico
   release_notes.py       sección de una versión del CHANGELOG (notas de la release)
   windows/
-    paste-photo.spec     PyInstaller: paste-photo.exe (bandeja) + paste-photo-cli.exe (consola)
-    entry.py             script de entrada de los .exe
+    paste-photo.spec     PyInstaller: paste-photo.exe (bandeja), paste-photo-cli.exe (consola)
+                         y paste-photo-native-host.exe (lo lanza el navegador)
+    entry.py             script de entrada común: el nombre del .exe decide el papel
     installer.iss        Inno Setup 6, por usuario
   winget/
     make_manifests.py    manifiestos de winget (igarbayo.paste-photo)
+  linux/
+    build_deb.py         .deb `all`: paquete en /usr/lib/paste-photo, pystray vendorizado,
+                         resto de dependencias de Debian (Depends), lanzadores en /usr/bin
 .github/workflows/
-  ci.yml                 lint + tests (Windows y Linux) + build del .exe
-  release.yml            tag vX.Y.Z → instalador + sha256 + manifiestos → GitHub Release (+ winget)
+  ci.yml                 lint + tests (Windows y Linux), integración X11 (Xvfb), .exe y .deb
+  release.yml            tag vX.Y.Z → .deb + zip de la extensión (job linux) → instalador,
+                         sha256 y manifiestos (job release) → GitHub Release (+ winget)
 ```
 
 ## Versión: una sola fuente
@@ -55,9 +60,16 @@ nombre del instalador), el instalador (`/DAppVersion`) y la release (el tag **de
 - Manifiestos 1.6.0, `InstallerType: inno`, `Scope: user`, `Commands: paste-photo-cli`.
 - Validar: `winget validate --manifest <carpeta de la versión>` (no requiere admin).
 - Envío automático (`release.yml`, job `winget`): requiere **repo público**, variable
-  `WINGET_SUBMIT=true` y secreto `WINGET_TOKEN`. Mientras el repo sea privado, los
-  manifiestos van como `winget-manifests-X.Y.Z.zip` en la release.
+  `WINGET_SUBMIT=true` y secreto `WINGET_TOKEN` (ya configurados; el repo es público).
+  La primera PR fue microsoft/winget-pkgs#456268 (0.2.1). El primer envío falló porque
+  wingetcreate acababa de crear el fork `igarbayo/winget-pkgs`: relanzar el job basta.
 - `License: MIT` (+ `LicenseUrl`, `Copyright`). Si cambia la licencia, actualizar `make_manifests.py`.
+
+## Linux: .deb y pipx
+- `python3 packaging/linux/build_deb.py` (Linux, `dpkg-deb`, pystray instalado en ese Python).
+- El lanzador `/usr/bin/paste-photo` exporta `PYTHONPATH` y `PASTE_PHOTO_LAUNCH` (orden de
+  inicio automático). Probado: `apt install ./paste-photo_X_all.deb` en Debian 13 y en CI.
+- pipx: `pipx install --system-site-packages ...` (AppIndicator vía `python3-gi` del sistema).
 
 ## Otro SO (futuro)
 `build.py` sale con error fuera de Windows. Para macOS/Linux: añadir `packaging/<so>/` y una

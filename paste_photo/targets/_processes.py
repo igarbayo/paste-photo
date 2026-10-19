@@ -6,8 +6,11 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
+from dataclasses import dataclass
 
 import psutil
+
+from paste_photo.core.ports import WindowInfo
 
 
 def processes_named(process_names: Iterable[str]) -> Iterator[psutil.Process]:
@@ -49,3 +52,57 @@ def process_name(pid: int) -> str:
         return psutil.Process(pid).name().lower()
     except (psutil.NoSuchProcess, psutil.AccessDenied):
         return ""
+
+
+# --- Claude Code en ejecución (Linux/macOS: incluye su entorno) -------------------------
+
+CLAUDE_NAMES = ("claude", "claude.exe")
+CLAUDE_CMDLINE_HINT = "@anthropic-ai/claude-code"  # instalación por npm: `node .../cli.js`
+
+
+@dataclass(frozen=True)
+class ClaudeProcess:
+    pid: int
+    environ: dict[str, str]
+    ancestors: tuple[int, ...]  # del padre hacia arriba
+
+
+def is_claude(proc: psutil.Process) -> bool:
+    try:
+        info = getattr(proc, "info", None) or {}  # solo existe en los de process_iter
+        if (info.get("name") or proc.name()).lower() in CLAUDE_NAMES:
+            return True
+        cmdline = info["cmdline"] if "cmdline" in info else proc.cmdline()
+        return any(CLAUDE_CMDLINE_HINT in part for part in (cmdline or []))
+    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        return False
+
+
+def claude_processes() -> list[ClaudeProcess]:
+    """Procesos de Claude Code del usuario, con su entorno (revela tmux, kitty, Konsole...).
+
+    Se descartan los procesos auxiliares de Claude cuyo padre también es Claude."""
+    found: dict[int, ClaudeProcess] = {}
+    for proc in psutil.process_iter(["name", "cmdline"]):
+        if not is_claude(proc):
+            continue
+        try:
+            parents = proc.parents()
+            if any(is_claude(p) for p in parents[:2]):
+                continue
+            environ = proc.environ()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+        found[proc.pid] = ClaudeProcess(proc.pid, environ, tuple(p.pid for p in parents))
+    return list(found.values())
+
+
+def owning_window(ancestors: Iterable[int], windows: Iterable[WindowInfo]) -> WindowInfo | None:
+    """Primera ventana cuyo proceso es un ancestro (el emulador de terminal)."""
+    by_pid: dict[int, WindowInfo] = {}
+    for window in windows:
+        by_pid.setdefault(window.pid, window)
+    for pid in ancestors:
+        if pid in by_pid:
+            return by_pid[pid]
+    return None

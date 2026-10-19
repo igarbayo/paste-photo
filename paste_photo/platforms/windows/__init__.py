@@ -28,6 +28,9 @@ class WindowsFactory:
     def create_autostart(self) -> WindowsAutostart:
         return WindowsAutostart()
 
+    def create_window_system(self) -> None:
+        return None  # los destinos de Windows usan UI Automation directamente
+
     def worker_context(self) -> AbstractContextManager[None]:
         # UI Automation usa COM: cada hilo que lo use debe inicializarlo.
         import uiautomation

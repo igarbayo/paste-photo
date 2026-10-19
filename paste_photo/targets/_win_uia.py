@@ -15,6 +15,7 @@ import re
 import time
 from typing import Any
 
+from paste_photo.core.events import ScreenshotCaptured
 from paste_photo.core.ports import TargetHandle
 from paste_photo.targets.registry import TargetContext
 
@@ -98,7 +99,7 @@ class UiaTabTarget:
         best = candidates[0]
         return TargetHandle(best.window_id, best.label, {**best.extra, "candidates": candidates})
 
-    def paste(self, handle: TargetHandle) -> None:
+    def paste(self, handle: TargetHandle, shot: ScreenshotCaptured | None = None) -> None:
         candidates: list[TargetHandle] = handle.extra.get("candidates", [handle])
         previous: dict[int, Any] = {}
         try:

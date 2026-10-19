@@ -61,6 +61,17 @@ by `packaging/third_party.py`.
 | [Pillow](https://github.com/python-pillow/Pillow) | 13.0.0 | MIT-CMU (HPND) | Tray icon images, generating the app icon | Yes (see 2.2) |
 | [tomlkit](https://github.com/python-poetry/tomlkit) | 0.15.2 | MIT | Saving tray settings without losing comments | Yes |
 
+Linux-only dependencies (`sys_platform == 'linux'` markers):
+
+| Component | Version | License (SPDX) | What we use it for | How it reaches users |
+|---|---|---|---|---|
+| [python-xlib](https://github.com/python-xlib/python-xlib) | 0.33 | **LGPL-2.1-or-later** | X11 windows (EWMH), XTEST keys, XFixes clipboard events | pip/pipx dependency; on Debian, the system package `python3-xlib` (not bundled) |
+| [jeepney](https://gitlab.com/takluyver/jeepney) | 0.9.0 | MIT | D-Bus: Konsole, GNOME Shell helper, KWin scripts, RemoteDesktop portal | pip/pipx dependency; on Debian, `python3-jeepney` (not bundled) |
+
+The `.deb` uses Debian's own packages for Pillow, psutil, python-xlib, jeepney, tomlkit and
+six (declared in `Depends`), so it does not redistribute them. It only ships **pystray**,
+which Debian doesn't package, as unmodified source in `/usr/lib/paste-photo/vendor/pystray`.
+
 ### 2.2 Native binaries inside the Windows distribution
 
 The `.exe` folder (`dist/paste-photo/_internal`) also contains compiled code. These are the
@@ -117,6 +128,8 @@ noted.
 |---|---|---|
 | App icon (`paste_photo/resources/icon.png`, `icon.ico`) | Drawn by code in `packaging/make_icon.py` (original work) | MIT, like the rest of the project |
 | Default configuration (`default_config.toml`) | Original | MIT |
+| Browser extension (`resources/extension/`, incl. `icon128.png`) | Original | MIT |
+| GNOME Shell helper (`resources/gnome_extension/`) | Original | MIT (compatible with the GPL-2.0-or-later that extensions.gnome.org expects) |
 | Documentation | Original | MIT |
 
 ### 2.5 Trademarks and services
@@ -139,6 +152,9 @@ How each license family interacts with MIT:
   LGPL library without becoming LGPL itself. paste-photo only imports pystray and does not
   modify it, so the repository stays MIT. **Redistributing** pystray inside the installer adds
   obligations, covered in section 4.
+- **LGPL-2.1 (python-xlib, Linux).** Same reasoning: paste-photo imports it unmodified. It is
+  never bundled: pip/pipx install it from PyPI and the `.deb` depends on Debian's
+  `python3-xlib`, so users get it, its source and its license from those channels.
 - **GPL-2.0 with bootloader exception (PyInstaller).** The exception exists precisely so that
   bundled apps can use any license. No obligation for paste-photo's code.
 - **GPL / LGPL components we do not ship.** Pillow's Windows wheel excludes libimagequant
@@ -172,6 +188,14 @@ licenses\python\LICENSE.txt   CPython + OpenSSL, libffi, bzip2...
 _internal\pystray\*.py     replaceable LGPL library
 ```
 
+### The Linux `.deb`
+
+| Obligation | How the `.deb` meets it |
+|---|---|
+| paste-photo's license | `/usr/share/doc/paste-photo/copyright` (Debian machine-readable format, MIT). |
+| pystray: notice, license, replaceable source | Same `copyright` file declares `vendor/pystray/*` as LGPL-3+ (full text in `/usr/share/common-licenses/LGPL-3` on every Debian system); pystray ships as unmodified `.py` files in `/usr/lib/paste-photo/vendor/pystray`, which users can replace. |
+| Other dependencies | Not redistributed: declared as Debian `Depends` and installed from the distribution, with their own `copyright` files. |
+
 ## 5. Adding or updating a dependency
 
 1. Check its license **before** adding it:
@@ -183,7 +207,9 @@ _internal\pystray\*.py     replaceable LGPL library
 3. Add it to `pyproject.toml`. `packaging/third_party.py` picks up its license files
    automatically on the next build.
 4. If it is LGPL, add it to `module_collection_mode` in `packaging/windows/paste-photo.spec`
-   and add a notice like pystray's in `third_party.py`.
+   and add a notice like pystray's in `third_party.py`. For Linux, prefer the Debian package
+   in `DEPENDS` (`packaging/linux/build_deb.py`); if you must vendor it, add a `Files:` stanza
+   to the `.deb` copyright text.
 5. If it ships native libraries (like Pillow), list them in section 2.2.
 6. Update this document and the CHANGELOG.
 

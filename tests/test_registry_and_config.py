@@ -22,13 +22,31 @@ def test_unknown_target_type():
 
 
 def test_pending_target_fails_with_clear_message():
-    with pytest.raises(NotImplementedError, match="browser"):
-        build_target({"type": "browser"}, ctx())
+    with pytest.raises(NotImplementedError, match="desktop_app"):
+        build_target({"type": "desktop_app"}, ctx())
 
 
 def test_windows_terminal_rejects_other_platforms():
-    with pytest.raises(ValueError, match="Windows"):
+    with pytest.raises(ValueError, match="no funciona en macos"):
         build_target({"type": "windows_terminal"}, ctx("macos"))
+
+
+def test_targets_declare_their_platforms():
+    from paste_photo.targets import supports
+
+    assert supports("windows_terminal", "windows") and not supports("windows_terminal", "linux")
+    assert supports("tmux", "linux") and not supports("tmux", "windows")
+    assert supports("browser_extension", "linux") and supports("browser_extension", "windows")
+
+
+def test_service_skips_targets_of_other_platforms():
+    from paste_photo.config import Config
+    from paste_photo.service import build_targets
+
+    config = Config(targets=[{"type": "windows_terminal"}, {"type": "tmux"},
+                             {"type": "browser_extension"}])
+    names = [t.name for t in build_targets(config, ctx("linux"))]
+    assert names == ["tmux", "browser_extension"]
 
 
 def test_config_defaults_when_no_file(tmp_path, monkeypatch):
@@ -36,7 +54,9 @@ def test_config_defaults_when_no_file(tmp_path, monkeypatch):
     monkeypatch.setattr("paste_photo.config.user_config_dir", lambda: tmp_path / "none")
     cfg = load_config("windows")
     assert cfg.source is None
-    assert [t["type"] for t in cfg.targets] == ["windows_terminal", "browser"]
+    assert [t["type"] for t in cfg.targets] == [
+        "browser_extension", "windows_terminal", "browser", "tmux", "kitty", "wezterm",
+        "konsole", "linux_terminal"]
 
 
 def test_config_from_file_skips_disabled(tmp_path):
@@ -58,4 +78,7 @@ def test_shipped_config_parses():
 
     shipped = Path(__file__).parent.parent / "paste_photo" / "resources" / "default_config.toml"
     cfg = load_config("windows", shipped)
-    assert cfg.targets[0]["type"] == "windows_terminal"
+    assert cfg.targets[0]["type"] == "browser_extension"
+    from paste_photo.targets import available_targets
+
+    assert {t["type"] for t in cfg.targets} <= set(available_targets())

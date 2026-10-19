@@ -3,15 +3,37 @@
 Recuerda la regla obligatoria del CLAUDE.md raíz: todo cambio lleva entrada en `CHANGELOG.md`.
 
 Strategy + Registry: cada destino es un módulo que registra un *builder*
-`(options: Mapping, ctx: TargetContext) -> TargetStrategy` con `@register_target("tipo")`.
-`options` es la tabla `[[targets]]` de `config.toml`; `ctx` trae `platform`, `focus` y `keyboard`.
+`(options: Mapping, ctx: TargetContext) -> TargetStrategy` con
+`@register_target("tipo", platforms=("linux", ...))` (sin `platforms` = cualquier SO).
+`options` es la tabla `[[targets]]` de `config.toml`; `ctx` trae `platform`, `focus`,
+`keyboard`, `recency` y `windows` (`WindowSystem` o `None`). Los destinos de otro SO se
+omiten solos (`service.build_targets`), así que la config por defecto los lista todos.
 
-| Tipo | Estado | Pegado |
-|---|---|---|
-| `windows_terminal` | ✅ Windows | `alt+v` (Ctrl+V en WT solo pega texto) |
-| `browser` (claude.ai: Chat, Code, Design) | ✅ Windows · Chrome, Edge, Chromium | `ctrl+v` |
-| `desktop_app` | ⏳ `_pending` | Ctrl+V / Cmd+V |
-| `vscode` | ⏳ `_pending` | Ctrl+V / Cmd+V |
+| Tipo | SO | Cómo pega | Foco |
+|---|---|---|---|
+| `browser_extension` | Windows, Linux | la extensión inyecta un `paste` con el PNG en el editor | no |
+| `windows_terminal` | Windows | UI Automation: selecciona la pestaña, **Alt+V** | sí |
+| `browser` | Windows | UI Automation: pestaña + editor, Ctrl+V | sí |
+| `tmux` | Linux, macOS | `tmux -S <socket> send-keys -t <pane> C-v` | no |
+| `kitty` | Linux, macOS | `kitty @ --to $KITTY_LISTEN_ON send-text --match id:N ` | no |
+| `wezterm` | Linux, macOS | `wezterm cli send-text --no-paste --pane-id N ` | no |
+| `konsole` | Linux | D-Bus `org.kde.konsole.Session.sendText("")` | no |
+| `linux_terminal` | Linux | `WindowSystem.activate` + **Ctrl+V** (solo si la pestaña de Claude es la activa) | sí |
+| `desktop_app`, `vscode` | — | ⏳ `_pending` | |
+
+Estado real: probados de punta a punta en Linux (WSL + Xvfb/Openbox) tmux, kitty, Konsole,
+`linux_terminal` (xterm) y `browser_extension` (Chromium); WezTerm solo con tests unitarios.
+
+## Destinos de terminal en Linux: el entorno del proceso manda
+`_processes.claude_processes()` encuentra los `claude` (nombre o `@anthropic-ai/claude-code`
+en la línea de órdenes) y lee su **entorno**, que delata el panel exacto: `TMUX`+`TMUX_PANE`,
+`KITTY_WINDOW_ID`+`KITTY_LISTEN_ON`, `WEZTERM_PANE`, `KONSOLE_DBUS_SERVICE`+`KONSOLE_DBUS_SESSION`.
+- Base común `_env_terminal.EnvTerminalTarget`: cada terminal solo define `describe()` y
+  `send_ctrl_v()`.
+- **tmux manda**: si `TMUX` está, los terminales exteriores (kitty, WezTerm, Konsole) ignoran
+  ese proceso; si no, su Ctrl+V iría al panel activo de tmux, no al de Claude.
+- `linux_terminal` solo atiende procesos que **no** cubre ningún IPC (`handled_by_ipc`).
+- La ventana de un proceso = primera ventana cuyo PID es un ancestro (`owning_window`).
 
 ## Teclas para pegar imágenes (fuente: docs oficiales, *Interactive mode*)
 Elige `paste_keys` según **dónde corre Claude**, no según el destino:
@@ -29,8 +51,8 @@ Error frecuente: creer que Alt+V es para macOS/Linux. Es al revés.
 1. Crea `targets/<tipo>.py` con una clase que cumpla `TargetStrategy` (`name`, `locate`, `paste`).
    - Si en Windows se basa en **pestañas visibles por UI Automation**, hereda de
      `_win_uia.UiaTabTarget` e implementa solo lo que cambia (ver abajo).
-2. Registra un builder con `@register_target("<tipo>")`; valida `ctx.platform` y lee
-   opciones con valores por defecto.
+2. Registra un builder con `@register_target("<tipo>", platforms=(...))` y lee las opciones
+   con valores por defecto. Si el destino puede trabajar sin foco (IPC, extensión), mejor.
 3. Importa librerías de SO **dentro del constructor o de una función** (el módulo se importa
    en todos los SO). Patrón en `browser.py`: `_windows_browser_target()` define la clase.
 4. Añade el módulo a `_BUILTIN_MODULES` en `registry.py` (o sustituye su stub `_pending`).
@@ -53,7 +75,8 @@ mitad de recorrido (COMError) cuando la página cambia.
 
 ## Reglas para `locate()` y `paste()`
 - `locate()` sin efectos visibles: no enfocar, no cambiar de pestaña.
-- `paste()` usa `ctx.focus.activate()` y `ctx.keyboard.send_hotkey()`; **nunca envía Enter**.
+- `paste(handle, shot)`: recibe la captura (`shot.png()` si se necesita la imagen); usa
+  `ctx.focus`/`ctx.windows` y `ctx.keyboard` si hace falta foco; **nunca envía Enter**.
 - Antes de pegar, verifica que hay un prompt donde pegar; si no, no pegues.
 - Si el destino cambia estado interno (pestaña), restáuralo; el foco de ventana lo
   restaura el Orchestrator.

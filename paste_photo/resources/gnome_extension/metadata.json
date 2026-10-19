@@ -1,0 +1,8 @@
+{
+  "uuid": "paste-photo@igarbayo.github.io",
+  "name": "paste-photo helper",
+  "description": "Lets the paste-photo app find the Claude window and paste your screenshots into it on Wayland. Only paste shortcuts can be sent.",
+  "shell-version": ["45", "46", "47", "48", "49", "50"],
+  "url": "https://github.com/igarbayo/paste-photo",
+  "version": 1
+}

@@ -31,6 +31,31 @@ def user_log_dir() -> Path:
     return state / APP_NAME / "logs"
 
 
+def user_data_dir() -> Path:
+    """Datos de la app que no son configuración (p. ej. copia estable de la extensión)."""
+    if sys.platform == "win32":
+        return Path(os.environ.get("LOCALAPPDATA", Path.home())) / APP_NAME
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / APP_NAME
+    return Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")) / APP_NAME
+
+
+def user_state_dir() -> Path:
+    """Estado privado del usuario (claves, tokens). Se crea con permisos 0700 en POSIX."""
+    if override := os.environ.get("PASTE_PHOTO_STATE_DIR"):  # pruebas aisladas
+        base = Path(override)
+    elif sys.platform == "win32":
+        base = Path(os.environ.get("LOCALAPPDATA", Path.home())) / APP_NAME / "state"
+    elif sys.platform == "darwin":
+        base = Path.home() / "Library" / "Application Support" / APP_NAME / "state"
+    else:
+        base = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local" / "state")) / APP_NAME
+    base.mkdir(parents=True, exist_ok=True)
+    if sys.platform != "win32":
+        base.chmod(0o700)
+    return base
+
+
 def user_config_file() -> Path:
     return user_config_dir() / CONFIG_FILENAME
 

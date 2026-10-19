@@ -16,8 +16,11 @@ from tests.fakes import FakeFactory, FakeTarget
 def fake_target_type(monkeypatch):
     """Registra un tipo de destino "fake" controlable desde el test."""
     holder = {"window": 10}
+    registry._load_builtins()
     monkeypatch.setitem(
-        registry._REGISTRY, "fake", lambda options, ctx: FakeTarget("fake", holder["window"])
+        registry._REGISTRY,
+        "fake",
+        registry.TargetEntry(lambda options, ctx: FakeTarget("fake", holder["window"]), None),
     )
     return holder
 

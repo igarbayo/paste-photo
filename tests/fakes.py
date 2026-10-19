@@ -53,7 +53,7 @@ class FakeTarget:
             return None
         return TargetHandle(window_id=self._window_id, label=self.name)
 
-    def paste(self, handle: TargetHandle) -> None:
+    def paste(self, handle: TargetHandle, shot=None) -> None:
         if self._focus is not None:
             self._focus.activate(handle.window_id)
         if self._fail_paste:
@@ -100,6 +100,9 @@ class FakeFactory:
 
     def create_autostart(self):
         raise NotImplementedError
+
+    def create_window_system(self):
+        return None
 
     def worker_context(self):
         from contextlib import nullcontext

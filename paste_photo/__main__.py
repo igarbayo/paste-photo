@@ -5,6 +5,9 @@
 
     paste-photo                  icono en la bandeja (modo por defecto)
     paste-photo run              modo consola, con logs en pantalla (Ctrl+C para salir)
+    paste-photo doctor           diagnóstico: qué funcionará en este equipo y cómo arreglarlo
+    paste-photo setup browser    registra la extensión del navegador (Chrome, Edge, Brave...)
+    paste-photo setup gnome      instala la extensión de GNOME Shell (GNOME Wayland)
     paste-photo --probe          dónde pegaría ahora, sin pegar nada
     paste-photo --list-targets   tipos de destino disponibles
 
@@ -22,7 +25,8 @@ from pathlib import Path
 from paste_photo import __version__
 from paste_photo.paths import user_log_file
 
-MODES = ("tray", "run")
+MODES = ("tray", "run", "doctor", "setup")
+SETUP_WHAT = ("browser", "gnome")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -30,7 +34,9 @@ def main(argv: list[str] | None = None) -> int:
         prog="paste-photo", description="Pega automáticamente tus capturas en Claude."
     )
     parser.add_argument("mode", nargs="?", choices=MODES, default="tray",
-                        help="tray (por defecto): icono en la bandeja; run: modo consola")
+                        help="tray (por defecto), run (consola), doctor, setup")
+    parser.add_argument("what", nargs="?", choices=SETUP_WHAT,
+                        help="para setup: browser o gnome")
     parser.add_argument("--config", type=Path, help="ruta a config.toml")
     parser.add_argument("--debug", action="store_true", help="logs detallados")
     parser.add_argument("--probe", action="store_true", help="muestra dónde pegaría y sale")
@@ -43,7 +49,9 @@ def main(argv: list[str] | None = None) -> int:
         if stream is not None and hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
 
-    interactive = args.mode == "run" or args.probe or args.list_targets
+    if args.mode == "setup" and args.what is None:
+        parser.error("indica qué configurar: paste-photo setup browser | gnome")
+    interactive = args.mode in ("run", "doctor", "setup") or args.probe or args.list_targets
     from paste_photo.app import setup_logging
 
     setup_logging(user_log_file(), console=interactive, debug=args.debug)
@@ -66,12 +74,20 @@ def _dispatch(args: argparse.Namespace) -> int:
     if args.list_targets:
         print("\n".join(available_targets()))
         return 0
+    if args.mode == "setup":
+        return _setup(args.what)
 
     factory = get_platform_factory()
     if args.config is None:
         ensure_user_config()  # la primera vez crea %APPDATA%\paste-photo\config.toml
     config = load_config(factory.name, args.config)
     log.debug("Config: %s", config.source or "valores por defecto")
+
+    if args.mode == "doctor":
+        from paste_photo import doctor
+
+        print(doctor.run(config, factory))
+        return 0
 
     if args.probe:
         candidates = probe(config, factory)
@@ -100,6 +116,21 @@ def _dispatch(args: argparse.Namespace) -> int:
     return 0
 
 
+def _setup(what: str) -> int:
+    if what == "browser":
+        from paste_photo.bridge.install import setup_browser
+
+        print(setup_browser())
+        return 0
+    if sys.platform != "linux":
+        print("La extensión de GNOME Shell solo existe en Linux.")
+        return 1
+    from paste_photo.platforms.linux.gnome import install_extension
+
+    print(install_extension())
+    return 0
+
+
 def _run_tray(service, config, factory, command: str) -> None:
     from paste_photo.config import ensure_user_config
     from paste_photo.ui.tray import TrayApp
@@ -115,6 +146,8 @@ def _run_tray(service, config, factory, command: str) -> None:
         log_path=user_log_file(),
         autostart=autostart,
         launch_command=command,
+        autostart_label="Iniciar con Windows" if sys.platform == "win32"
+        else "Iniciar al iniciar sesión",
     ).run()
 
 

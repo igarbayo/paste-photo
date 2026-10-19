@@ -8,6 +8,7 @@ from paste_photo.targets.registry import (
     available_targets,
     build_target,
     register_target,
+    supports,
 )
 
-__all__ = ["TargetContext", "available_targets", "build_target", "register_target"]
+__all__ = ["TargetContext", "available_targets", "build_target", "register_target", "supports"]

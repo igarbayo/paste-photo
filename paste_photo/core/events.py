@@ -5,7 +5,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Callable
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -18,6 +19,13 @@ class ScreenshotCaptured:
 
     image_hash: str
     timestamp: float
+    # Carga perezosa de la imagen en PNG: solo la piden los destinos que pegan sin el
+    # portapapeles del SO (p. ej. la extensión del navegador). Codificar una captura 4K a
+    # PNG cuesta, así que la fuente la cachea y solo se hace si hace falta.
+    load_png: Callable[[], bytes] | None = field(default=None, compare=False, repr=False)
+
+    def png(self) -> bytes | None:
+        return self.load_png() if self.load_png is not None else None
 
 
 @dataclass(frozen=True)

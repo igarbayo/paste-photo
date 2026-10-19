@@ -25,5 +25,8 @@ class MacOSFactory:
     def create_autostart(self):
         raise NotImplementedError(_TODO)
 
+    def create_window_system(self):
+        return None
+
     def worker_context(self):
         return nullcontext()

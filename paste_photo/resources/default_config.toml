@@ -19,7 +19,19 @@ restore_focus = true
 notify = true
 
 # Destinos. Con prefer = "order" el orden es la prioridad; con "recent" solo desempata.
-# Tipos disponibles: `python -m paste_photo --list-targets`
+# Tipos disponibles: `paste-photo --list-targets`. Cada destino declara en qué sistemas
+# funciona: los que no aplican al tuyo se ignoran solos, así que esta lista vale para
+# Windows y Linux a la vez.
+
+# claude.ai en Chrome, Edge, Brave... (Windows y Linux) mediante la extensión de
+# paste-photo: pega sin cambiar de pestaña ni de ventana, también en pestañas de fondo.
+# Se instala con `paste-photo setup browser`. Si no está conectada, se ignora.
+[[targets]]
+type = "browser_extension"
+# true = además de pegar, traer la pestaña al frente.
+activate = false
+
+# --- Windows ---------------------------------------------------------------------------
 
 [[targets]]
 type = "windows_terminal"
@@ -52,6 +64,32 @@ editor_class = "ProseMirror"
 paste_keys = "ctrl+v"
 settle_ms = 250
 restore_tab = true
+
+# --- Linux -----------------------------------------------------------------------------
+# Terminales con IPC: escriben Ctrl+V en el panel exacto de Claude, sin foco (X11 y Wayland).
+
+[[targets]]
+type = "tmux"
+
+# Requiere en kitty.conf: allow_remote_control socket-only + listen_on unix:@kitty
+[[targets]]
+type = "kitty"
+
+[[targets]]
+type = "wezterm"
+
+[[targets]]
+type = "konsole"
+
+# Cualquier otro terminal (GNOME Terminal, Ptyxis, xterm, Alacritty...): enfoca su ventana
+# y pulsa Ctrl+V. Solo si la pestaña de Claude es la activa (lo dice el título).
+# En GNOME Wayland necesita `paste-photo setup gnome`.
+[[targets]]
+type = "linux_terminal"
+title_regex = "^[✳✻✽✶✢·◐◓◑◒]\\s|Claude Code"
+# En Linux Claude Code pega imágenes con Ctrl+V (Alt+V es solo para Windows y WSL).
+paste_keys = "ctrl+v"
+settle_ms = 150
 
 # Pendientes de implementar (ver paste_photo/targets/CLAUDE.md):
 # [[targets]]

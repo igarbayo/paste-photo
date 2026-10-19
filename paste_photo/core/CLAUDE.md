@@ -14,7 +14,8 @@ Recuerda la regla obligatoria del CLAUDE.md raíz: todo cambio lleva entrada en 
 | `ScreenshotSource` | `start(on_capture)` no bloquea (hilo propio); `on_capture` puede llamarse desde otro hilo; `stop()` es idempotente y libera recursos del SO |
 | `Keyboard` | `send_hotkey("alt+v")` envía la combinación a la ventana con foco. Formato parseado por `hotkey.parse_hotkey` |
 | `FocusManager` | `capture()` devuelve un snapshot opaco; `restore(snapshot)` tolera ventanas ya cerradas; `activate(id)` trae la ventana al frente |
-| `TargetStrategy` | `locate()` es rápido y sin efectos visibles (devuelve `TargetHandle` o `None`); `paste(handle)` enfoca, pega **sin Enter** y puede restaurar su estado interno (p. ej. pestaña) |
+| `TargetStrategy` | `locate()` es rápido y sin efectos visibles (devuelve `TargetHandle` o `None`; `extra["last_used"]` opcional en segundos epoch); `paste(handle, shot)` pega **sin Enter** y puede restaurar su estado interno (p. ej. pestaña) |
+| `WindowSystem` | `list_windows()` → `WindowInfo(id, title, pid, app_id)`; `active_window()`; `activate(id)`. Lo usan `linux_terminal`, el foco en Linux y la prioridad reciente |
 
 ## Orchestrator
 - `prefer = "recent"` (por defecto): pregunta a **todos** los destinos y gana el Claude cuya

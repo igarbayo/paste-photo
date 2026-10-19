@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
+import os
 import sys
 import tempfile
 from collections.abc import Iterator
@@ -71,6 +72,12 @@ def launch_command() -> str:
     """Orden para arrancar la app en modo bandeja (la usa el inicio automático)."""
     if getattr(sys, "frozen", False):  # .exe de PyInstaller
         return f'"{sys.executable}"'
+    if launcher := os.environ.get("PASTE_PHOTO_LAUNCH"):  # lo exporta el lanzador del .deb
+        return launcher
+    if sys.platform != "win32":
+        script = Path(sys.executable).with_name("paste-photo")  # pipx / venv
+        if script.exists():
+            return str(script)
     python = Path(sys.executable)
     pythonw = python.with_name("pythonw.exe")  # sin ventana de consola en Windows
     interpreter = pythonw if pythonw.exists() else python

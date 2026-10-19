@@ -11,8 +11,8 @@ two weeks**, but it can take longer. Thanks for your patience.
 
 ## Set up the environment
 
-You need Python 3.11 or newer, Git and, to try it for real, Windows with Windows Terminal or
-Chrome/Edge.
+You need Python 3.11 or newer and Git. To try it for real you need Windows (Windows Terminal,
+Chrome/Edge) or Linux (X11 or Wayland, with `xclip` or `wl-clipboard`).
 
 1. Fork the repository on GitHub and clone your fork:
    ```bash
@@ -30,6 +30,11 @@ Chrome/Edge.
    ```bash
    .venv\Scripts\python -m pytest -q
    .venv\Scripts\ruff check .
+   ```
+   On Linux you can also run the real desktop tests. They need `xvfb`, `openbox`, `xterm`,
+   `tmux` and `xclip`:
+   ```bash
+   PASTE_PHOTO_INTEGRATION=1 .venv/bin/python -m pytest -q tests/integration
    ```
 
 ## Make your change

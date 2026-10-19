@@ -9,7 +9,13 @@ import sys
 from contextlib import AbstractContextManager
 from typing import Protocol
 
-from paste_photo.core.ports import Autostart, FocusManager, Keyboard, ScreenshotSource
+from paste_photo.core.ports import (
+    Autostart,
+    FocusManager,
+    Keyboard,
+    ScreenshotSource,
+    WindowSystem,
+)
 
 
 class PlatformFactory(Protocol):
@@ -22,6 +28,10 @@ class PlatformFactory(Protocol):
     def create_keyboard(self) -> Keyboard: ...
 
     def create_autostart(self) -> Autostart: ...
+
+    def create_window_system(self) -> WindowSystem | None:
+        """None si el SO no lo necesita (Windows) o la sesión no lo permite."""
+        ...
 
     def worker_context(self) -> AbstractContextManager[None]:
         """Preparación por hilo para usar los adaptadores fuera del hilo principal

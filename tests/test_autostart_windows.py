@@ -26,9 +26,9 @@ def autostart():
 
 def test_enable_disable_roundtrip(autostart):
     assert not autostart.is_enabled()
-    autostart.enable('"C:\Apps\paste-photo.exe"')
+    autostart.enable(r'"C:\Apps\paste-photo.exe"')
     assert autostart.is_enabled()
-    assert autostart.command() == '"C:\Apps\paste-photo.exe"'
+    assert autostart.command() == r'"C:\Apps\paste-photo.exe"'
     autostart.disable()
     assert not autostart.is_enabled()
     autostart.disable()  # idempotente

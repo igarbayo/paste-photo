@@ -1,5 +1,6 @@
-# Release: al subir un tag vX.Y.Z se construye el instalador, se generan los manifiestos de
-# winget y se publica una release de GitHub con ambos.
+# Release: al subir un tag vX.Y.Z se construyen el instalador de Windows, el .deb de Linux y
+# el zip de la extensión del navegador, se generan los manifiestos de winget y se publica
+# una release de GitHub con todo.
 #
 # Envío automático a winget (microsoft/winget-pkgs), opcional:
 #   - el repo debe ser público (winget descarga el instalador sin autenticación);
@@ -14,7 +15,35 @@ permissions:
   contents: write
 
 jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Comprobar que el tag coincide con __version__
+        run: |
+          version=$(python packaging/build.py --version)
+          [ "v$version" = "$GITHUB_REF_NAME" ] || { echo "::error::tag distinto de __version__"; exit 1; }
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+      - run: python -m pip install pystray
+      - name: .deb (se instala con apt para comprobarlo)
+        run: |
+          python packaging/linux/build_deb.py
+          sudo apt-get update -qq && sudo apt-get install -y -qq ./dist/paste-photo_*_all.deb
+          paste-photo --version
+      - name: Zip de la extensión del navegador
+        run: (cd paste_photo/resources/extension && zip -qr "$GITHUB_WORKSPACE/dist/paste-photo-extension-$VERSION.zip" .)
+      - uses: actions/upload-artifact@v5
+        with:
+          name: linux
+          path: |
+            dist/*.deb
+            dist/*.zip
+
   release:
+    needs: linux
     runs-on: windows-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -65,6 +94,11 @@ jobs:
         continue-on-error: true  # winget no siempre está disponible en los runners
         run: winget validate --manifest "dist/winget/manifests/i/igarbayo/paste-photo/${{ steps.version.outputs.version }}"
 
+      - uses: actions/download-artifact@v5
+        with:
+          name: linux
+          path: dist
+
       - name: Publicar release
         shell: bash
         env:
@@ -76,6 +110,8 @@ jobs:
             "dist/paste-photo-setup-$VERSION.exe" \
             "dist/paste-photo-setup-$VERSION.exe.sha256" \
             "dist/winget-manifests-$VERSION.zip" \
+            "dist/paste-photo_${VERSION}_all.deb" \
+            "dist/paste-photo-extension-$VERSION.zip" \
             --title "paste-photo $VERSION" --notes-file notes.md
 
   winget:

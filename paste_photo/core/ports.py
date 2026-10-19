@@ -15,7 +15,11 @@ from paste_photo.core.events import ScreenshotCaptured
 
 @dataclass(frozen=True)
 class TargetHandle:
-    """Referencia opaca a un destino localizado (ventana + datos propios del destino)."""
+    """Referencia opaca a un destino localizado (ventana + datos propios del destino).
+
+    `extra["last_used"]` (opcional, segundos epoch): último uso que conoce el propio destino
+    (p. ej. la extensión del navegador). Si no está, se usa la ventana (`Recency`).
+    """
 
     window_id: int
     label: str
@@ -53,6 +57,27 @@ class FocusManager(Protocol):
     def activate(self, window_id: int) -> None: ...
 
 
+@dataclass(frozen=True)
+class WindowInfo:
+    """Ventana de nivel superior tal como la ve el sistema de ventanas."""
+
+    id: int
+    title: str
+    pid: int
+    app_id: str = ""  # WM_CLASS en X11, app id en Wayland
+
+
+@runtime_checkable
+class WindowSystem(Protocol):
+    """Sistema de ventanas (X11, GNOME Shell, KWin...): listar, ver la activa y activar."""
+
+    def list_windows(self) -> list[WindowInfo]: ...
+
+    def active_window(self) -> int | None: ...
+
+    def activate(self, window_id: int) -> None: ...
+
+
 @runtime_checkable
 class Autostart(Protocol):
     """Arranque automático al iniciar sesión en el SO."""
@@ -74,8 +99,9 @@ class TargetStrategy(Protocol):
         """Devuelve el destino si Claude Code está abierto aquí; si no, None."""
         ...
 
-    def paste(self, handle: TargetHandle) -> None:
-        """Lleva el foco al destino y pega la imagen del portapapeles (sin Enter)."""
+    def paste(self, handle: TargetHandle, shot: ScreenshotCaptured) -> None:
+        """Pega la captura en el destino (sin Enter). Puede usar el portapapeles del SO o
+        `shot.png` directamente."""
         ...
 
 

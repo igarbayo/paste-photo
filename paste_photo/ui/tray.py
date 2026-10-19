@@ -66,6 +66,7 @@ class TrayApp:
         self._prefer = config.prefer
         self._notify = config.notify
         self._images = _icon_images()
+        self._can_notify = True
         self._icon: pystray.Icon | None = None
 
     def run(self) -> None:
@@ -183,11 +184,16 @@ class TrayApp:
     # --- helpers -----------------------------------------------------------
 
     def _toast(self, message: str, *, force: bool = False) -> None:
-        if self._icon is not None and (self._notify or force):
-            try:
-                self._icon.notify(message, APP_TITLE)
-            except Exception:
-                log.exception("No se pudo mostrar la notificación")
+        if self._icon is None or not (self._notify or force) or not self._can_notify:
+            return
+        try:
+            self._icon.notify(message, APP_TITLE)
+        except NotImplementedError:
+            # Backend básico de X11 de pystray: no tiene notificaciones.
+            self._can_notify = False
+            log.info("Esta bandeja no admite notificaciones; se desactivan")
+        except Exception:
+            log.exception("No se pudo mostrar la notificación")
 
     def _save_setting(self, key: str, value: Any) -> None:
         try:

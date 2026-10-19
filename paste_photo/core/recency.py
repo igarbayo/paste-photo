@@ -16,7 +16,9 @@ class Recency:
     """Instante en que cada ventana tuvo el foco por última vez. No es thread-safe:
     se usa desde el hilo principal."""
 
-    def __init__(self, clock: Callable[[], float] = time.monotonic, max_windows: int = 500):
+    # Reloj de pared (no monotónico) para comparar con instantes que aportan los destinos,
+    # como `tab.lastAccessed` de la extensión del navegador.
+    def __init__(self, clock: Callable[[], float] = time.time, max_windows: int = 500):
         self._clock = clock
         self._max = max_windows
         self._seen: OrderedDict[int, float] = OrderedDict()

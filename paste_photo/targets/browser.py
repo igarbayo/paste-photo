@@ -108,7 +108,7 @@ def _windows_browser_target():
     return WindowsBrowserTarget
 
 
-@register_target("browser")
+@register_target("browser", platforms=("windows",))
 def build(options: Mapping[str, Any], ctx: TargetContext):
     if ctx.platform != "windows":
         raise NotImplementedError(

@@ -31,6 +31,48 @@ jobs:
       - run: ruff check .
       - run: pytest -q
 
+  linux-integration:
+    name: Linux X11 (Xvfb + terminales reales)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Escritorio X11 virtual y terminales
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            xvfb openbox xterm tmux xclip x11-utils
+      - run: python -m pip install -e ".[dev]"
+      - name: Capturas reales → tmux y xterm (Ctrl+V en un Claude falso)
+        run: PASTE_PHOTO_INTEGRATION=1 pytest -q tests/integration
+
+  build-deb:
+    name: Build .deb
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install pystray
+      - run: python packaging/linux/build_deb.py
+      - name: Instalar con apt y arrancar
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ./dist/paste-photo_*_all.deb
+          paste-photo --version
+          paste-photo --list-targets
+      - uses: actions/upload-artifact@v5
+        with:
+          name: paste-photo-deb
+          path: dist/*.deb
+          retention-days: 7
+
   build-windows:
     name: Build .exe
     needs: test

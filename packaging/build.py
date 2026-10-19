@@ -81,6 +81,11 @@ def build_exe(ver: str) -> Path:
     out = run([str(cli), "--version"], capture=True)
     if ver not in out:
         raise SystemExit(f"El .exe no informa la versión esperada {ver}: {out!r}")
+    # El host nativo termina limpio cuando el navegador cierra su stdin.
+    host = subprocess.run([str(APP_DIR / "paste-photo-native-host.exe"),
+                           "chrome-extension://test/"], input=b"", capture_output=True, timeout=30)
+    if host.returncode != 0:
+        raise SystemExit(f"El host nativo falló: {host.stderr.decode(errors='replace')}")
     targets = run([str(cli), "--list-targets"], capture=True)
     if "windows_terminal" not in targets or "browser" not in targets:
         raise SystemExit(f"Faltan destinos en el .exe: {targets!r}")

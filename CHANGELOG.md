@@ -7,6 +7,49 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-20
+
+### Added
+- **Linux**: soporte para cualquier terminal y cualquier navegador Chromium, en X11, GNOME
+  Wayland y KDE Wayland. La sesión se detecta sola (`platforms/linux/session.py`).
+- **Extensión de navegador** (Chromium MV3, Windows y Linux) + host de native messaging
+  (`paste-photo-native-host`): pega en claude.ai (Chat, Code, Design) sin foco ni teclas,
+  también en pestañas de fondo y en capturas de varios MB (mensajes troceados). Destino
+  `browser_extension`.
+- Destinos de terminal con IPC, sin foco: `tmux` (`send-keys`), `kitty` (control remoto),
+  `wezterm` (`wezterm cli`) y `konsole` (D-Bus). El panel exacto se obtiene del entorno del
+  proceso `claude`; tmux tiene prioridad si va dentro de otro terminal.
+- Destino `linux_terminal` para cualquier otro terminal: ventana del terminal → foco →
+  Ctrl+V, solo si la pestaña de Claude es la activa.
+- Sistemas de ventanas de Linux: X11 (python-xlib: EWMH + XTEST, con alternativas para
+  gestores sin EWMH y PID por XRes), GNOME Shell (extensión propia `setup gnome`) y KWin
+  (scripts por D-Bus + portal RemoteDesktop).
+- Capturas en Linux: portapapeles X11 (XFixes), `wl-paste --watch` (KDE, wlroots) y carpeta
+  de capturas (GNOME Wayland).
+- `paste-photo doctor`: diagnóstico de sesión, herramientas, extensión, procesos de Claude y
+  bandeja, con cómo arreglar cada problema.
+- `paste-photo setup browser` (registra el host nativo en Chrome, Chromium, Edge, Brave,
+  Vivaldi y Opera) y `paste-photo setup gnome`.
+- Inicio automático en Linux (`~/.config/autostart`, XDG).
+- Paquete **.deb** (`packaging/linux/build_deb.py`) e instalación con **pipx**.
+- `paste-photo-native-host.exe` en el instalador de Windows.
+- CI: integración real en Linux con Xvfb + Openbox + xterm + tmux, y build + instalación del
+  `.deb`. La release publica también el `.deb` y el zip de la extensión.
+- Puerto `WindowSystem` y eventos de captura con la imagen PNG (carga perezosa).
+
+### Changed
+- `TargetStrategy.paste(handle, shot)` recibe la captura.
+- La prioridad "recent" usa también el último uso que conoce el destino (`last_used`), p. ej.
+  la pestaña activa del navegador, y un reloj de pared.
+- Cada destino declara sus sistemas operativos y los de otros SO se omiten: una sola
+  `default_config.toml` para Windows y Linux.
+- "Iniciar con Windows" se llama "Iniciar al iniciar sesión" en Linux.
+
+### Fixed
+- El teclado X11 abre una conexión por pulsación y envía cada evento sincronizado: con una
+  conexión larga, un cambio del mapa de teclado hacía que Ctrl no se aplicara.
+- Sin notificaciones en bandejas que no las admiten, en vez de registrar un error cada vez.
+
 ## [0.2.1] - 2026-10-19
 
 ### Added
@@ -103,7 +146,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Configuración `config.toml` y CLI con `--probe`, `--list-targets`, `--debug` y `--config`.
 - Documentación: README, CLAUDE.md (raíz, `core/`, `platforms/`, `targets/`), ADR 0001.
 
-[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/igarbayo/paste-photo/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/igarbayo/paste-photo/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/igarbayo/paste-photo/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/igarbayo/paste-photo/releases/tag/v0.1.0

@@ -17,6 +17,7 @@ import win32con
 import win32gui
 
 from paste_photo.core.events import ScreenshotCaptured
+from paste_photo.imaging import cached, dib_to_png
 
 log = logging.getLogger(__name__)
 
@@ -87,7 +88,9 @@ class WindowsClipboardSource:
         if data is None or self._on_capture is None:
             return
         event = ScreenshotCaptured(
-            image_hash=hashlib.sha1(data).hexdigest(), timestamp=time.monotonic()
+            image_hash=hashlib.sha1(data).hexdigest(),
+            timestamp=time.monotonic(),
+            load_png=cached(lambda: dib_to_png(data)),
         )
         self._on_capture(event)
 

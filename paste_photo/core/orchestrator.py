@@ -51,6 +51,10 @@ class Orchestrator:
         self._seen: OrderedDict[str, None] = OrderedDict()
 
     @property
+    def target_names(self) -> list[str]:
+        return [t.name for t in self._targets]
+
+    @property
     def prefer(self) -> str:
         return self._prefer
 
@@ -74,9 +78,9 @@ class Orchestrator:
             try:
                 if self._restore_focus:
                     with preserve_focus(self._focus):
-                        target.paste(handle)
+                        target.paste(handle, event)
                 else:
-                    target.paste(handle)
+                    target.paste(handle, event)
             except Exception:
                 log.exception("Error pegando en %s; se prueba el siguiente", target.name)
                 continue
@@ -98,8 +102,14 @@ class Orchestrator:
                 continue
             found.append((order, target, handle))
         if self._prefer == PREFER_RECENT:
-            found.sort(key=lambda f: (-self._recency.last_seen(f[2].window_id), f[0]))
+            found.sort(key=lambda f: (-self.last_used(f[2]), f[0]))
         return [(target, handle) for _order, target, handle in found]
+
+    def last_used(self, handle: TargetHandle) -> float:
+        """Último uso conocido: lo que diga el destino o, si no, su ventana."""
+        own = handle.extra.get("last_used")
+        by_window = self._recency.last_seen(handle.window_id)
+        return max(own, by_window) if own is not None else by_window
 
     def _mark_seen(self, image_hash: str) -> None:
         self._seen[image_hash] = None

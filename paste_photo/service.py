@@ -22,7 +22,7 @@ from paste_photo.config import Config
 from paste_photo.core.events import ScreenshotCaptured, ServiceEvent, StateChanged
 from paste_photo.core.orchestrator import Orchestrator
 from paste_photo.platforms.factory import PlatformFactory
-from paste_photo.targets import TargetContext, build_target
+from paste_photo.targets import TargetContext, available_targets, build_target, supports
 
 log = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ class PasteService:
         log.info(
             "paste-photo activo (%s). Destinos: %s (prioridad: %s)",
             self._factory.name,
-            ", ".join(t["type"] for t in self._config.targets),
+            ", ".join(self._orchestrator.target_names) if self._orchestrator else "-",
             self._config.prefer,
         )
 
@@ -182,12 +182,25 @@ def build_context(factory: PlatformFactory) -> TargetContext:
         platform=factory.name,
         focus=factory.create_focus_manager(),
         keyboard=factory.create_keyboard(),
+        windows=factory.create_window_system(),
     )
+
+
+def build_targets(config: Config, ctx: TargetContext) -> list:
+    """Destinos de la config que funcionan en este SO (el resto se omite en silencio)."""
+    targets = []
+    for options in config.targets:
+        kind = options.get("type")
+        if not supports(kind, ctx.platform) and kind in available_targets():
+            log.debug("Destino %s omitido: no funciona en %s", kind, ctx.platform)
+            continue
+        targets.append(build_target(options, ctx))
+    return targets
 
 
 def build_orchestrator(config: Config, ctx: TargetContext) -> Orchestrator:
     return Orchestrator(
-        [build_target(options, ctx) for options in config.targets],
+        build_targets(config, ctx),
         ctx.focus,
         recency=ctx.recency,
         prefer=config.prefer,

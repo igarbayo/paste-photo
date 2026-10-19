@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "paste-photo"
 dynamic = ["version"]
-description = "Pega automáticamente tus capturas de pantalla en Claude Code"
+description = "Pega automáticamente tus capturas de pantalla en Claude"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -18,6 +18,8 @@ dependencies = [
     "tomlkit>=0.12",
     "pywin32>=306; sys_platform == 'win32'",
     "uiautomation>=2.0.18; sys_platform == 'win32'",
+    "python-xlib>=0.33; sys_platform == 'linux'",
+    "jeepney>=0.8; sys_platform == 'linux'",
 ]
 
 [project.optional-dependencies]
@@ -26,6 +28,7 @@ build = ["pyinstaller>=6.10", "packaging>=23"]
 
 [project.scripts]
 paste-photo = "paste_photo.__main__:main"
+paste-photo-native-host = "paste_photo.bridge.native_host:main"
 
 [project.gui-scripts]
 paste-photo-gui = "paste_photo.__main__:main"
@@ -37,7 +40,13 @@ version = { attr = "paste_photo.__version__" }
 include = ["paste_photo*"]
 
 [tool.setuptools.package-data]
-paste_photo = ["resources/*.toml", "resources/*.png", "resources/*.ico"]
+paste_photo = [
+    "resources/*.toml",
+    "resources/*.png",
+    "resources/*.ico",
+    "resources/extension/*",
+    "resources/gnome_extension/*",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

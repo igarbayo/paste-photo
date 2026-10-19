@@ -80,7 +80,7 @@ class WindowsTerminalTarget(UiaTabTarget):
         return hosts
 
 
-@register_target("windows_terminal")
+@register_target("windows_terminal", platforms=("windows",))
 def build(options: Mapping[str, Any], ctx: TargetContext) -> WindowsTerminalTarget:
     if ctx.platform != "windows":
         raise ValueError("El destino windows_terminal solo funciona en Windows")
