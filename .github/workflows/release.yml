@@ -90,6 +90,10 @@ jobs:
           WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
           VERSION: ${{ needs.release.outputs.version }}
         run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINGET_TOKEN)) {
+            Write-Output "::error::El secreto WINGET_TOKEN está vacío. Guárdalo en Settings > Secrets and variables > Actions y relanza este job."
+            exit 1
+          }
           gh release download "v$env:VERSION" --repo $env:GITHUB_REPOSITORY --pattern "winget-manifests-*.zip"
           Expand-Archive "winget-manifests-$env:VERSION.zip" -DestinationPath winget
           Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe

@@ -23,6 +23,7 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   para cumplir la LGPL; `build.py` falla si no es así.
 - Manifiestos de winget con `License: MIT`, `LicenseUrl` y `Copyright`.
 - `pyproject.toml` declara `license = "MIT"` (requiere setuptools ≥ 77).
+- El envío a winget falla con un mensaje claro si el secreto `WINGET_TOKEN` está vacío.
 
 ## [0.2.0] - 2026-10-19
 
