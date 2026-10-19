@@ -13,6 +13,18 @@ Strategy + Registry: cada destino es un módulo que registra un *builder*
 | `desktop_app` | ⏳ `_pending` | Ctrl+V / Cmd+V |
 | `vscode` | ⏳ `_pending` | Ctrl+V / Cmd+V |
 
+## Teclas para pegar imágenes (fuente: docs oficiales, *Interactive mode*)
+Elige `paste_keys` según **dónde corre Claude**, no según el destino:
+
+| Dónde | Claude Code en terminal | claude.ai en navegador |
+|---|---|---|
+| Windows (WT, PowerShell…) | **`alt+v`** (Ctrl+V lo captura la terminal: solo texto) | `ctrl+v` |
+| WSL | **`alt+v`** (también Ctrl+V si la terminal no lo intercepta) | — |
+| macOS | **`ctrl+v`** (iTerm2 también `cmd+v`) | `cmd+v` |
+| Linux | **`ctrl+v`** | `ctrl+v` |
+
+Error frecuente: creer que Alt+V es para macOS/Linux. Es al revés.
+
 ## Receta: añadir un destino
 1. Crea `targets/<tipo>.py` con una clase que cumpla `TargetStrategy` (`name`, `locate`, `paste`).
    - Si en Windows se basa en **pestañas visibles por UI Automation**, hereda de
@@ -33,7 +45,8 @@ Puntos de extensión:
 - `_before_paste(handle)` → con la pestaña ya visible; lanza `TabNotReady` para descartarla
   y que se pruebe la siguiente candidata.
 
-Lo común: ordena candidatos (puntuación > visible > ventana activa > orden), los prueba en
+Lo común: ordena candidatos (ventana usada más recientemente según `ctx.recency` >
+puntuación > pestaña seleccionada > orden), los prueba en
 orden, pega con `paste_keys` y **restaura la pestaña seleccionada** de cada ventana tocada.
 Lee propiedades UIA con `safe_attr()` y recorre con `_walk()`: los elementos desaparecen a
 mitad de recorrido (COMError) cuando la página cambia.
@@ -54,6 +67,11 @@ mitad de recorrido (COMError) cuando la página cambia.
   (`claude.exe → shell → WindowsTerminal.exe`). Evita pegar en pestañas cuyo Claude terminó.
   Limitación: WT aloja varias ventanas/pestañas en un mismo proceso, así que no distingue
   entre pestañas de ese proceso.
+- **WSL** (`wsl = true`): desde Windows no se ve el `claude` de WSL, solo `wsl.exe`. Para los
+  `wsl.exe` bajo una ventana de WT se lee la distro de su línea de órdenes (`-d X`) y se
+  ejecuta `wsl.exe -d X -e sh -c "pgrep -x claude || pgrep -f '[c]laude-code'"` (`_wsl.py`).
+  Si no se puede comprobar (timeout 3 s), se acepta. Solo se consulta una distro que ya
+  está en marcha (hay un `wsl.exe` abierto), así que no arranca la VM.
 
 ## browser
 - Ventanas `Chrome_WidgetWin_1` cuyo proceso está en `browsers` (Chrome, Edge, Brave,

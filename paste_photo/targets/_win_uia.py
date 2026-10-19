@@ -72,8 +72,8 @@ class UiaTabTarget:
     # --- TargetStrategy ----------------------------------------------------
 
     def locate(self) -> TargetHandle | None:
-        foreground = self._win32gui.GetForegroundWindow()
-        scored: list[tuple[tuple[int, bool, bool, int], TargetHandle]] = []
+        recency = self._ctx.recency
+        scored: list[tuple[tuple[float, int, bool, int], TargetHandle]] = []
         for hwnd in self._candidate_windows():
             for tab in self._tabs(hwnd):
                 selected = self._is_selected(tab)
@@ -82,8 +82,9 @@ class UiaTabTarget:
                     continue
                 label = safe_attr(tab, "Name")
                 handle = TargetHandle(window_id=hwnd, label=label, extra={"tab": tab})
-                # Prioridad: puntuación > pestaña visible > en la ventana activa > orden.
-                key = (rank, not selected, hwnd != foreground, len(scored))
+                # Prioridad: ventana usada más recientemente > puntuación (URL antes que
+                # título) > pestaña seleccionada en ella > orden.
+                key = (-recency.last_seen(hwnd), rank, not selected, len(scored))
                 scored.append((key, handle))
         if not scored:
             return None

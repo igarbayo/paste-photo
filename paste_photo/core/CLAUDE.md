@@ -17,9 +17,15 @@ Recuerda la regla obligatoria del CLAUDE.md raíz: todo cambio lleva entrada en 
 | `TargetStrategy` | `locate()` es rápido y sin efectos visibles (devuelve `TargetHandle` o `None`); `paste(handle)` enfoca, pega **sin Enter** y puede restaurar su estado interno (p. ej. pestaña) |
 
 ## Orchestrator
-- Chain of Responsibility: destinos en el orden de `config.toml`; gana el primero.
-- Deduplica por `image_hash` dentro de `debounce_s`.
-- Una excepción en `locate()` pasa al siguiente destino; en `paste()` se registra y se aborta.
+- `prefer = "recent"` (por defecto): pregunta a **todos** los destinos y gana el Claude cuya
+  ventana usó el usuario por última vez (`recency.Recency`, alimentado por `app.py` con la
+  ventana activa cada 0,25 s); el orden de `config.toml` solo desempata.
+  `prefer = "order"`: gana el primer destino de la config (Chain of Responsibility).
+- `candidates()` devuelve el orden sin pegar (lo usa `--probe`).
+- Cada imagen se pega **una sola vez**: recuerda los últimos `remember_images` hashes (LRU).
+  No usar ventanas de tiempo: otras apps devuelven la misma imagen al portapapeles minutos
+  después (gestores de portapapeles, dictado tipo Wispr Flow) y se repegaría.
+- Una excepción en `locate()` o en `paste()` se registra y se pasa al siguiente destino.
 - `restore_focus` envuelve `paste()` con `preserve_focus` (Memento).
 
 Si cambias un contrato: actualiza esta tabla, los fakes, los adaptadores y el CHANGELOG

@@ -8,10 +8,11 @@ from __future__ import annotations
 
 import importlib
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from paste_photo.core.ports import FocusManager, Keyboard, TargetStrategy
+from paste_photo.core.recency import Recency
 
 
 @dataclass(frozen=True)
@@ -21,6 +22,7 @@ class TargetContext:
     platform: str
     focus: FocusManager
     keyboard: Keyboard
+    recency: Recency = field(default_factory=Recency)
 
 
 TargetBuilder = Callable[[Mapping[str, Any], TargetContext], TargetStrategy]

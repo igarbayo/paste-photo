@@ -39,13 +39,13 @@ def test_config_defaults_when_no_file(tmp_path, monkeypatch):
 def test_config_from_file_skips_disabled(tmp_path):
     path = tmp_path / "config.toml"
     path.write_text(
-        '[general]\ndebounce_ms = 500\nrestore_focus = false\n'
+        '[general]\nremember_images = 5\nrestore_focus = false\n'
         '[[targets]]\ntype = "browser"\nenabled = false\n'
         '[[targets]]\ntype = "windows_terminal"\ntitle_regex = "foo"\n',
         encoding="utf-8",
     )
     cfg = load_config("windows", path)
-    assert cfg.debounce_ms == 500
+    assert cfg.remember_images == 5
     assert cfg.restore_focus is False
     assert cfg.targets == [{"type": "windows_terminal", "title_regex": "foo"}]
 

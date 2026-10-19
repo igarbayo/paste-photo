@@ -14,7 +14,8 @@ CONFIG_FILENAME = "config.toml"
 
 @dataclass(frozen=True)
 class Config:
-    debounce_ms: int = 2000
+    remember_images: int = 100
+    prefer: str = "recent"  # "recent" | "order"
     restore_focus: bool = True
     targets: list[dict[str, Any]] = field(default_factory=list)
     source: Path | None = None  # de dónde se cargó (None = valores por defecto)
@@ -54,7 +55,8 @@ def load_config(platform: str, path: Path | None = None) -> Config:
     general = data.get("general", {})
     targets = [t for t in data.get("targets", []) if t.get("enabled", True)]
     return Config(
-        debounce_ms=int(general.get("debounce_ms", 2000)),
+        remember_images=int(general.get("remember_images", 100)),
+        prefer=str(general.get("prefer", "recent")),
         restore_focus=bool(general.get("restore_focus", True)),
         targets=targets or default_targets(platform),
         source=found,

@@ -21,7 +21,8 @@ La arquitectura ya está preparada para todos ellos; ver [ADR 0001](docs/adr/000
 
 ## Requisitos
 - Python 3.11 o superior
-- Claude Code en una pestaña de Windows Terminal, o claude.ai abierto en Chrome/Edge
+- Claude Code en una pestaña de Windows Terminal (también dentro de WSL), o claude.ai
+  abierto en Chrome/Edge
 
 ## Instalación
 ```bash
@@ -45,8 +46,13 @@ paste-photo --list-targets  # tipos de destino disponibles
 3. Pulsa **Win+Shift+S** y recorta. La imagen queda adjunta en el prompt de Claude
    (`[Image #N]` en la terminal); escribe tu mensaje y envíalo cuando quieras.
 
-Si hay varios sitios con Claude, se usa el orden de `[[targets]]` en `config.toml`
-(por defecto: terminal y luego navegador) y, dentro de cada uno, la pestaña más visible.
+**¿Terminal y navegador a la vez?** La captura va al Claude que usaste por última vez:
+si estás escribiendo en la terminal, a la terminal; si vienes del chat de Chrome, a Chrome.
+Con `prefer = "order"` manda el orden de `[[targets]]` en `config.toml`.
+`paste-photo --probe` muestra el orden en que lo intentaría.
+
+Cada imagen se pega **una sola vez**: si la quitas del chat, no vuelve aunque otra app la
+devuelva al portapapeles. Solo puede haber una instancia de `paste-photo` a la vez.
 
 ## Configuración
 Se busca `config.toml` en: `--config RUTA` → directorio actual →
@@ -54,7 +60,8 @@ Se busca `config.toml` en: `--config RUTA` → directorio actual →
 
 | Clave | Por defecto | Para qué |
 |---|---|---|
-| `general.debounce_ms` | `2000` | Ignora la misma imagen repetida en ese intervalo |
+| `general.remember_images` | `100` | Cada imagen se pega una sola vez; se recuerdan las últimas N |
+| `general.prefer` | `recent` | `recent`: el Claude usado por última vez; `order`: el primero de la lista |
 | `general.restore_focus` | `true` | Volver a tu ventana tras pegar |
 | `targets[].type` | `windows_terminal`, `browser` | Tipo de destino (en orden de prioridad) |
 | `targets[].enabled` | `true` | Desactivar un destino sin borrarlo |
@@ -62,7 +69,8 @@ Se busca `config.toml` en: `--config RUTA` → directorio actual →
 | `paste_keys` | `alt+v` (terminal), `ctrl+v` (navegador) | Combinación de pegado |
 | `settle_ms` | `150` / `250` | Espera tras enfocar antes de pulsar teclas |
 | `restore_tab` | `true` | Volver a la pestaña que tenías seleccionada |
-| `require_process` (terminal) | `true` | Exigir un `claude.exe` vivo en esa ventana de WT |
+| `require_process` (terminal) | `true` | Exigir un Claude vivo en esa ventana de WT |
+| `wsl` (terminal) | `true` | Detectar Claude Code dentro de WSL (`wsl.exe -d <distro>`) |
 | `browsers` (navegador) | Chrome, Edge, Brave, Vivaldi, Opera | Procesos de navegador a mirar |
 | `url_regex` (navegador) | `claude.ai` | URL que identifica la pestaña visible |
 | `editor_class` (navegador) | `ProseMirror` | Solo se pega si existe el prompt |

@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from paste_photo import __version__
-from paste_photo.app import probe, run
+from paste_photo.app import AlreadyRunningError, probe, run
 from paste_photo.config import load_config
 from paste_photo.platforms.factory import get_platform_factory
 from paste_photo.targets import available_targets
@@ -47,7 +47,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.probe:
         return probe(config, factory)
-    run(config, factory)
+    try:
+        run(config, factory)
+    except AlreadyRunningError as error:
+        logging.getLogger(__name__).error("%s", error)
+        return 2
     return 0
 
 

@@ -8,6 +8,15 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Added
+- Prioridad por uso reciente (`general.prefer = "recent"`, por defecto): con Claude abierto
+  en varios sitios, la captura va al que usaste por última vez (p. ej. la terminal en la que
+  estás escribiendo, aunque también haya un chat en el navegador). `prefer = "order"`
+  mantiene el comportamiento anterior.
+- `--probe` muestra el orden completo en que se intentaría pegar.
+- Soporte de Claude Code dentro de WSL en Windows Terminal (`wsl = true`): se comprueba
+  dentro de la distro que hay un `claude` en marcha.
+- Una sola instancia de paste-photo a la vez (bloqueo en el directorio temporal).
+- Tabla de teclas de pegado de imágenes por sistema operativo en `targets/CLAUDE.md`.
 - Destino `browser`: pega en cualquier chat de Claude en la web (claude.ai: Chat, Code,
   Design...) en Chrome, Edge y demás navegadores Chromium. Detecta por URL la pestaña
   visible y por título las de segundo plano, y solo pega si la pestaña tiene el prompt.
@@ -17,8 +26,15 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Changed
 - `browser` forma parte de los destinos por defecto en Windows, detrás de `windows_terminal`.
+- Si un destino falla al pegar, se prueba el siguiente en vez de perder la captura.
+
+### Removed
+- `general.debounce_ms`: sustituido por `general.remember_images`.
 
 ### Fixed
+- Una misma imagen se volvía a pegar minutos después (al quitarla del chat reaparecía)
+  cuando otra app la devolvía al portapapeles: ahora cada imagen se pega una sola vez
+  (se recuerdan las últimas `remember_images`, 100 por defecto).
 - Una pestaña de Windows Terminal cuyo Claude había terminado seguía siendo destino: ahora
   se exige un proceso `claude` vivo bajo esa ventana (`require_process`, activo por defecto).
 - Ya no llegan pulsaciones sueltas de Alt a la ventana destino al cambiar el foco (abrían la

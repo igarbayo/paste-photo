@@ -33,8 +33,13 @@ docs/adr/        decisiones de arquitectura
 ```
 
 Flujo: `ScreenshotSource` (hilo propio) → `queue` → `Orchestrator.handle()` (hilo
-principal) → primer `TargetStrategy.locate()` que encuentre Claude → `paste()` dentro de
-`preserve_focus()`.
+principal) → `locate()` de todos los destinos → se ordenan por la ventana usada más
+recientemente (`Recency`) → `paste()` dentro de `preserve_focus()`; si falla, el siguiente.
+Una sola instancia a la vez (bloqueo en `%TEMP%/paste-photo.lock`).
+
+⚠️ Al probar en real: **para siempre** las instancias que lances en segundo plano
+(`Get-CimInstance Win32_Process ... *paste_photo*`). Una instancia olvidada con una config de
+prueba siguió pegando en Chrome en lugar de en la terminal del usuario.
 
 ## Reglas de oro
 1. `core/` **nunca** importa nada de un SO ni de `platforms/`/`targets/`.

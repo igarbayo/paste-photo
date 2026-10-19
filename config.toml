@@ -3,13 +3,17 @@
 # (macOS: ~/Library/Application Support/paste-photo, Linux: ~/.config/paste-photo).
 
 [general]
-# Ignora la misma imagen si vuelve a llegar antes de este tiempo (Win+Shift+S
-# puede notificar varias veces la misma captura).
-debounce_ms = 2000
+# Cada imagen se pega una sola vez. Se recuerdan las últimas N para ignorarlas si vuelven
+# al portapapeles (gestores de portapapeles, dictado, la herramienta de recortes...).
+remember_images = 100
+# Dónde pegar si Claude está abierto en varios sitios:
+#   "recent" -> en el Claude cuya ventana usaste por última vez (terminal o navegador)
+#   "order"  -> en el primer destino de la lista [[targets]] que lo encuentre
+prefer = "recent"
 # Tras pegar, devuelve el foco a la ventana en la que estabas.
 restore_focus = true
 
-# Destinos, en orden de prioridad: se pega en el primero que encuentre Claude Code.
+# Destinos. Con prefer = "order" el orden es la prioridad; con "recent" solo desempata.
 # Tipos disponibles: `python -m paste_photo --list-targets`
 
 [[targets]]
@@ -23,6 +27,10 @@ paste_keys = "alt+v"
 settle_ms = 150
 # Vuelve a la pestaña que tenías seleccionada en esa ventana.
 restore_tab = true
+# Solo cuenta una ventana de WT si tiene un Claude vivo (evita pestañas cuyo Claude terminó).
+require_process = true
+# Detectar también Claude Code dentro de WSL (se pregunta a la distro con wsl.exe).
+wsl = true
 
 # Cualquier chat de Claude en la web (claude.ai: Chat, Code, Design...).
 [[targets]]
