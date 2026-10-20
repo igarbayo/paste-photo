@@ -127,8 +127,10 @@ def test_tmux_pane_receives_ctrl_v(tmp_path, caplog):
         copy_to_pasteboard(png_bytes("purple"))
         from paste_photo.targets._processes import claude_processes
 
-        assert wait_for(lambda: "16" in log.read_text().split()), (
-            log.read_text(), events, claude_processes(), caplog.text)
+        if not wait_for(lambda: "16" in log.read_text().split()):
+            found = {p.pid: {k: v for k, v in p.environ.items() if k.startswith(("TMUX", "TERM"))}
+                     for p in claude_processes()}
+            pytest.fail(f"Sin Ctrl+V.\nprocesos: {found}\neventos: {events}\n{caplog.text}")
         assert wait_for(lambda: any(getattr(e, "target", None) == "tmux" for e in events))
     finally:
         service.stop()
