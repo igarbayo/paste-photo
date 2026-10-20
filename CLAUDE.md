@@ -34,6 +34,10 @@ descripciones públicas, en inglés y con los mismos hechos que el README:
 - `.deb`: `Description` y `.desktop` (`Comment`) en `packaging/linux/build_deb.py`.
 - Extensión: `description` de `resources/extension/manifest.json`.
 - `CONTRIBUTING.md` (requisitos para probar).
+- Imagen social y logo (`docs/assets/`, textos en `packaging/make_brand.py`): si cambian las
+  etiquetas (plataformas, navegadores), regenerar con `python packaging/make_brand.py` y
+  volver a subir `social-preview.png` en GitHub → Settings → General → Social preview
+  (no hay API: a mano o con el navegador).
 Una tarea **no está terminada** sin ello. Lo que no está en un archivo del repo (About,
 topics) se cambia con `gh` y se anota en el CHANGELOG.
 

@@ -6,6 +6,8 @@ Recuerda la regla obligatoria del CLAUDE.md raíz: todo cambio lleva entrada en 
 packaging/
   build.py               punto de entrada único (local y CI): .exe y, con --installer, instalador
   make_icon.py           genera paste_photo/resources/icon.png e icon.ico
+  make_brand.py          docs/assets/logo.png (README) y social-preview.png (1280x640, se
+                         sube a mano en Settings → Social preview) a partir del icono
   release_notes.py       sección de una versión del CHANGELOG (notas de la release)
   firefox_xpi.py         .xpi de Firefox a partir de la extensión de Chromium (+ carpeta
                          para `web-ext sign`)

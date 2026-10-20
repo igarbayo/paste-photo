@@ -1,4 +1,19 @@
-# paste-photo
+<p align="center">
+  <img src="docs/assets/logo.png" alt="paste-photo logo" width="128">
+</p>
+
+<h1 align="center">paste-photo</h1>
+
+<p align="center">
+  <b>Take a screenshot and it shows up in Claude by itself.</b>
+</p>
+
+<p align="center">
+  <a href="https://github.com/igarbayo/paste-photo/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/igarbayo/paste-photo"></a>
+  <a href="https://github.com/igarbayo/paste-photo/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/igarbayo/paste-photo/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/github/license/igarbayo/paste-photo"></a>
+  <img alt="Platforms: Windows and Linux" src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-informational">
+</p>
 
 <!-- Badges: register the project first, then uncomment.
      REUSE:      https://api.reuse.software/register
@@ -7,8 +22,6 @@
 [![REUSE status](https://api.reuse.software/badge/github.com/igarbayo/paste-photo)](https://api.reuse.software/info/github.com/igarbayo/paste-photo)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/igarbayo/paste-photo/badge)](https://scorecard.dev/viewer/?uri=github.com/igarbayo/paste-photo)
 -->
-
-Take a screenshot and it shows up in Claude by itself.
 
 paste-photo lives in the system tray. When you take a screenshot, it pastes the image into
 the Claude you used last, without sending it, and puts you back where you were. It works on

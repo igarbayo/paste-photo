@@ -24,6 +24,10 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Destino `linux_browser`: claude.ai en cualquier navegador de Linux sin la extensión
   (GNOME Web, Falkon, qutebrowser...): enfoca su ventana y pulsa Ctrl+V.
 
+- Imagen de marca del repositorio: logo y cabecera del README con insignias (versión, CI,
+  licencia, plataformas) e imagen social de GitHub (`docs/assets/`), generados por código
+  desde el icono con `packaging/make_brand.py`.
+
 ### Changed
 - Extensión: el `paste` se lanza en el mundo de la página (`world: "MAIN"`) y el cursor se
   coloca antes en el mundo aislado; necesario en Firefox, igual en Chromium.
