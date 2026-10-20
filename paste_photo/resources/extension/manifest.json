@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PastePhoto",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Pastes your screenshots into Claude (claude.ai). Companion of the PastePhoto desktop app.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwK99U6VRl3afqo4VQ8EtY8X8kQqnIklZFR2ot0rB9rV6RFOt2Y30GJjyvBmI4abtgWvasTnnIFVsG1wI7rxQ7eHqvmbIvfyQdjCL0Tf3QHcFT+J52GS46yS8pVSiexKTO25vIrqd8TTLgyxt+Eq6umpPMVd7SCeBa0CI9XEiQ034YCDVIsxYPZN4GofAe00KlDSek+wVRKFnnerukWiYzz7jz67nsN3fBXcfeGdfIgqFOCOc1h0hak5Phd2U1bMEDo7XbOxYVLgonpB3qD9M06qIMPBeSZm+GQTZ96WOZ5LzWWmarS3BS2D1w5syBmXgcRx0MHtZv14KbiTd892/jQIDAQAB",
   "permissions": ["nativeMessaging", "tabs", "scripting", "alarms"],
