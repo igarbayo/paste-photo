@@ -29,6 +29,9 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   coloca antes en el mundo aislado; necesario en Firefox, igual en Chromium.
 - `title_regex` por defecto de `browser`: admite la raya larga de los títulos de Firefox
   ("… - Claude — Mozilla Firefox").
+- Metadatos públicos al día con lo que hace hoy: descripción y *topics* del repositorio en
+  GitHub, `description`/`keywords`/`classifiers` de `pyproject.toml`, descripción y etiquetas
+  de winget, descripción del `.deb` y `CONTRIBUTING.md` (Firefox, Orca, Linux).
 
 ### Fixed
 - Extensión de navegador: la imagen ya no va al principio del prompt cuando el cursor no

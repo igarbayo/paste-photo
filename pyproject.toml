@@ -5,11 +5,24 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "paste-photo"
 dynamic = ["version"]
-description = "Pega automáticamente tus capturas de pantalla en Claude"
+description = "Automatically paste your screenshots into Claude (Claude Code and claude.ai)"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "igarbayo" }]
+keywords = ["claude", "claude-code", "screenshot", "clipboard", "productivity", "tray"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Win32 (MS Windows)",
+    "Environment :: X11 Applications",
+    "Intended Audience :: Developers",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Desktop Environment",
+    "Topic :: Utilities",
+]
 requires-python = ">=3.11"
 dependencies = [
     "pillow>=10",

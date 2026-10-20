@@ -92,7 +92,8 @@ def control(ver: str, installed_kb: int) -> str:
         "Description: Automatically paste your screenshots into Claude\n"
         " paste-photo lives in the system tray and pastes every new screenshot into\n"
         " the Claude you used last: Claude Code in any terminal (tmux, kitty, WezTerm,\n"
-        " Konsole, GNOME Terminal, xterm...) or claude.ai in Chromium-based browsers.\n"
+        " Konsole, Orca, GNOME Terminal, xterm...) or claude.ai in Chromium-based\n"
+        " browsers, Firefox and other browsers such as GNOME Web.\n"
     )
 
 

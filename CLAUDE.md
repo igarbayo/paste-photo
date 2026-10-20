@@ -21,6 +21,22 @@ se actualiza el README **en el mismo cambio** (nada de funciones sin documentar 
 promesas de cosas que aún no existen). Lo no probado en real se marca "Experimental".
 Una tarea **no está terminada** sin ello. El README está en inglés (ver Convenciones).
 
+## ⚠️ Regla obligatoria: metadatos públicos al día
+Igual que el README: cuando cambia lo que el producto hace (plataformas, terminales,
+navegadores, forma de distribuirse), se revisan **en el mismo cambio** todas las
+descripciones públicas, en inglés y con los mismos hechos que el README:
+- **About de GitHub** (descripción, máx. 350 caracteres, y *topics*):
+  `gh repo edit igarbayo/paste-photo --description "..." --add-topic a,b` /
+  `--remove-topic x`; comprobar con `gh repo view --json description,repositoryTopics`.
+- `pyproject.toml`: `description`, `keywords`, `classifiers`.
+- winget: `ShortDescription`, `Description` y `Tags` en `packaging/winget/make_manifests.py`
+  (se publican con la siguiente versión).
+- `.deb`: `Description` y `.desktop` (`Comment`) en `packaging/linux/build_deb.py`.
+- Extensión: `description` de `resources/extension/manifest.json`.
+- `CONTRIBUTING.md` (requisitos para probar).
+Una tarea **no está terminada** sin ello. Lo que no está en un archivo del repo (About,
+topics) se cambia con `gh` y se anota en el CHANGELOG.
+
 ## ⚠️ Regla obligatoria: licencias
 El proyecto es **MIT** (`LICENSE`, `LICENSES/MIT.txt`). Archivo `.py`/`.js` nuevo → cabecera
 `SPDX-FileCopyrightText: 2026 igarbayo` + `SPDX-License-Identifier: MIT`.
