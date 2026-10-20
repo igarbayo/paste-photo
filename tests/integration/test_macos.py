@@ -119,8 +119,11 @@ def test_tmux_pane_receives_ctrl_v(tmp_path, caplog):
     service = PasteService(config, MacOSFactory())
     events = []
     service.subscribe(events.append)
-    subprocess.run(["tmux", "-S", str(socket), "new-session", "-d",
-                    f"'{sys.executable}' '{receiver}' '{log}'"], check=True)
+    # Se teclea en un shell: si la orden fuera argumento de new-session, el servidor de tmux la
+    # conservaría en su línea de órdenes y parecería Claude (y su hijo, un proceso auxiliar).
+    subprocess.run(["tmux", "-S", str(socket), "new-session", "-d", "/bin/sh"], check=True)
+    subprocess.run(["tmux", "-S", str(socket), "send-keys",
+                    f"exec '{sys.executable}' '{receiver}' '{log}'", "Enter"], check=True)
     try:
         service.start()
         assert wait_for(lambda: log.exists() and "READY" in log.read_text())
