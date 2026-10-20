@@ -49,11 +49,11 @@ def write_version_info(ver: str) -> Path:
   kids=[
     StringFileInfo([StringTable('040904B0', [
       StringStruct('CompanyName', 'igarbayo'),
-      StringStruct('FileDescription', 'paste-photo'),
+      StringStruct('FileDescription', 'PastePhoto'),
       StringStruct('FileVersion', '{ver}'),
       StringStruct('InternalName', 'paste-photo'),
       StringStruct('OriginalFilename', 'paste-photo.exe'),
-      StringStruct('ProductName', 'paste-photo'),
+      StringStruct('ProductName', 'PastePhoto'),
       StringStruct('ProductVersion', '{ver}')])]),
     VarFileInfo([VarStruct('Translation', [1033, 1200])])
   ]

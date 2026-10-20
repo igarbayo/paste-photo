@@ -3,7 +3,7 @@
 
 """`paste-photo-native-host`: lo lanza el navegador (native messaging), no el usuario.
 
-Reenvía mensajes entre la extensión (stdin/stdout del host) y el servicio de paste-photo
+Reenvía mensajes entre la extensión (stdin/stdout del host) y el servicio de PastePhoto
 (canal local). Si el servicio no está abierto, espera y reintenta: la extensión sigue
 conectada y estará lista en cuanto se abra paste-photo.
 """
@@ -36,7 +36,7 @@ def main() -> int:
                 conn = Client(protocol.address(), family=protocol.family(),
                               authkey=protocol.authkey())
             except (OSError, EOFError):
-                time.sleep(RETRY_S)  # paste-photo no está abierto todavía
+                time.sleep(RETRY_S)  # PastePhoto no está abierto todavía
                 continue
             state["conn"] = conn
             if state["hello"] is not None:  # presentarse de nuevo tras reconectar

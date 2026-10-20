@@ -1,4 +1,4 @@
-# bridge/: extensión del navegador ⇄ paste-photo
+# bridge/: extensión del navegador ⇄ PastePhoto
 
 Recuerda la regla obligatoria del CLAUDE.md raíz: todo cambio lleva entrada en `CHANGELOG.md`.
 

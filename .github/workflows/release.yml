@@ -134,7 +134,7 @@ jobs:
             "dist/paste-photo_${VERSION}_all.deb" \
             "dist/paste-photo-extension-$VERSION.zip" \
             "dist/paste-photo-firefox-$VERSION.xpi" \
-            --title "paste-photo $VERSION" --notes-file notes.md
+            --title "PastePhoto $VERSION" --notes-file notes.md
 
   winget:
     needs: release

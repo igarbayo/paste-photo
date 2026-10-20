@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 igarbayo
 // SPDX-License-Identifier: MIT
 //
-// paste-photo: recuerda dónde estaba el cursor en el prompt de claude.ai.
+// PastePhoto: recuerda dónde estaba el cursor en el prompt de claude.ai.
 //
 // Corre en el mundo aislado de la extensión, el mismo en el que `background.js` ejecuta
 // `pasteImage`: así la captura se pega donde el usuario dejó el cursor la última vez,

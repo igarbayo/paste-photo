@@ -13,7 +13,7 @@ from paste_photo.core.ports import WindowSystem
 
 DESKTOP_ENTRY = """[Desktop Entry]
 Type=Application
-Name=paste-photo
+Name=PastePhoto
 Comment=Paste your screenshots into Claude
 Exec={command}
 Icon=paste-photo

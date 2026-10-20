@@ -1,4 +1,4 @@
-# CLAUDE.md — paste-photo
+# CLAUDE.md — PastePhoto
 
 Pega automáticamente cada captura de pantalla en el Claude que estés usando: Claude Code en
 cualquier terminal (Windows Terminal, también con WSL; en Linux tmux, kitty, WezTerm, Konsole
@@ -118,6 +118,13 @@ Logs: `%LOCALAPPDATA%\paste-photo\logs` (Windows), `~/.local/state/paste-photo/l
 Config: `%APPDATA%\paste-photo\config.toml` / `~/.config/paste-photo/config.toml`.
 
 ## Convenciones
+- **Nombre**: el producto se llama **PastePhoto** en todo lo que se ve (README, docs, bandeja,
+  notificaciones, mensajes, instalador, accesos directos, `.desktop`, extensiones, winget
+  `PackageName`, imágenes de marca). `paste-photo` es solo el **id técnico** y no se cambia:
+  repositorio, comando y ejecutables (`paste-photo`, `paste-photo-cli`,
+  `paste-photo-native-host`), paquete pip/.deb, `igarbayo.paste-photo` (winget), carpetas de
+  configuración/registros, valor de inicio automático, `AppName` del instalador, ids de la
+  extensión y del host. El módulo es `paste_photo`.
 - Python ≥ 3.11, type hints en todo, `from __future__ import annotations`.
 - Interfaces con `typing.Protocol` (no ABCs); dataclasses `frozen` para valores.
 - `logging` (nunca `print`, salvo salida de CLI como `--probe`/`doctor`).

@@ -1,6 +1,6 @@
-# Contributing to paste-photo
+# Contributing to PastePhoto
 
-Thank you so much for taking the time to read this. It genuinely means a lot. paste-photo
+Thank you so much for taking the time to read this. It genuinely means a lot. PastePhoto
 is a small project with a single maintainer, and the fact that you are here considering
 contributing to it is something we do not take for granted.
 
@@ -60,7 +60,7 @@ At least one maintainer must approve the pull request before it is merged.
 
 ## Licensing of contributions
 
-paste-photo is licensed under the [MIT License](LICENSE). By opening a pull request you agree
+PastePhoto is licensed under the [MIT License](LICENSE). By opening a pull request you agree
 that your contribution is released under that same license. New Python files start with:
 
 ```python

@@ -4,7 +4,7 @@
 """Icono en la bandeja del sistema (pystray): la interfaz por defecto.
 
 Menú:
-    paste-photo: activo          (estado)
+    PastePhoto: activo           (estado)
     ✔ Activado                   pausa / reanuda
     Pegar en ▸                   el Claude usado por última vez | orden de la configuración
     ✔ Notificaciones
@@ -40,7 +40,8 @@ from paste_photo.ui._system import open_path
 
 log = logging.getLogger(__name__)
 
-APP_TITLE = "paste-photo"
+APP_ID = "paste-photo"  # identificador del icono (AppIndicator en Linux): no cambia
+APP_TITLE = "PastePhoto"  # nombre visible
 TARGET_NAMES = {"windows_terminal": "Windows Terminal", "browser": "el navegador"}
 MAX_LABEL = 60
 
@@ -71,7 +72,7 @@ class TrayApp:
 
     def run(self) -> None:
         """Bloquea hasta que el usuario elige "Salir"."""
-        self._icon = pystray.Icon(APP_TITLE, self._images[True], APP_TITLE, menu=self._menu())
+        self._icon = pystray.Icon(APP_ID, self._images[True], APP_TITLE, menu=self._menu())
         self._service.subscribe(self._on_event)
         self._icon.run(setup=self._setup)
 

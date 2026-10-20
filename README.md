@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/assets/logo.png" alt="paste-photo logo" width="128">
+  <img src="docs/assets/logo.png" alt="PastePhoto logo" width="128">
 </p>
 
-<h1 align="center">paste-photo</h1>
+<h1 align="center">PastePhoto</h1>
 
 <p align="center">
   <b>Take a screenshot and it shows up in Claude by itself.</b>
@@ -23,7 +23,7 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/igarbayo/paste-photo/badge)](https://scorecard.dev/viewer/?uri=github.com/igarbayo/paste-photo)
 -->
 
-paste-photo lives in the system tray. When you take a screenshot, it pastes the image into
+PastePhoto lives in the system tray. When you take a screenshot, it pastes the image into
 the Claude you used last, without sending it, and puts you back where you were. It works on
 **Windows and Linux**, in **any terminal** and in **Chromium-based browsers and Firefox**
 (and, without the extension, in other Linux browsers such as GNOME Web).
@@ -77,7 +77,7 @@ how it goes in an [issue](https://github.com/igarbayo/paste-photo/issues).
 
 **Installer (recommended).** Download `paste-photo-setup-X.Y.Z.exe` from
 [Releases](https://github.com/igarbayo/paste-photo/releases) and run it. You can choose to
-start paste-photo with Windows and to add `paste-photo-cli` to your PATH.
+start PastePhoto with Windows and to add `paste-photo-cli` to your PATH.
 
 > The installer is not code-signed yet, so Windows SmartScreen may say "Windows protected
 > your PC". Click **More info → Run anyway**.
@@ -114,14 +114,14 @@ paste-photo doctor
 
 ### Browser extension (optional, Windows and Linux)
 
-The extension lets paste-photo paste into claude.ai without switching tabs, and also into
+The extension lets PastePhoto paste into claude.ai without switching tabs, and also into
 background tabs. Run this once:
 
 ```bash
 paste-photo setup browser        # paste-photo-cli setup browser on Windows
 ```
 
-It registers paste-photo with your browsers and prints where the extension is.
+It registers PastePhoto with your browsers and prints where the extension is.
 
 **Chrome, Edge, Brave, Vivaldi, Opera.** Open `chrome://extensions` (or `edge://extensions`,
 `brave://extensions`…), turn on **Developer mode**, click **Load unpacked** and choose the
@@ -136,7 +136,7 @@ Developer Edition, Nightly and LibreWolf after setting `xpinstall.signatures.req
 121 or later (128 or later recommended).
 
 GNOME Web (Epiphany) can't use the extension: its extensions can't talk to other apps
-(no native messaging). paste-photo uses its window instead (see the table above).
+(no native messaging). PastePhoto uses its window instead (see the table above).
 
 ### GNOME on Wayland
 
@@ -159,7 +159,7 @@ python -m venv .venv
 
 ## Use
 
-1. Start **paste-photo** from your applications menu. Its icon appears in the system tray.
+1. Start **PastePhoto** from your applications menu. Its icon appears in the system tray.
 2. Open Claude: Claude Code in a terminal, or claude.ai in your browser.
 3. Take a screenshot (**Win+Shift+S** on Windows, **PrtSc** or your usual tool on Linux). The
    image shows up in the Claude prompt (`[Image #1]` in the terminal). Add your message and
@@ -168,7 +168,7 @@ python -m venv .venv
 Right-click the tray icon:
 
 ```text
- paste-photo: activo
+ PastePhoto: activo
  ─────────────────────────────
  ✔ Activado                     pause / resume (the icon turns gray when paused)
    Pegar en ▸                   the Claude you used last | the order in the config
@@ -204,9 +204,9 @@ Sample `--probe` output, with Claude open in tmux and in the browser:
 
 ## Configuration
 
-The settings file is created the first time you run paste-photo, with every option
+The settings file is created the first time you run PastePhoto, with every option
 commented: `%APPDATA%\paste-photo\config.toml` on Windows, `~/.config/paste-photo/config.toml`
-on Linux. Open it from the tray menu (**Abrir configuración**) and restart paste-photo after
+on Linux. Open it from the tray menu (**Abrir configuración**) and restart PastePhoto after
 editing it. Changes made from the tray menu apply right away.
 
 The most useful options:
@@ -218,7 +218,7 @@ The most useful options:
 - `browsers` on the `browser` (Windows) and `linux_browser` targets: the browsers to look in,
   by process name. A settings file created by an older version may not list Firefox: add
   `"firefox.exe"` to `browsers` of the `browser` target, or delete the file to recreate it.
-- `cli` on the `orca` target: path to Orca's CLI if paste-photo can't find it (it looks in
+- `cli` on the `orca` target: path to Orca's CLI if PastePhoto can't find it (it looks in
   your PATH and in Orca's install folder).
 
 Logs: `%LOCALAPPDATA%\paste-photo\logs` on Windows, `~/.local/state/paste-photo/logs` on Linux
@@ -237,7 +237,7 @@ Without it, kitty is handled like any other terminal (Claude's tab has to be the
 
 ### Orca
 
-[Orca](https://github.com/stablyai/orca) needs no setup: while Orca is open, paste-photo uses
+[Orca](https://github.com/stablyai/orca) needs no setup: while Orca is open, PastePhoto uses
 its CLI (`orca terminal send`) to press Claude Code's paste key in the exact terminal where
 Claude runs, even if that terminal isn't the visible one.
 
@@ -253,13 +253,13 @@ Claude runs, even if that terminal isn't the visible one.
                                                                      terminals), focus back
 ```
 
-In terminals paste-photo only presses Claude Code's paste key, so Claude inserts
+In terminals PastePhoto only presses Claude Code's paste key, so Claude inserts
 `[Image #N]` at its own cursor. In the browser, the extension pastes at the prompt's current
 cursor, or the last one it had there, or at the end. Without the extension:
 
-- **Windows** (Chromium and Firefox): paste-photo focuses the prompt and the browser puts the
+- **Windows** (Chromium and Firefox): PastePhoto focuses the prompt and the browser puts the
   cursor back where it was; if it was never there, the image goes at the start.
-- **Linux**: paste-photo only switches to the browser window and presses Ctrl+V, so the
+- **Linux**: PastePhoto only switches to the browser window and presses Ctrl+V, so the
   image goes in only if the cursor was in the prompt.
 
 The core does not depend on the operating system. Each OS, each place Claude can run and each
@@ -272,12 +272,12 @@ the core.
 |---|---|
 | Nothing gets pasted | Run `paste-photo doctor`. Check that the tray icon is there and not gray (paused). |
 | I can't see the tray icon | Windows 11: look in the hidden area (`^`). GNOME: install the "AppIndicator and KStatusNotifierItem Support" extension. |
-| "paste-photo ya se está ejecutando" (already running) | Only one instance runs at a time. Use the one in the tray, or quit it first. |
+| "PastePhoto ya se está ejecutando" (already running) | Only one instance runs at a time. Use the one in the tray, or quit it first. |
 | It pastes in the wrong place | Click into the Claude you want before taking the screenshot, or set `prefer = "order"`. |
 | The browser extension doesn't connect | Run `paste-photo setup browser` again and reload the extension. Browsers installed as a **snap** or **Flatpak** restrict this; use the .deb/.rpm build of your browser. |
 | Linux, no extension: nothing appears in claude.ai | Claude's tab must be the active one in its window and the cursor must be in the prompt. Or install the extension. |
 | Firefox says the add-on "could not be verified" | The `.xpi` is not signed by Mozilla. Use a signed release, or Firefox ESR / Developer Edition / Nightly / LibreWolf with `xpinstall.signatures.required = false`. |
-| The image goes to the start of the claude.ai prompt | Without the browser extension paste-photo can't know whether you ever put the cursor there. Install the extension, or click in the prompt once. |
+| The image goes to the start of the claude.ai prompt | Without the browser extension PastePhoto can't know whether you ever put the cursor there. Install the extension, or click in the prompt once. |
 | Orca: nothing gets pasted | Orca has to be open. Run `paste-photo doctor`; if it can't find Orca's CLI, set `cli` on the `orca` target. |
 | Linux: nothing happens in GNOME Terminal on Wayland | Run `paste-photo setup gnome` and sign out and in, or use tmux. |
 | Linux: the image never reaches Claude Code | Install `xclip` (X11) or `wl-clipboard` (Wayland); Claude Code needs it to read images. |
@@ -285,7 +285,7 @@ the core.
 
 ## Uninstall
 
-- **Windows**: **Settings → Apps → Installed apps → paste-photo → Uninstall**. This removes the
+- **Windows**: **Settings → Apps → Installed apps → PastePhoto → Uninstall**. This removes the
   start with Windows entry and the PATH entry.
 - **Linux**: `sudo apt remove paste-photo` or `pipx uninstall paste-photo`. Turn off "Iniciar al
   iniciar sesión" first, or delete `~/.config/autostart/paste-photo.desktop`.
@@ -294,13 +294,13 @@ Your settings are kept in both cases.
 
 ## License
 
-paste-photo is released under the [MIT License](LICENSE). It is provided **without any
+PastePhoto is released under the [MIT License](LICENSE). It is provided **without any
 warranty**. The installers bundle third-party components under their own licenses (MIT, BSD,
 Apache-2.0, PSF and LGPL-3.0 for pystray). Their notices ship with the app. See
 [docs/COMPONENTS_LICENSE.md](docs/COMPONENTS_LICENSE.md) for the full analysis.
 
-paste-photo is an independent project, not affiliated with or endorsed by Anthropic.
-"Claude" is a trademark of Anthropic and is only used here to describe what paste-photo
+PastePhoto is an independent project, not affiliated with or endorsed by Anthropic.
+"Claude" is a trademark of Anthropic and is only used here to describe what PastePhoto
 works with.
 
 ## Support

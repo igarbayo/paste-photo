@@ -29,6 +29,11 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   desde el icono con `packaging/make_brand.py`.
 
 ### Changed
+- El producto se llama **PastePhoto** en todo lo visible (README, bandeja, mensajes,
+  instalador y accesos directos, lanzador de Linux, extensiones, winget, imágenes de marca).
+  `paste-photo` sigue siendo el id técnico: comando, ejecutables, paquetes, rutas de
+  configuración, inicio automático e id de winget no cambian. El instalador borra los
+  accesos directos con el nombre anterior.
 - Extensión: el `paste` se lanza en el mundo de la página (`world: "MAIN"`) y el cursor se
   coloca antes en el mundo aislado; necesario en Firefox, igual en Chromium.
 - `title_regex` por defecto de `browser`: admite la raya larga de los títulos de Firefox

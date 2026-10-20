@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 igarbayo
 // SPDX-License-Identifier: MIT
 //
-// paste-photo helper para GNOME Shell (45+).
+// PastePhoto helper para GNOME Shell (45+).
 //
 // En Wayland las apps no pueden ver otras ventanas ni simular teclas. Esta extensión expone
-// en el bus de sesión lo mínimo que necesita paste-photo:
+// en el bus de sesión lo mínimo que necesita PastePhoto:
 //   ListWindows() -> JSON [{id, title, pid, app_id, focus}]
 //   ActiveWindow() -> id (0 si ninguna)
 //   Activate(id)

@@ -61,7 +61,7 @@ def host_executable() -> Path:
     if found:
         return Path(found)
     raise FileNotFoundError(
-        "No se encontró paste-photo-native-host. Reinstala paste-photo (pipx/.deb/instalador)."
+        "No se encontró paste-photo-native-host. Reinstala PastePhoto (pipx/.deb/instalador)."
     )
 
 
@@ -69,7 +69,7 @@ def host_manifest(executable: Path, *, gecko: bool = False) -> dict:
     """Manifiesto del host: Chromium autoriza por origen, Firefox por ID de la extensión."""
     manifest = {
         "name": protocol.HOST_NAME,
-        "description": "paste-photo: pega capturas en claude.ai",
+        "description": "PastePhoto: pega capturas en claude.ai",
         "path": str(executable),
         "type": "stdio",
     }
@@ -195,7 +195,7 @@ def setup_browser() -> str:
         f"  ID esperado de la extensión: {protocol.EXTENSION_ID}",
         "",
         "Firefox, LibreWolf...:",
-        "  - Instala el .xpi firmado de la página de versiones de paste-photo, o",
+        "  - Instala el .xpi firmado de la página de versiones de PastePhoto, o",
         "  - sin firmar (Firefox ESR, Developer Edition, Nightly, LibreWolf, con",
         "    xpinstall.signatures.required = false en about:config): about:addons →",
         "    ⚙ → 'Instalar complemento desde archivo' y elige:",

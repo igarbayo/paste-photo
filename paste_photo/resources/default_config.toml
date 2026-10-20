@@ -24,7 +24,7 @@ notify = true
 # Windows y Linux a la vez.
 
 # claude.ai en Chrome, Edge, Brave... (Windows y Linux) mediante la extensión de
-# paste-photo: pega sin cambiar de pestaña ni de ventana, también en pestañas de fondo.
+# PastePhoto: pega sin cambiar de pestaña ni de ventana, también en pestañas de fondo.
 # Se instala con `paste-photo setup browser`. Si no está conectada, se ignora.
 [[targets]]
 type = "browser_extension"

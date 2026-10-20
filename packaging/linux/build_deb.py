@@ -42,7 +42,7 @@ exec /usr/bin/python3 -m %(module)s "$@"
 
 DESKTOP = """[Desktop Entry]
 Type=Application
-Name=paste-photo
+Name=PastePhoto
 Comment=Paste your screenshots into Claude
 Exec=paste-photo
 Icon=paste-photo
@@ -90,7 +90,7 @@ def control(ver: str, installed_kb: int) -> str:
         "Priority: optional\n"
         "Homepage: https://github.com/igarbayo/paste-photo\n"
         "Description: Automatically paste your screenshots into Claude\n"
-        " paste-photo lives in the system tray and pastes every new screenshot into\n"
+        " PastePhoto lives in the system tray and pastes every new screenshot into\n"
         " the Claude you used last: Claude Code in any terminal (tmux, kitty, WezTerm,\n"
         " Konsole, Orca, GNOME Terminal, xterm...) or claude.ai in Chromium-based\n"
         " browsers, Firefox and other browsers such as GNOME Web.\n"

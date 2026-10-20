@@ -1,4 +1,4 @@
-; Instalador de paste-photo (Inno Setup 6). Por usuario: no pide permisos de administrador.
+; Instalador de PastePhoto (Inno Setup 6). Por usuario: no pide permisos de administrador.
 ; Lo compila packaging/build.py --installer, que pasa:
 ;   /DAppVersion=0.2.0  /DSourceDir=<dist\paste-photo>  /DRepoRoot=<raíz del repo>
 ;
@@ -21,15 +21,18 @@
   #define SourceDir RepoRoot + "\dist\paste-photo"
 #endif
 
+; AppName: id técnico (carpeta de instalación y valor de inicio automático, que comparte con
+; la bandeja): no cambia. AppDisplayName: el nombre que ve el usuario.
 #define AppName "paste-photo"
+#define AppDisplayName "PastePhoto"
 #define AppExe "paste-photo.exe"
 #define RunKey "Software\Microsoft\Windows\CurrentVersion\Run"
 
 [Setup]
 AppId={{40E6E043-6668-4B34-93FE-C0C101B9CECE}
-AppName={#AppName}
+AppName={#AppDisplayName}
 AppVersion={#AppVersion}
-AppVerName={#AppName} {#AppVersion}
+AppVerName={#AppDisplayName} {#AppVersion}
 AppPublisher=igarbayo
 AppPublisherURL=https://github.com/igarbayo/paste-photo
 AppSupportURL=https://github.com/igarbayo/paste-photo/issues
@@ -42,7 +45,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 OutputBaseFilename=paste-photo-setup-{#AppVersion}
 SetupIconFile={#RepoRoot}\paste_photo\resources\icon.ico
 UninstallDisplayIcon={app}\{#AppExe}
-UninstallDisplayName={#AppName}
+UninstallDisplayName={#AppDisplayName}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -55,12 +58,12 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [CustomMessages]
-spanish.AutoStart=Iniciar paste-photo al iniciar sesión en Windows
-english.AutoStart=Start paste-photo when I sign in to Windows
+spanish.AutoStart=Iniciar PastePhoto al iniciar sesión en Windows
+english.AutoStart=Start PastePhoto when I sign in to Windows
 spanish.AddToPath=Añadir paste-photo-cli al PATH (para usarlo desde una terminal)
 english.AddToPath=Add paste-photo-cli to PATH (to use it from a terminal)
-spanish.Launch=Abrir paste-photo ahora
-english.Launch=Open paste-photo now
+spanish.Launch=Abrir PastePhoto ahora
+english.Launch=Open PastePhoto now
 
 [Tasks]
 Name: "autostart"; Description: "{cm:AutoStart}"
@@ -70,9 +73,14 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
+[InstallDelete]
+; Accesos directos de versiones anteriores (se llamaban como el id técnico).
+Type: files; Name: "{autoprograms}\{#AppName}.lnk"
+Type: files; Name: "{autodesktop}\{#AppName}.lnk"
+
 [Icons]
-Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
+Name: "{autoprograms}\{#AppDisplayName}"; Filename: "{app}\{#AppExe}"
+Name: "{autodesktop}\{#AppDisplayName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Registry]
 Root: HKCU; Subkey: "{#RunKey}"; ValueType: string; ValueName: "{#AppName}"; ValueData: """{app}\{#AppExe}"""; Tasks: autostart

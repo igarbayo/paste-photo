@@ -157,7 +157,7 @@ def _tell_user_already_running(message: str, *, interactive: bool) -> None:
         return
     import ctypes
 
-    ctypes.windll.user32.MessageBoxW(None, message, "paste-photo", 0x40)  # MB_ICONINFORMATION
+    ctypes.windll.user32.MessageBoxW(None, message, "PastePhoto", 0x40)  # MB_ICONINFORMATION
 
 
 if __name__ == "__main__":

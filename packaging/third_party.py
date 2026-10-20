@@ -6,7 +6,7 @@
     python packaging/third_party.py <carpeta de la app>    (lo llama build.py)
 
 Escribe en la carpeta de la app:
-    LICENSE                    licencia de paste-photo (MIT)
+    LICENSE                    licencia de PastePhoto (MIT)
     THIRD-PARTY-NOTICES.txt    resumen: componente, versión, licencia y dónde está su texto
     licenses/<componente>/...  textos completos copiados de cada paquete
 
@@ -41,10 +41,10 @@ EXTRA = [
 LGPL_NOTE = """\
 pystray (LGPL-3.0-or-later)
 ---------------------------
-paste-photo uses the pystray library, licensed under the GNU Lesser General Public License
+PastePhoto uses the pystray library, licensed under the GNU Lesser General Public License
 v3 or later. The full LGPL and GPL texts are in licenses/pystray/ (COPYING.LGPL, COPYING).
 pystray is shipped as plain, unmodified Python source files in _internal/pystray/, so you can
-replace it with a modified or newer version: paste-photo loads it from there at runtime.
+replace it with a modified or newer version: PastePhoto loads it from there at runtime.
 Source code: https://github.com/moses-palmer/pystray
 """
 
@@ -134,10 +134,10 @@ def write_notices(app_dir: Path) -> Path:
 
 def render(rows: list[tuple[str, str, str, str]]) -> str:
     lines = [
-        "paste-photo - third-party notices",
+        "PastePhoto - third-party notices",
         "==================================",
         "",
-        "paste-photo itself is licensed under the MIT License (see LICENSE).",
+        "PastePhoto itself is licensed under the MIT License (see LICENSE).",
         "This distribution also includes the following third-party components, each under its",
         "own license. Full texts are in the licenses/ folder next to this file.",
         "",

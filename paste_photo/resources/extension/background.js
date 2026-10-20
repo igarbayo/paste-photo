@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 igarbayo
 // SPDX-License-Identifier: MIT
 //
-// paste-photo: puente entre la app de escritorio y las pestañas de claude.ai.
+// PastePhoto: puente entre la app de escritorio y las pestañas de claude.ai.
 //
 // La app habla con esta extensión por "native messaging" (paste-photo-native-host).
 // Mensajes que recibe (todos con `id`, la respuesta lleva el mismo `id`):

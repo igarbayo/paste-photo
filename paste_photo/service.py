@@ -57,7 +57,7 @@ class PasteService:
         self._source = self._factory.create_screenshot_source()
         self._source.start(self._on_capture)
         log.info(
-            "paste-photo activo (%s). Destinos: %s (prioridad: %s)",
+            "PastePhoto activo (%s). Destinos: %s (prioridad: %s)",
             self._factory.name,
             ", ".join(self._orchestrator.target_names) if self._orchestrator else "-",
             self._config.prefer,
@@ -88,7 +88,7 @@ class PasteService:
         if active == self.active:
             return
         (self._active.set if active else self._active.clear)()
-        log.info("paste-photo %s", "activado" if active else "en pausa")
+        log.info("PastePhoto %s", "activado" if active else "en pausa")
         self._emit(StateChanged(active))
 
     # --- órdenes desde las interfaces ---------------------------------------
@@ -128,7 +128,7 @@ class PasteService:
         if self.active:
             self._queue.put(event)
         else:
-            log.debug("Captura ignorada: paste-photo está en pausa")
+            log.debug("Captura ignorada: PastePhoto está en pausa")
 
     def _work(self) -> None:
         try:

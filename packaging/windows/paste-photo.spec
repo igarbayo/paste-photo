@@ -3,7 +3,7 @@
 # PyInstaller: dos ejecutables que comparten la misma carpeta (onedir) y dependencias.
 #   paste-photo.exe      sin consola  -> icono en la bandeja (lo que abre el usuario)
 #   paste-photo-cli.exe  con consola  -> `run`, `--probe`... desde una terminal
-#   paste-photo-native-host.exe       -> lo lanza el navegador (extensión de paste-photo)
+#   paste-photo-native-host.exe       -> lo lanza el navegador (extensión de PastePhoto)
 # Uso: pyinstaller packaging/windows/paste-photo.spec  (o python packaging/build.py)
 # -*- mode: python ; coding: utf-8 -*-
 from pathlib import Path

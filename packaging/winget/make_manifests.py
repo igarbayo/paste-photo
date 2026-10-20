@@ -45,7 +45,7 @@ def manifests(version: str, url: str, sha256: str) -> dict[str, str]:
             "PackageLocale: en-US\n"
             "Publisher: igarbayo\n"
             "PublisherUrl: https://github.com/igarbayo\n"
-            "PackageName: paste-photo\n"
+            "PackageName: PastePhoto\n"
             "PackageUrl: https://github.com/igarbayo/paste-photo\n"
             "License: MIT\n"
             "LicenseUrl: https://github.com/igarbayo/paste-photo/blob/main/LICENSE\n"

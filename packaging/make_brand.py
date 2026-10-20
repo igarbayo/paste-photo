@@ -27,7 +27,7 @@ INK = (38, 33, 29, 255)  # texto principal
 MUTED = (110, 101, 94, 255)  # texto secundario
 CHIP = (242, 226, 218, 255)  # fondo de las etiquetas (tono del icono, muy claro)
 
-TITLE = "paste-photo"
+TITLE = "PastePhoto"
 TAGLINE = ("Take a screenshot.", "It shows up in Claude.")
 CHIPS = ("Windows · Linux", "Claude Code in any terminal", "claude.ai in Chrome, Edge, Firefox")
 

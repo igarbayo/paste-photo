@@ -48,7 +48,7 @@ def single_instance() -> Iterator[None]:
     except OSError:
         handle.close()
         raise AlreadyRunningError(
-            "paste-photo ya se está ejecutando (cierra la otra instancia primero)"
+            "PastePhoto ya se está ejecutando (cierra la otra instancia primero)"
         ) from None
     try:
         yield

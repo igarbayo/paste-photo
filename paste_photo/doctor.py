@@ -23,7 +23,7 @@ OK, WARN, FAIL = "✔", "⚠", "✘"
 
 
 def run(config: Config, factory) -> str:
-    lines = [f"paste-photo {__version__} · Python {platform.python_version()} · {sys.platform}"]
+    lines = [f"PastePhoto {__version__} · Python {platform.python_version()} · {sys.platform}"]
     checks: list[Callable[[], list[str]]] = [
         lambda: _session(factory),
         lambda: _tools(factory),
@@ -98,11 +98,11 @@ def _bridge() -> list[str]:
         if browsers:
             lines.append(f"{OK} Extensión conectada en {len(browsers)} navegador(es)")
         else:
-            lines.append(f"{WARN} paste-photo está abierto pero ninguna extensión conectada: "
+            lines.append(f"{WARN} PastePhoto está abierto pero ninguna extensión conectada: "
                          "cárgala en chrome://extensions o instala el .xpi en Firefox "
                          "(ver `paste-photo setup browser`)")
     except (OSError, EOFError):
-        lines.append(f"{WARN} paste-photo no está abierto (no se puede ver si la extensión "
+        lines.append(f"{WARN} PastePhoto no está abierto (no se puede ver si la extensión "
                      "está conectada)")
     return lines
 

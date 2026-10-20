@@ -1,10 +1,10 @@
 # Components and licensing
 
-This document explains which license paste-photo uses, why, and how that license fits with
+This document explains which license PastePhoto uses, why, and how that license fits with
 every library, tool, binary and asset the project depends on. It is written for people: if you
-want to reuse paste-photo, contribute to it or redistribute it, start here.
+want to reuse PastePhoto, contribute to it or redistribute it, start here.
 
-> **Short version.** paste-photo's own code is under the **MIT License**. Every component it
+> **Short version.** PastePhoto's own code is under the **MIT License**. Every component it
 > depends on is either permissive (MIT, BSD, Apache-2.0, PSF…) or, in one case, **LGPL-3.0**
 > (pystray), which allows being used by MIT code. The Windows installer bundles third-party
 > binaries, so it ships their license texts and keeps pystray replaceable, as the LGPL requires.
@@ -27,7 +27,7 @@ Why MIT:
   copyright notice.
 - **Maximum adoption and easy packaging.** Package managers such as winget accept MIT without
   extra review, and the license text fits in one screen.
-- **No patent clause needed.** paste-photo does not implement patentable techniques. If that
+- **No patent clause needed.** PastePhoto does not implement patentable techniques. If that
   ever changes, Apache-2.0 would be the natural upgrade, since it is compatible with the same
   components.
 
@@ -40,12 +40,12 @@ Like every open source license, MIT provides the software **without any warranty
 | Apache-2.0 | Yes | More text and NOTICE handling for no practical gain here (no patents involved). |
 | BSD-3-Clause | Yes | Practically the same as MIT; MIT is better known. |
 | GPL-3.0 | Yes | Would force derivative works to be GPL, which discourages reuse of a small utility. |
-| AGPL-3.0 | Yes, but pointless | paste-photo is a desktop app, not a network service. |
+| AGPL-3.0 | Yes, but pointless | PastePhoto is a desktop app, not a network service. |
 | Proprietary | — | Rejected: the goal is an open project published on winget. |
 
 ## 2. Inventory of components
 
-### 2.1 Runtime Python dependencies (imported by paste-photo)
+### 2.1 Runtime Python dependencies (imported by PastePhoto)
 
 These are resolved automatically from `pyproject.toml` (`Requires-Dist`, Windows markers)
 by `packaging/third_party.py`.
@@ -109,7 +109,7 @@ the libraries it bundles.
 
 ### 2.3 Build, test and release tools (not distributed)
 
-These are used to *make* paste-photo but are not part of what users install, except where
+These are used to *make* PastePhoto but are not part of what users install, except where
 noted.
 
 | Tool | License | Notes |
@@ -136,8 +136,8 @@ noted.
 
 ### 2.5 Trademarks and services
 
-paste-photo mentions **Claude**, **Claude Code**, **claude.ai**, **Windows**, **Chrome**,
-**Edge** and **Firefox** only to describe what it works with (nominative use). paste-photo is
+PastePhoto mentions **Claude**, **Claude Code**, **claude.ai**, **Windows**, **Chrome**,
+**Edge** and **Firefox** only to describe what it works with (nominative use). PastePhoto is
 an independent project and is **not affiliated with, endorsed by or sponsored by Anthropic,
 Microsoft, Google or Mozilla**. It does not use their logos, and its icon is original. It does not call any Claude
 API and does not send data anywhere: it only simulates the paste shortcut on the local machine.
@@ -151,14 +151,14 @@ How each license family interacts with MIT:
   notices and license texts** when redistributing. Apache-2.0 also asks to keep any `NOTICE`
   file; uiautomation and OpenSSL do not ship one beyond what is already in their texts.
 - **LGPL-3.0 (pystray).** The LGPL is designed for libraries: an MIT program may *use* an
-  LGPL library without becoming LGPL itself. paste-photo only imports pystray and does not
+  LGPL library without becoming LGPL itself. PastePhoto only imports pystray and does not
   modify it, so the repository stays MIT. **Redistributing** pystray inside the installer adds
   obligations, covered in section 4.
-- **LGPL-2.1 (python-xlib, Linux).** Same reasoning: paste-photo imports it unmodified. It is
+- **LGPL-2.1 (python-xlib, Linux).** Same reasoning: PastePhoto imports it unmodified. It is
   never bundled: pip/pipx install it from PyPI and the `.deb` depends on Debian's
   `python3-xlib`, so users get it, its source and its license from those channels.
 - **GPL-2.0 with bootloader exception (PyInstaller).** The exception exists precisely so that
-  bundled apps can use any license. No obligation for paste-photo's code.
+  bundled apps can use any license. No obligation for PastePhoto's code.
 - **GPL / LGPL components we do not ship.** Pillow's Windows wheel excludes libimagequant
   (GPL-3.0) and FriBiDi (LGPL-2.1), and our build does not include FreeType. If a future Pillow
   build or a new import (for example `ImageFont`) brings them in, re-check this section: GPL
@@ -171,19 +171,19 @@ obligations below are met. They are met automatically by the build.
 
 ## 4. Obligations when distributing the installer, and how we meet them
 
-| Obligation | Source | How paste-photo meets it |
+| Obligation | Source | How PastePhoto meets it |
 |---|---|---|
 | Keep copyright notices and license texts of bundled components | MIT, BSD, PSF, Apache-2.0, Zlib, IJG… | `packaging/third_party.py` copies every license file into `licenses/<component>/` and writes `THIRD-PARTY-NOTICES.txt` next to the `.exe`. The installer copies both. |
 | Give a prominent notice that pystray is used and is under the LGPL, plus the LGPL and GPL texts | LGPL-3.0 §4(a)(b) | Section "pystray (LGPL-3.0-or-later)" in `THIRD-PARTY-NOTICES.txt`; `licenses/pystray/COPYING.LGPL` and `COPYING`. |
 | Let the user replace pystray with a modified version | LGPL-3.0 §4(d) | The PyInstaller spec uses `module_collection_mode={"pystray": "py"}`, so pystray ships as plain `.py` files in `_internal/pystray/`, loaded at runtime. `build.py` fails if they are missing. |
 | Make pystray's source available | LGPL-3.0 §4(d)(0) | The shipped files *are* the unmodified source; upstream link in the notices. |
 | Not forbid reverse engineering for debugging pystray modifications | LGPL-3.0 §4 | MIT imposes no such restriction. |
-| Include paste-photo's own license | MIT | `LICENSE` at the root of the app folder; shown on the installer's license page. |
+| Include PastePhoto's own license | MIT | `LICENSE` at the root of the app folder; shown on the installer's license page. |
 
 Example: after installing, `%LOCALAPPDATA%\Programs\paste-photo\` contains:
 
 ```text
-LICENSE                    paste-photo (MIT)
+LICENSE                    PastePhoto (MIT)
 THIRD-PARTY-NOTICES.txt    what is bundled and under which license
 licenses\pystray\COPYING.LGPL
 licenses\python\LICENSE.txt   CPython + OpenSSL, libffi, bzip2...
@@ -194,7 +194,7 @@ _internal\pystray\*.py     replaceable LGPL library
 
 | Obligation | How the `.deb` meets it |
 |---|---|
-| paste-photo's license | `/usr/share/doc/paste-photo/copyright` (Debian machine-readable format, MIT). |
+| PastePhoto's license | `/usr/share/doc/paste-photo/copyright` (Debian machine-readable format, MIT). |
 | pystray: notice, license, replaceable source | Same `copyright` file declares `vendor/pystray/*` as LGPL-3+ (full text in `/usr/share/common-licenses/LGPL-3` on every Debian system); pystray ships as unmodified `.py` files in `/usr/lib/paste-photo/vendor/pystray`, which users can replace. |
 | Other dependencies | Not redistributed: declared as Debian `Depends` and installed from the distribution, with their own `copyright` files. |
 
