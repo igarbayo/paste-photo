@@ -50,6 +50,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   Se vuelve a grabar con `packaging/demo/demo.py`.
 
 ### Changed
+- Imagen social (`docs/assets/social-preview.png`) sin la franja naranja del borde
+  izquierdo (`packaging/make_brand.py`).
 - El producto se llama **PastePhoto** en todo lo visible (README, bandeja, mensajes,
   instalador y accesos directos, lanzador de Linux, extensiones, winget, imágenes de marca).
   `paste-photo` sigue siendo el id técnico: comando, ejecutables, paquetes, rutas de

@@ -18,7 +18,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from make_icon import BACKGROUND, draw  # noqa: E402
+from make_icon import draw  # noqa: E402
 
 OUT = Path(__file__).resolve().parent.parent / "docs" / "assets"
 WIDTH, HEIGHT = 1280, 640
@@ -44,8 +44,6 @@ def logo(size: int = 512) -> Image.Image:
 def social_preview() -> Image.Image:
     img = Image.new("RGBA", (WIDTH, HEIGHT), PAPER)
     d = ImageDraw.Draw(img)
-    # Franja del color del icono a la izquierda y el icono encima.
-    d.rectangle((0, 0, 24, HEIGHT), fill=BACKGROUND)
     icon = draw(300)
     img.alpha_composite(icon, (110, (HEIGHT - 300) // 2))
 
