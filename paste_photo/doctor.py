@@ -65,7 +65,7 @@ def _session(factory) -> list[str]:
 
 def _macos(factory) -> list[str]:
     from paste_photo.platforms.macos.accessibility import is_trusted
-    from paste_photo.platforms.macos.sources import screenshot_folder
+    from paste_photo.platforms.macos.sources import screenshot_folders
 
     lines = [f"{OK} Sistema: macOS {platform.mac_ver()[0]}"]
     if is_trusted():
@@ -79,8 +79,9 @@ def _macos(factory) -> list[str]:
                      "Accesibilidad: activa la app desde la que lanzas PastePhoto (Terminal, "
                      f"iTerm2...) y, para el inicio automático, {app}. Siguen funcionando la "
                      "extensión del navegador, iTerm2, tmux, kitty y WezTerm.")
+    folders = ", ".join(map(str, screenshot_folders()))
     lines.append(f"{OK} Capturas: portapapeles (Cmd+Ctrl+Shift+4) y archivos nuevos en "
-                 f"{screenshot_folder()} (Cmd+Shift+4; llegan cuando desaparece la miniatura)")
+                 f"{folders} (Cmd+Shift+4; llegan cuando desaparece la miniatura)")
     lines.append(f"{WARN} La primera vez que pegue en Terminal, iTerm2, Safari o Chrome sin "
                  "extensión, macOS pedirá permiso de Automatización: acéptalo (Ajustes → "
                  "Privacidad y seguridad → Automatización)")

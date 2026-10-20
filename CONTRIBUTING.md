@@ -13,8 +13,7 @@ two weeks**, but it can take longer. Thanks for your patience.
 
 You need Python 3.11 or newer and Git. To try it for real you need Windows (Windows Terminal,
 a Chromium browser or Firefox), macOS (Terminal or iTerm2, Safari or a Chromium browser; grant
-the Accessibility permission) or Linux (X11 or Wayland, with `xclip` or `wl-clipboard`). macOS
-support is experimental: reports from real Macs are especially welcome.
+the Accessibility permission) or Linux (X11 or Wayland, with `xclip` or `wl-clipboard`).
 
 1. Fork the repository on GitHub and clone your fork:
    ```bash

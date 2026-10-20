@@ -1,6 +1,6 @@
 # ADR 0003: soporte de macOS
 
-- **Estado:** aceptada (experimental hasta probarlo en un Mac real)
+- **Estado:** aceptada (probada en un Mac real)
 - **Fecha:** 2026-10-20
 
 ## Contexto
@@ -11,7 +11,8 @@ explícitos (Accesibilidad, Automatización) y no hay un Mac en el equipo de des
 
 ## Decisión
 - **pyobjc** (MIT) para AppKit, Quartz y la API de Accesibilidad; pystray ya lo usaba.
-- **Capturas**: sondeo de `NSPasteboard.changeCount` **y** de la carpeta de capturas. Las
+- **Capturas**: sondeo de `NSPasteboard.changeCount` **y** de las carpetas de capturas
+  (`location-last`, la elegida en Cmd+Shift+5, y `location`). Las
   capturas por defecto de macOS (Cmd+Shift+4) solo crean un archivo; se copian al
   portapapeles porque Claude Code lee de ahí al pulsar Ctrl+V.
 - **Ventanas y foco**: API de Accesibilidad (títulos, ventana con foco, `AXRaise` y
@@ -34,8 +35,8 @@ explícitos (Accesibilidad, Automatización) y no hay un Mac en el equipo de des
 ## Consecuencias
 - ➕ Sin tocar `core/`: una factoría nueva y cuatro destinos (`iterm2`, `terminal_app`,
   `macos_terminal`, `macos_browser`); los destinos IPC y la extensión solo declaran macOS.
-- ➖ Lo que necesita Accesibilidad o Automatización no se puede probar en CI: se marca
-  "Experimental" en el README hasta tener pruebas en un Mac real.
+- ➖ Lo que necesita Accesibilidad o Automatización no se puede probar en CI: los cambios ahí
+  se verifican a mano en un Mac.
 - ➖ El permiso de Accesibilidad va al proceso que lanza PastePhoto (Terminal o el Python del
   LaunchAgent), no a una app con nombre propio, hasta que haya un `.app`.
 - ➖ `_AXUIElementGetWindow` es una función privada; si desaparece, se usan ids sintéticos.

@@ -75,7 +75,7 @@ def test_clipboard_and_folder_screenshots(tmp_path):
     from paste_photo.platforms.macos.sources import MacScreenshotSource
 
     events = []
-    source = MacScreenshotSource(folder=tmp_path, prefixes=("Screenshot",))
+    source = MacScreenshotSource(folders=[tmp_path], prefixes=("Screenshot",))
     source.start(events.append)
     try:
         red = png_bytes("red")

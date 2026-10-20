@@ -3,7 +3,7 @@
 Pega automáticamente cada captura de pantalla en el Claude que estés usando: Claude Code en
 cualquier terminal (Windows Terminal, también con WSL; en Linux tmux, kitty, WezTerm, Konsole
 o cualquier otro) o cualquier chat de claude.ai en navegadores Chromium y Firefox (y Safari en macOS).
-Corre en la bandeja del sistema en **Windows, macOS** (experimental: iTerm2, Terminal, tmux...)
+Corre en la bandeja del sistema en **Windows, macOS** (iTerm2, Terminal, tmux...)
 **y Linux** (X11, GNOME Wayland, KDE Wayland). Diseñado para crecer (app de escritorio,
 VS Code) **sin tocar el núcleo**.
 
@@ -171,12 +171,16 @@ Config: `%APPDATA%\paste-photo\config.toml` / `~/Library/Application Support/pas
   los scripts en archivos (la shell de la herramienta reduce las `\`).
 - GNOME y KDE Wayland reales **no** se pueden probar así: quedan "Experimental".
 
-**macOS** — no hay Mac en el equipo de desarrollo: lo que se prueba en real va en CI
-(`macos-integration`: portapapeles, carpeta de capturas, captura → tmux con un Claude falso,
-AppleScripts compilados con `osacompile` contra Terminal, Safari y Chrome). Lo que necesita
-los permisos de Accesibilidad o Automatización (foco, teclas, ejecutar AppleScript) no se
-puede conceder en CI: queda "Experimental" hasta probarlo en un Mac de verdad
-(`paste-photo doctor`, `--probe`, Cmd+Ctrl+Shift+4 con Claude en Terminal/iTerm2/Safari).
+**macOS** — probado en un Mac real por el usuario (todos los casos del README). El equipo de
+desarrollo es Windows: lo que se puede probar sin un Mac va en CI (`macos-integration`:
+portapapeles, carpeta de capturas, captura → tmux con un Claude falso, AppleScripts
+compilados con `osacompile` contra Terminal, Safari y Chrome). Lo que necesita los permisos
+de Accesibilidad o Automatización (foco, teclas, ejecutar AppleScript) no se puede conceder
+en CI: un cambio ahí se verifica en un Mac (`paste-photo doctor`, `--probe`,
+Cmd+Ctrl+Shift+4 y Cmd+Shift+4 con Claude en Terminal/iTerm2/Safari).
+- Carpeta de capturas: `defaults read com.apple.screencapture location-last` (la elegida en
+  Cmd+Shift+5 → Opciones; en el Mac del usuario, `~/Desktop/Screenshots`) **y** `location`.
+  Leer solo `location` fue un fallo real: no está definida si el usuario solo usó Cmd+Shift+5.
 
 ## No tocar sin motivo
 - `platforms/windows/focus.py`: `AttachThreadInput` + tecla virtual sin asignar (0xE8) para

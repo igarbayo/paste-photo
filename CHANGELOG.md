@@ -8,7 +8,7 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Added
-- **macOS** (experimental): PastePhoto corre en la barra de menús de macOS en los mismos casos
+- **macOS**: PastePhoto corre en la barra de menús de macOS en los mismos casos
   que en Windows y Linux. Familia de plataforma propia (`platforms/macos/`, pyobjc):
   capturas del portapapeles (`NSPasteboard`) y de la carpeta de capturas (Cmd+Shift+4; se
   copian al portapapeles para que Claude Code las lea), ventanas y foco con la API de
@@ -62,8 +62,16 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Metadatos públicos al día con lo que hace hoy: descripción y *topics* del repositorio en
   GitHub, `description`/`keywords`/`classifiers` de `pyproject.toml`, descripción y etiquetas
   de winget, descripción del `.deb` y `CONTRIBUTING.md` (Firefox, Orca, Linux).
+- macOS deja de ser "Experimental": probado en un Mac real. README (tabla de plataformas,
+  instalación), `CONTRIBUTING.md`, ADR 0003, `CLAUDE.md` y descripción del repositorio en
+  GitHub sin "(experimental)".
 
 ### Fixed
+- macOS: las capturas guardadas como archivo se detectan también en la carpeta elegida en
+  Cmd+Shift+5 → Opciones → Guardar en (`location-last` de `com.apple.screencapture`, p. ej.
+  `~/Desktop/Screenshots`); antes solo se leía `location` y, si no estaba, se vigilaba el
+  escritorio. Se vigilan las dos (sin repetir) y se vuelven a leer cada 5 s, así que cambiar
+  de carpeta no exige reiniciar PastePhoto. `doctor` muestra las carpetas vigiladas.
 - Extensión de navegador: la imagen ya no va al principio del prompt cuando el cursor no
   estaba en él (p. ej. tras hacer clic en otra parte de la página).
 - Destino `browser` (Windows, sin extensión): ya no mueve el cursor si el prompt tiene el

@@ -5,10 +5,14 @@
 
 - Cmd+Ctrl+Shift+3/4 (o "Copiar al portapapeles" en Cmd+Shift+5) dejan la imagen en el
   portapapeles: se sondea `NSPasteboard.changeCount` (no hay aviso de cambios).
-- Cmd+Shift+3/4/5 por defecto **solo guardan un archivo** (escritorio o la carpeta elegida,
-  `defaults read com.apple.screencapture location`). Claude Code lee la imagen del
-  portapapeles al pulsar Ctrl+V, así que la captura se copia al portapapeles (como hace GNOME)
-  y ese cambio propio no se vuelve a contar.
+- Cmd+Shift+3/4/5 por defecto **solo guardan un archivo** (escritorio o la carpeta elegida).
+  Claude Code lee la imagen del portapapeles al pulsar Ctrl+V, así que la captura se copia al
+  portapapeles (como hace GNOME) y ese cambio propio no se vuelve a contar.
+
+La carpeta elegida en Cmd+Shift+5 → Opciones se guarda en `location-last` (macOS reciente;
+p. ej. `~/Desktop/Screenshots`) y la fijada con `defaults write ... location`, en `location`:
+se vigilan las dos (y el escritorio si no hay ninguna), y se vuelven a leer cada pocos
+segundos por si el usuario cambia de carpeta con PastePhoto abierto.
 """
 
 from __future__ import annotations
@@ -43,6 +47,9 @@ SCREENSHOT_PREFIXES = (
     "截屏", "螢幕截圖", "Ekran Resmi",
 )
 SCREENSHOT_SUFFIXES = (".png", ".jpg", ".jpeg", ".tiff")
+# Claves de `com.apple.screencapture` con la carpeta de las capturas, por prioridad.
+LOCATION_KEYS = ("location-last", "location")
+FOLDERS_REFRESH_S = 5.0
 
 
 def make_event(data: bytes) -> ScreenshotCaptured:
@@ -67,11 +74,18 @@ def _defaults_read(key: str) -> str | None:
     return value if result.returncode == 0 and value else None
 
 
-def screenshot_folder() -> Path:
-    """Donde macOS guarda las capturas (por defecto, el escritorio)."""
-    location = _defaults_read("location")
-    folder = Path(location).expanduser() if location else Path.home() / "Desktop"
-    return folder if folder.is_dir() else Path.home() / "Desktop"
+def screenshot_folders(read: Callable[[str], str | None] = _defaults_read) -> list[Path]:
+    """Donde macOS guarda las capturas: `location-last` y `location` (las que existan, sin
+    repetir); si no hay ninguna, el escritorio."""
+    folders: list[Path] = []
+    for key in LOCATION_KEYS:
+        value = read(key)
+        if not value:
+            continue
+        folder = Path(value).expanduser()
+        if folder.is_dir() and folder.resolve() not in {f.resolve() for f in folders}:
+            folders.append(folder)
+    return folders or [Path.home() / "Desktop"]
 
 
 def screenshot_prefixes() -> tuple[str, ...]:
@@ -87,9 +101,13 @@ def is_screenshot_file(path: Path, prefixes: Iterable[str]) -> bool:
 
 
 class MacScreenshotSource:
-    def __init__(self, folder: Path | None = None, prefixes: Iterable[str] | None = None,
-                 interval_s: float = 0.25, watch_folder: bool = True) -> None:
-        self._folder = folder
+    def __init__(self, folders: Iterable[Path] | None = None,
+                 prefixes: Iterable[str] | None = None, interval_s: float = 0.25,
+                 watch_folder: bool = True) -> None:
+        # Carpetas fijas (pruebas); si no, las de la configuración de macOS, releídas.
+        self._fixed_folders = list(folders) if folders is not None else None
+        self._folders: list[Path] = []
+        self._folders_checked = 0.0
         self._prefixes = tuple(prefixes) if prefixes is not None else None
         self._interval = interval_s
         self._watch_folder = watch_folder
@@ -106,10 +124,8 @@ class MacScreenshotSource:
         self._pasteboard = NSPasteboard.generalPasteboard()
         self._last_count = self._pasteboard.changeCount()  # lo que ya había no cuenta
         if self._watch_folder:
-            self._folder = self._folder or screenshot_folder()
             self._prefixes = self._prefixes or screenshot_prefixes()
-            self._seen = set(self._screenshots())
-            log.debug("Vigilando capturas en %s", self._folder)
+            self._refresh_folders()
         threading.Thread(target=self._loop, name="mac-screenshots", daemon=True).start()
 
     def stop(self) -> None:
@@ -145,15 +161,28 @@ class MacScreenshotSource:
 
     # --- carpeta de capturas ---------------------------------------------------------
 
-    def _screenshots(self) -> list[Path]:
-        assert self._folder is not None and self._prefixes is not None
+    def _refresh_folders(self) -> None:
+        self._folders_checked = time.monotonic()
+        folders = self._fixed_folders if self._fixed_folders is not None \
+            else screenshot_folders()
+        new = [f for f in folders if f not in self._folders]
+        for folder in new:  # lo que ya hubiera en una carpeta nueva no cuenta
+            self._seen |= set(self._screenshots(folder))
+        if new or len(folders) != len(self._folders):
+            log.debug("Vigilando capturas en %s", ", ".join(map(str, folders)))
+        self._folders = list(folders)
+
+    def _screenshots(self, folder: Path) -> list[Path]:
+        assert self._prefixes is not None
         try:
-            return [p for p in self._folder.iterdir() if is_screenshot_file(p, self._prefixes)]
+            return [p for p in folder.iterdir() if is_screenshot_file(p, self._prefixes)]
         except OSError:
             return []
 
     def _check_folder(self) -> None:
-        for path in self._screenshots():
+        if time.monotonic() - self._folders_checked > FOLDERS_REFRESH_S:
+            self._refresh_folders()
+        for path in [p for folder in self._folders for p in self._screenshots(folder)]:
             if path in self._seen or not _settled(path):
                 continue
             self._seen.add(path)

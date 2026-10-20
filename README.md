@@ -27,7 +27,6 @@ PastePhoto lives in the system tray. When you take a screenshot, it pastes the i
 the Claude you used last, without sending it, and puts you back where you were. It works on
 **Windows, macOS and Linux**, in **any terminal** and in **Chromium-based browsers and
 Firefox** (and, without the extension, in **Safari** and other browsers such as GNOME Web).
-macOS support is new and experimental.
 
 <p align="center">
   <img src="docs/assets/demo.gif" alt="Demo: a screenshot taken with Win+Shift+S appears in the Claude Code prompt as [Image #1], at the cursor and without being sent" width="800">
@@ -71,14 +70,14 @@ macOS support is new and experimental.
 | Linux (any) | claude.ai in LibreWolf | browser extension | ⚠️ Experimental |
 | Linux, X11 | claude.ai in **any browser without the extension** (GNOME Web, Falkon, qutebrowser…) | focuses the window, Ctrl+V; only if Claude's tab is the active one and the cursor is in the prompt | ✅ (tested with Firefox) |
 | Linux, GNOME/KDE Wayland | claude.ai in any browser without the extension | same, through `setup gnome` / KWin | ⚠️ Experimental |
-| macOS | Claude Code inside **tmux** | `tmux send-keys`, no focus needed | ✅ (tested on a real Mac in CI) |
-| macOS | Claude Code in **iTerm2** | AppleScript, no focus needed, any tab | ⚠️ Experimental |
-| macOS | Claude Code in **Terminal** | AppleScript selects the tab, Ctrl+V, back to your tab | ⚠️ Experimental |
-| macOS | Claude Code in **kitty** (remote control on), **WezTerm** or **Orca** | terminal's own CLI, no focus needed | ⚠️ Experimental |
-| macOS | Claude Code in **any other terminal** (Ghostty, Alacritty, Warp…) | focuses the window, Ctrl+V | ⚠️ Experimental |
-| macOS | claude.ai in Chrome, Edge, Brave, Vivaldi, Chromium, Firefox | browser extension | ⚠️ Experimental |
-| macOS | claude.ai in **Safari**, or Chrome, Edge, Brave, Vivaldi, Chromium without the extension | AppleScript selects the tab (also a background one), Cmd+V, back to your tab | ⚠️ Experimental |
-| macOS | claude.ai in Firefox, Arc, Opera… without the extension | focuses the window, Cmd+V; only if Claude's tab is the active one | ⚠️ Experimental |
+| macOS | Claude Code inside **tmux** | `tmux send-keys`, no focus needed | ✅ |
+| macOS | Claude Code in **iTerm2** | AppleScript, no focus needed, any tab | ✅ |
+| macOS | Claude Code in **Terminal** | AppleScript selects the tab, Ctrl+V, back to your tab | ✅ |
+| macOS | Claude Code in **kitty** (remote control on), **WezTerm** or **Orca** | terminal's own CLI, no focus needed | ✅ |
+| macOS | Claude Code in **any other terminal** (Ghostty, Alacritty, Warp…) | focuses the window, Ctrl+V | ✅ |
+| macOS | claude.ai in Chrome, Edge, Brave, Vivaldi, Chromium, Firefox | browser extension | ✅ |
+| macOS | claude.ai in **Safari**, or Chrome, Edge, Brave, Vivaldi, Chromium without the extension | AppleScript selects the tab (also a background one), Cmd+V, back to your tab | ✅ |
+| macOS | claude.ai in Firefox, Arc, Opera… without the extension | focuses the window, Cmd+V; only if Claude's tab is the active one | ✅ |
 
 "Experimental" means it is implemented but has not been tested on a real desktop yet. Tell us
 how it goes in an [issue](https://github.com/igarbayo/paste-photo/issues).
@@ -124,7 +123,7 @@ Then check your setup:
 paste-photo doctor
 ```
 
-### macOS (experimental)
+### macOS
 
 There is no app bundle yet: install it with [pipx](https://pipx.pypa.io/) (`brew install
 pipx`) and start it from a terminal. Its icon appears in the menu bar.
@@ -206,7 +205,8 @@ python -m venv .venv
 
 On macOS, **Cmd+Ctrl+Shift+4** (copy the screenshot) pastes it right away. **Cmd+Shift+4**
 (save it to a file) works too: PastePhoto picks up the new file in your screenshots folder
-(the Desktop by default) and copies it to the clipboard, but macOS only writes the file when
+(the one chosen in **Cmd+Shift+5 → Options → Save to**, such as `Desktop/Screenshots`; the
+Desktop by default) and copies it to the clipboard, but macOS only writes the file when
 the floating thumbnail goes away, a few seconds later. To skip that wait, turn off **Show
 Floating Thumbnail** in **Cmd+Shift+5 → Options**.
 
@@ -339,7 +339,7 @@ the core.
 | Orca: nothing gets pasted | Orca has to be open. Run `paste-photo doctor`; if it can't find Orca's CLI, set `cli` on the `orca` target. |
 | Linux: nothing happens in GNOME Terminal on Wayland | Run `paste-photo setup gnome` and sign out and in, or use tmux. |
 | Linux: the image never reaches Claude Code | Install `xclip` (X11) or `wl-clipboard` (Wayland); Claude Code needs it to read images. |
-| macOS: nothing gets pasted in Terminal, Ghostty or the browser | Give PastePhoto the **Accessibility** permission (see [macOS](#macos-experimental)) and run `paste-photo doctor`. iTerm2, tmux and the browser extension don't need it. |
+| macOS: nothing gets pasted in Terminal, Ghostty or the browser | Give PastePhoto the **Accessibility** permission (see [macOS](#macos)) and run `paste-photo doctor`. iTerm2, tmux and the browser extension don't need it. |
 | macOS: "not allowed to send Apple events" in the log | You declined the **Automation** prompt: allow it in System Settings → Privacy & Security → Automation. |
 | macOS: a Cmd+Shift+4 screenshot takes a few seconds to appear | macOS writes the file when the floating thumbnail goes away. Use Cmd+Ctrl+Shift+4, or turn off the thumbnail in Cmd+Shift+5 → Options. |
 | "Windows protected your PC" | The installer is not code-signed yet: **More info → Run anyway**. |

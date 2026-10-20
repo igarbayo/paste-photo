@@ -86,6 +86,30 @@ def test_is_screenshot_file():
     assert is_screenshot_file(Path("Mi captura 1.png"), ("Mi captura",))
 
 
+def test_screenshot_folders_reads_location_last(tmp_path, monkeypatch):
+    from paste_photo.platforms.macos.sources import screenshot_folders
+
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    for var in ("HOME", "USERPROFILE"):  # los que lee expanduser("~/...")
+        monkeypatch.setenv(var, str(tmp_path))
+    desktop, shots = tmp_path / "Desktop", tmp_path / "Desktop" / "Screenshots"
+    shots.mkdir(parents=True)
+
+    def defaults(values):
+        return lambda key: values.get(key)
+
+    # Elegida en Cmd+Shift+5 → Opciones: solo `location-last` (caso real en macOS reciente).
+    assert screenshot_folders(defaults({"location-last": "~/Desktop/Screenshots"})) == [shots]
+    # Las dos, distintas: se vigilan ambas; repetidas, una vez.
+    both = {"location-last": str(shots), "location": str(desktop)}
+    assert screenshot_folders(defaults(both)) == [shots, desktop]
+    same = {"location-last": str(shots), "location": str(shots) + "/"}
+    assert screenshot_folders(defaults(same)) == [shots]
+    # Nada configurado, o carpetas que ya no existen: el escritorio.
+    assert screenshot_folders(defaults({})) == [desktop]
+    assert screenshot_folders(defaults({"location": str(tmp_path / "borrada")})) == [desktop]
+
+
 def test_launch_agent(tmp_path):
     from paste_photo.platforms.macos.autostart import (
         LABEL,

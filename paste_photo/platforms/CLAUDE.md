@@ -10,7 +10,7 @@ factoría que crea la familia coherente: `ScreenshotSource`, `FocusManager`, `Ke
 |---|---|
 | Windows | ✅ `windows/` (pywin32 + UI Automation en los destinos) |
 | Linux | ✅ `linux/`: X11 probado en real; GNOME/KDE Wayland implementados, sin probar en real |
-| macOS | ⚠️ `macos/` (pyobjc): implementado; en CI real solo portapapeles, carpeta y tmux |
+| macOS | ✅ `macos/` (pyobjc): probado en un Mac real; CI real: portapapeles, carpeta y tmux |
 
 ## Receta: añadir/completar un SO
 1. En `platforms/<so>/` implementa los puertos (contratos en `core/CLAUDE.md`).
@@ -23,7 +23,7 @@ factoría que crea la familia coherente: `ScreenshotSource`, `FocusManager`, `Ke
 ## macOS (`macos/`)
 | Puerto | Implementación |
 |---|---|
-| Capturas | `MacScreenshotSource`: sondeo de `NSPasteboard.changeCount` (250 ms; `public.png`, si no `public.tiff`; nada si hay `public.file-url`) **y** archivos nuevos de la carpeta de capturas (`defaults read com.apple.screencapture location`, por defecto el escritorio; nombre por prefijos de cada idioma o `... name`) |
+| Capturas | `MacScreenshotSource`: sondeo de `NSPasteboard.changeCount` (250 ms; `public.png`, si no `public.tiff`; nada si hay `public.file-url`) **y** archivos nuevos de las carpetas de capturas (`screenshot_folders()`: `location-last` y `location` de `com.apple.screencapture`, releídas cada 5 s; si no hay ninguna, el escritorio; nombre por prefijos de cada idioma o `... name`) |
 | Ventanas | `MacWindowSystem`: pids con ventanas por `CGWindowListCopyWindowInfo`; ventanas y títulos por AX (`AXWindows`, `AXTitle`); id = `CGWindowID` con `_AXUIElementGetWindow` (privada, por ctypes) o id sintético |
 | Foco | `MacFocus`: Memento = ventana con el foco (AX `AXFocusedApplication` → `AXFocusedWindow`), o `-pid` si la app no tiene ventana; activar = `AXRaise` + `AXFrontmost` |
 | Teclado | `MacKeyboard`: `CGEventPost` con fuente privada (`kCGEventSourceStatePrivate`); keycodes ANSI |
@@ -39,6 +39,9 @@ destinos `iterm2`, `terminal_app`, `macos_browser`; macOS lo pide por app la pri
   puede no hacer nada; `AXFrontmost` sí (con Accesibilidad). Queda como respaldo.
 - Hilos largos con AppKit/AX: cada iteración en su `objc.autorelease_pool()` (no hay pool
   automático en hilos de Python).
+- La carpeta elegida en Cmd+Shift+5 → Opciones → Guardar en va a `location-last`, **no** a
+  `location` (que solo existe si alguien hizo `defaults write ... location`). Visto en un Mac
+  real: capturas en `~/Desktop/Screenshots` que no se detectaban vigilando solo el escritorio.
 - Las capturas con Cmd+Shift+4 son **solo archivo**: se copian al portapapeles (Claude Code
   lee de ahí con Ctrl+V) y el `changeCount` propio se ignora. macOS escribe el archivo al
   desaparecer la miniatura flotante (~5 s).
