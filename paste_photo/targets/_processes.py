@@ -58,8 +58,9 @@ def process_name(pid: int) -> str:
 
 CLAUDE_NAMES = ("claude", "claude.exe")
 CLAUDE_CMDLINE_HINT = "@anthropic-ai/claude-code"  # instalación por npm: `node .../cli.js`
-# Apps de escritorio de macOS (Claude.app también se llama "Claude"): no son Claude Code.
-MACOS_APP_BUNDLE_HINT = ".app/Contents/MacOS/"
+# La app de escritorio de macOS (también se llama "Claude") no es Claude Code. Solo esa app:
+# otros bundles sí pueden lanzar Claude Code (p. ej. el Python.app de python.org con npm).
+MACOS_APP_BUNDLE_HINT = "/claude.app/contents/"
 # `claude --chrome-native-host`: el puente de Claude in Chrome, sin terminal ni prompt.
 NOT_A_SESSION_ARG = "--chrome-native-host"
 
@@ -79,7 +80,7 @@ def is_claude(proc: psutil.Process) -> bool:
     try:
         info = getattr(proc, "info", None) or {}  # solo existe en los de process_iter
         cmdline = (info["cmdline"] if "cmdline" in info else proc.cmdline()) or []
-        if cmdline and MACOS_APP_BUNDLE_HINT in cmdline[0] or NOT_A_SESSION_ARG in cmdline:
+        if cmdline and MACOS_APP_BUNDLE_HINT in cmdline[0].lower() or NOT_A_SESSION_ARG in cmdline:
             return False
         if (info.get("name") or proc.name()).lower() in CLAUDE_NAMES:
             return True

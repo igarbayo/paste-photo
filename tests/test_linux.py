@@ -347,6 +347,10 @@ class _FakeProc:
     ("2.1.304", ["/Users/yo/.local/bin/claude", "--continue"], True),
     # la app de escritorio de macOS no es Claude Code
     ("Claude", ["/Applications/Claude.app/Contents/MacOS/Claude"], False),
+    # otro bundle (el Python de python.org se relanza desde Python.app) sí puede ser Claude Code
+    ("Python", ["/Library/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/"
+                "Contents/MacOS/Python", "/x/node_modules/@anthropic-ai/claude-code/cli.py"],
+     True),
     ("python3", ["python3", "claude.py"], False),
     # el puente de Claude in Chrome que lanza el navegador
     ("2.1.304", ["/Users/yo/.local/bin/claude", "--chrome-native-host"], False),

@@ -87,6 +87,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   → `versions/<versión>`, proceso llamado como la versión); antes solo se reconocía la
   instalación por npm y en Terminal no se pegaba nunca. La app de escritorio Claude.app y el
   puente de Claude in Chrome (`claude --chrome-native-host`) ya no cuentan como Claude Code.
+  Solo se descarta Claude.app, no cualquier bundle `.app` (el Python de python.org se
+  relanza desde `Python.app` y dejaba fuera la integración de macOS en CI).
 
 ## [0.3.0] - 2026-10-20
 
