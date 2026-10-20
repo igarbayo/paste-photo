@@ -332,3 +332,24 @@ def test_is_claude_with_plain_process_objects():
     import psutil
 
     assert _processes.is_claude(psutil.Process(os.getpid())) is False
+
+
+class _FakeProc:
+    def __init__(self, name, cmdline):
+        self.info = {"name": name, "cmdline": cmdline}
+
+
+@pytest.mark.parametrize(("name", "cmdline", "expected"), [
+    ("claude", ["claude"], True),
+    ("node", ["node", "/usr/lib/node_modules/@anthropic-ai/claude-code/cli.js"], True),
+    # instalador nativo: el proceso se llama como la versión (enlace a versions/2.1.304)
+    ("2.1.304", ["claude"], True),
+    ("2.1.304", ["/Users/yo/.local/bin/claude", "--continue"], True),
+    # la app de escritorio de macOS no es Claude Code
+    ("Claude", ["/Applications/Claude.app/Contents/MacOS/Claude"], False),
+    ("python3", ["python3", "claude.py"], False),
+    # el puente de Claude in Chrome que lanza el navegador
+    ("2.1.304", ["/Users/yo/.local/bin/claude", "--chrome-native-host"], False),
+])
+def test_is_claude_by_name_argv0_and_npm_path(name, cmdline, expected):
+    assert _processes.is_claude(_FakeProc(name, cmdline)) is expected

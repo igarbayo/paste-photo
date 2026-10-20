@@ -58,6 +58,14 @@ def process_name(pid: int) -> str:
 
 CLAUDE_NAMES = ("claude", "claude.exe")
 CLAUDE_CMDLINE_HINT = "@anthropic-ai/claude-code"  # instalación por npm: `node .../cli.js`
+# Apps de escritorio de macOS (Claude.app también se llama "Claude"): no son Claude Code.
+MACOS_APP_BUNDLE_HINT = ".app/Contents/MacOS/"
+# `claude --chrome-native-host`: el puente de Claude in Chrome, sin terminal ni prompt.
+NOT_A_SESSION_ARG = "--chrome-native-host"
+
+
+def _program_name(argv0: str) -> str:
+    return argv0.replace("\\", "/").rsplit("/", 1)[-1].lower()
 
 
 @dataclass(frozen=True)
@@ -70,10 +78,16 @@ class ClaudeProcess:
 def is_claude(proc: psutil.Process) -> bool:
     try:
         info = getattr(proc, "info", None) or {}  # solo existe en los de process_iter
+        cmdline = (info["cmdline"] if "cmdline" in info else proc.cmdline()) or []
+        if cmdline and MACOS_APP_BUNDLE_HINT in cmdline[0] or NOT_A_SESSION_ARG in cmdline:
+            return False
         if (info.get("name") or proc.name()).lower() in CLAUDE_NAMES:
             return True
-        cmdline = info["cmdline"] if "cmdline" in info else proc.cmdline()
-        return any(CLAUDE_CMDLINE_HINT in part for part in (cmdline or []))
+        # Instalador nativo de macOS/Linux: `claude` es un enlace a `versions/<versión>`, así
+        # que el proceso se llama como la versión ("2.1.304") y solo argv[0] dice "claude".
+        if cmdline and _program_name(cmdline[0]) in CLAUDE_NAMES:
+            return True
+        return any(CLAUDE_CMDLINE_HINT in part for part in cmdline)
     except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
         return False
 

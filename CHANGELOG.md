@@ -76,6 +76,10 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   estaba en él (p. ej. tras hacer clic en otra parte de la página).
 - Destino `browser` (Windows, sin extensión): ya no mueve el cursor si el prompt tiene el
   foco; si no lo tiene, lo enfoca y se respeta la última posición del cursor.
+- macOS y Linux: se detecta Claude Code instalado con el instalador nativo (`~/.local/bin/claude`
+  → `versions/<versión>`, proceso llamado como la versión); antes solo se reconocía la
+  instalación por npm y en Terminal no se pegaba nunca. La app de escritorio Claude.app y el
+  puente de Claude in Chrome (`claude --chrome-native-host`) ya no cuentan como Claude Code.
 
 ## [0.3.0] - 2026-10-20
 
