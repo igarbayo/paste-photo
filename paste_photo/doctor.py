@@ -43,6 +43,8 @@ def run(config: Config, factory) -> str:
 
 
 def _session(factory) -> list[str]:
+    if factory.name == "macos":
+        return _macos(factory)
     if factory.name != "linux":
         return [f"{OK} Sistema: {factory.name}"]
     session = factory.session
@@ -61,7 +63,34 @@ def _session(factory) -> list[str]:
     return lines
 
 
+def _macos(factory) -> list[str]:
+    from paste_photo.platforms.macos.accessibility import is_trusted
+    from paste_photo.platforms.macos.sources import screenshot_folder
+
+    lines = [f"{OK} Sistema: macOS {platform.mac_ver()[0]}"]
+    if is_trusted():
+        windows = factory.create_window_system()
+        count = len(windows.list_windows()) if windows is not None else 0
+        lines.append(f"{OK} Permiso de Accesibilidad concedido: {count} ventanas visibles")
+    else:
+        app = Path(sys.executable).resolve()
+        lines.append(f"{FAIL} Falta el permiso de Accesibilidad (enfocar ventanas y pulsar la "
+                     "tecla de pegado). Ajustes del Sistema → Privacidad y seguridad → "
+                     "Accesibilidad: activa la app desde la que lanzas PastePhoto (Terminal, "
+                     f"iTerm2...) y, para el inicio automático, {app}. Siguen funcionando la "
+                     "extensión del navegador, iTerm2, tmux, kitty y WezTerm.")
+    lines.append(f"{OK} Capturas: portapapeles (Cmd+Ctrl+Shift+4) y archivos nuevos en "
+                 f"{screenshot_folder()} (Cmd+Shift+4; llegan cuando desaparece la miniatura)")
+    lines.append(f"{WARN} La primera vez que pegue en Terminal, iTerm2, Safari o Chrome sin "
+                 "extensión, macOS pedirá permiso de Automatización: acéptalo (Ajustes → "
+                 "Privacidad y seguridad → Automatización)")
+    return lines
+
+
 def _tools(factory) -> list[str]:
+    if factory.name == "macos":
+        found = [t for t in ("tmux", "kitty", "wezterm") if shutil.which(t)]
+        return [f"{OK} Terminales con IPC instalados: {', '.join(found)}"] if found else []
     if factory.name != "linux":
         return []
     session = factory.session
@@ -122,7 +151,7 @@ def _installed_host_manifests() -> list[str]:
                 pass
         return found
     return [browser for browser, (manifest, _gecko)
-            in install.linux_host_manifests(Path.home()).items() if manifest.exists()]
+            in install.posix_host_manifests(Path.home()).items() if manifest.exists()]
 
 
 def _claude_processes() -> list[str]:
@@ -144,9 +173,17 @@ def _claude_processes() -> list[str]:
                          "`allow_remote_control socket-only` y `listen_on unix:@kitty` a "
                          "kitty.conf (si no, se usa la ventana y debe ser la pestaña activa)")
             continue
-        how = channel or "ventana del terminal (pestaña activa)"
+        how = channel or _macos_channel(proc.environ) or "ventana del terminal (pestaña activa)"
         lines.append(f"{OK} Claude Code (pid {proc.pid}) → {how}")
     return lines
+
+
+def _macos_channel(environ: dict[str, str]) -> str | None:
+    if sys.platform != "darwin":
+        return None
+    return {"iTerm.app": "iTerm2 (AppleScript, sin foco)",
+            "Apple_Terminal": "Terminal (AppleScript selecciona la pestaña)"}.get(
+        environ.get("TERM_PROGRAM", ""))
 
 
 def _orca() -> list[str]:

@@ -8,6 +8,24 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Added
+- **macOS** (experimental): PastePhoto corre en la barra de menús de macOS en los mismos casos
+  que en Windows y Linux. Familia de plataforma propia (`platforms/macos/`, pyobjc):
+  capturas del portapapeles (`NSPasteboard`) y de la carpeta de capturas (Cmd+Shift+4; se
+  copian al portapapeles para que Claude Code las lea), ventanas y foco con la API de
+  Accesibilidad, teclas con Quartz e inicio al iniciar sesión con un LaunchAgent. Nuevos
+  destinos: `iterm2` (AppleScript, sin foco), `terminal_app` (Terminal.app: selecciona la
+  pestaña por su tty), `macos_terminal` (Ghostty, Alacritty, Warp...: ventana + Ctrl+V) y
+  `macos_browser` (Safari y Chromium por AppleScript, también pestañas de fondo; Firefox y
+  demás por el título de la ventana; Cmd+V). `tmux`, `kitty`, `wezterm`, `orca` y
+  `browser_extension` también funcionan en macOS; `setup browser` registra el host nativo en
+  `~/Library/Application Support`. `paste-photo doctor` comprueba los permisos de
+  Accesibilidad y Automatización. Instalación con pipx.
+- ADR 0003 (`docs/adr/0003-macos.md`): decisiones del soporte de macOS.
+- Metadatos públicos con macOS: descripción y *topics* del repositorio en GitHub (`macos`,
+  `iterm2`, `safari`), `keywords`/`classifiers` de `pyproject.toml`, imagen social
+  regenerada ("Windows · macOS · Linux", Safari) y `CONTRIBUTING.md`.
+- CI en macOS: tests en `macos-latest` e integración real (portapapeles, carpeta de capturas,
+  captura → tmux con un Claude falso, AppleScripts compilados contra Terminal, Safari y Chrome).
 - Destino `orca` (Windows y Linux): Claude Code en las terminales de
   [Orca](https://github.com/stablyai/orca) recibe las capturas por su CLI
   (`orca terminal send`), sin foco y aunque la terminal no sea la visible. Comprobación de

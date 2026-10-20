@@ -21,9 +21,9 @@ notify = true
 # Destinos. Con prefer = "order" el orden es la prioridad; con "recent" solo desempata.
 # Tipos disponibles: `paste-photo --list-targets`. Cada destino declara en qué sistemas
 # funciona: los que no aplican al tuyo se ignoran solos, así que esta lista vale para
-# Windows y Linux a la vez.
+# Windows, macOS y Linux a la vez.
 
-# claude.ai en Chrome, Edge, Brave... (Windows y Linux) mediante la extensión de
+# claude.ai en Chrome, Edge, Brave, Firefox... (Windows, macOS y Linux) mediante la extensión de
 # PastePhoto: pega sin cambiar de pestaña ni de ventana, también en pestañas de fondo.
 # Se instala con `paste-photo setup browser`. Si no está conectada, se ignora.
 [[targets]]
@@ -31,7 +31,7 @@ type = "browser_extension"
 # true = además de pegar, traer la pestaña al frente.
 activate = false
 
-# Claude Code en las terminales de Orca (Windows y Linux): usa la CLI de Orca
+# Claude Code en las terminales de Orca (Windows, macOS y Linux): usa la CLI de Orca
 # (`orca terminal send`) para pulsar la tecla de pegado en la terminal exacta de Claude,
 # sin foco ni cambiar de pestaña. Necesita Orca abierto.
 [[targets]]
@@ -39,7 +39,7 @@ type = "orca"
 # Ruta de la CLI de Orca si no está en el PATH ni en su carpeta de instalación.
 # cli = "C:\\Users\\yo\\AppData\\Local\\Programs\\orca\\resources\\bin\\orca.exe"
 # Bytes que se escriben en la terminal. Por defecto, la tecla de pegado de imágenes de
-# Claude Code: Alt+V ("\u001bv") en Windows y Ctrl+V ("\u0016") en Linux.
+# Claude Code: Alt+V ("\u001bv") en Windows y Ctrl+V ("\u0016") en macOS y Linux.
 # paste_text = "\u0016"
 
 # --- Windows ---------------------------------------------------------------------------
@@ -78,8 +78,9 @@ paste_keys = "ctrl+v"
 settle_ms = 250
 restore_tab = true
 
-# --- Linux -----------------------------------------------------------------------------
-# Terminales con IPC: escriben Ctrl+V en el panel exacto de Claude, sin foco (X11 y Wayland).
+# --- macOS y Linux ---------------------------------------------------------------------
+# Terminales con IPC: escriben Ctrl+V en el panel exacto de Claude, sin foco (en Linux,
+# X11 y Wayland).
 
 [[targets]]
 type = "tmux"
@@ -93,6 +94,48 @@ type = "wezterm"
 
 [[targets]]
 type = "konsole"
+
+# --- macOS -----------------------------------------------------------------------------
+# Las vías con foco (Terminal, otros terminales, navegadores sin extensión) necesitan el
+# permiso de Accesibilidad; las de AppleScript, además, el de Automatización (macOS lo pide
+# la primera vez). `paste-photo doctor` lo comprueba.
+
+# iTerm2: AppleScript escribe Ctrl+V en la sesión exacta de Claude, sin foco y en
+# cualquier pestaña.
+[[targets]]
+type = "iterm2"
+
+# Terminal.app: AppleScript selecciona la pestaña de Claude (por su tty), se pulsa Ctrl+V
+# y se vuelve a la pestaña que tenías.
+[[targets]]
+type = "terminal_app"
+# En macOS Claude Code pega imágenes con Ctrl+V (Cmd+V lo captura el terminal: solo texto).
+paste_keys = "ctrl+v"
+settle_ms = 200
+restore_tab = true
+
+# Cualquier otro terminal (Ghostty, Alacritty, Warp, kitty sin control remoto...): enfoca
+# su ventana y pulsa Ctrl+V. Solo si la pestaña de Claude es la activa (lo dice el título).
+[[targets]]
+type = "macos_terminal"
+title_regex = "^[✳✻✽✶✢·◐◓◑◒]\\s|Claude Code"
+paste_keys = "ctrl+v"
+settle_ms = 150
+
+# claude.ai sin la extensión. Safari, Chrome, Edge, Brave, Vivaldi y Chromium: AppleScript
+# encuentra la pestaña (también de fondo), la selecciona, pulsa Cmd+V y vuelve a la que
+# tenías. Resto (Firefox, Arc, Opera...): por el título de la ventana, solo si la pestaña de
+# Claude es la activa. La imagen va al prompt si el cursor estaba en él.
+[[targets]]
+type = "macos_browser"
+paste_keys = "cmd+v"
+# Navegadores sin AppleScript de pestañas (nombre del proceso, en minúsculas).
+# browsers = ["firefox", "librewolf", "zen", "waterfox", "floorp", "arc", "opera", "orion"]
+# false = no usar AppleScript (todos por el título de la ventana).
+# scriptable = true
+restore_tab = true
+
+# --- Linux -----------------------------------------------------------------------------
 
 # Cualquier otro terminal (GNOME Terminal, Ptyxis, xterm, Alacritty...): enfoca su ventana
 # y pulsa Ctrl+V. Solo si la pestaña de Claude es la activa (lo dice el título).

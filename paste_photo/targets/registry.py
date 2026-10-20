@@ -52,6 +52,10 @@ _BUILTIN_MODULES = (
     "orca",
     "linux_terminal",
     "linux_browser",
+    "iterm2",
+    "terminal_app",
+    "macos_terminal",
+    "macos_browser",
     "desktop_app",
     "vscode",
 )

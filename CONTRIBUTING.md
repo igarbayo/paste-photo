@@ -12,7 +12,9 @@ two weeks**, but it can take longer. Thanks for your patience.
 ## Set up the environment
 
 You need Python 3.11 or newer and Git. To try it for real you need Windows (Windows Terminal,
-a Chromium browser or Firefox) or Linux (X11 or Wayland, with `xclip` or `wl-clipboard`).
+a Chromium browser or Firefox), macOS (Terminal or iTerm2, Safari or a Chromium browser; grant
+the Accessibility permission) or Linux (X11 or Wayland, with `xclip` or `wl-clipboard`). macOS
+support is experimental: reports from real Macs are especially welcome.
 
 1. Fork the repository on GitHub and clone your fork:
    ```bash
@@ -36,6 +38,8 @@ a Chromium browser or Firefox) or Linux (X11 or Wayland, with `xclip` or `wl-cli
    ```bash
    PASTE_PHOTO_INTEGRATION=1 .venv/bin/python -m pytest -q tests/integration
    ```
+   The same command on macOS runs the macOS integration tests (clipboard, screenshot folder,
+   tmux and AppleScript compilation; `brew install tmux`).
 
 ## Make your change
 

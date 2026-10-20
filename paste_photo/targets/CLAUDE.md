@@ -11,16 +11,20 @@ omiten solos (`service.build_targets`), así que la config por defecto los lista
 
 | Tipo | SO | Cómo pega | Foco |
 |---|---|---|---|
-| `browser_extension` | Windows, Linux | la extensión inyecta un `paste` con el PNG en el editor | no |
+| `browser_extension` | Windows, macOS, Linux | la extensión inyecta un `paste` con el PNG en el editor | no |
 | `windows_terminal` | Windows | UI Automation: selecciona la pestaña, **Alt+V** | sí |
 | `browser` | Windows | UI Automation (Chromium y Firefox): pestaña + editor (solo enfoca si no lo tenía), Ctrl+V | sí |
-| `orca` | Windows, Linux | `orca terminal send --terminal $ORCA_TERMINAL_HANDLE --text <tecla>` | no |
+| `orca` | Windows, macOS, Linux | `orca terminal send --terminal $ORCA_TERMINAL_HANDLE --text <tecla>` | no |
 | `tmux` | Linux, macOS | `tmux -S <socket> send-keys -t <pane> C-v` | no |
 | `kitty` | Linux, macOS | `kitty @ --to $KITTY_LISTEN_ON send-text --match id:N ` | no |
 | `wezterm` | Linux, macOS | `wezterm cli send-text --no-paste --pane-id N ` | no |
 | `konsole` | Linux | D-Bus `org.kde.konsole.Session.sendText("")` | no |
 | `linux_terminal` | Linux | `WindowSystem.activate` + **Ctrl+V** (solo si la pestaña de Claude es la activa) | sí |
 | `linux_browser` | Linux | ventana de navegador con título de Claude → `activate` + **Ctrl+V** (sin extensión: GNOME Web, Falkon...) | sí |
+| `iterm2` | macOS | AppleScript: `write text "\x16" without newline` en la sesión de `ITERM_SESSION_ID` | no |
+| `terminal_app` | macOS | AppleScript selecciona la pestaña por `tty` → **Ctrl+V** → vuelve a la pestaña | sí |
+| `macos_terminal` | macOS | ventana del terminal con título de Claude → `activate` + **Ctrl+V** (Ghostty, Alacritty, Warp...) | sí |
+| `macos_browser` | macOS | Safari/Chromium: AppleScript (todas las pestañas, URL) → **Cmd+V** → vuelve; resto por título de ventana | sí |
 | `desktop_app`, `vscode` | — | ⏳ `_pending` | |
 
 Estado real: probados de punta a punta en Linux (WSL + Xvfb/Openbox) tmux, kitty, Konsole,
@@ -36,7 +40,11 @@ Falkon y qutebrowser: sin probar (mismo mecanismo que `linux_browser` con Firefo
 | Gecko | Firefox, LibreWolf (Waterfox, Floorp, Zen: sin registro de host) | sí (`.xpi`, firmado para Firefox normal) | Windows `browser`; Linux `linux_browser` |
 | WebKit | GNOME Web (Epiphany) | no: sin native messaging | Linux `linux_browser` |
 | QtWebEngine | Falkon, qutebrowser, Konqueror | no admiten WebExtensions | Linux `linux_browser` |
-Safari (WebKit) solo existe en macOS: sería otra extensión (Safari Web Extension con app).
+| WebKit | Safari (macOS) | no: sería una Safari Web Extension con app propia | macOS `macos_browser` (AppleScript) |
+
+En macOS, Chrome, Edge, Brave, Vivaldi y Chromium usan la extensión o, sin ella,
+`macos_browser` por AppleScript; Firefox, Arc, Opera..., la extensión (si la admiten) o la
+ventana.
 
 ## Posición del cursor: la imagen va donde estaba el cursor
 - **Terminales**: se envía solo la tecla de pegado; Claude Code inserta `[Image #N]` en su
@@ -78,14 +86,32 @@ en la línea de órdenes) y lee su **entorno**, que delata el panel exacto: `TMU
 - La ventana de un proceso = primera ventana cuyo PID es un ancestro (`owning_window`);
   un destino puede cambiarlo con `window_of()` (Orca: sus PTY cuelgan del daemon).
 
-## Orca (`orca.py`, Windows y Linux)
+## Orca (`orca.py`, Windows, macOS y Linux)
 - Orca exporta `ORCA_TERMINAL_HANDLE` (y `ORCA_CLI_COMMAND`) a sus terminales; está en
   `IPC_ENV_MARKERS`, así que `linux_terminal` no lo duplica.
 - CLI: `orca.exe` (Windows, `%LOCALAPPDATA%\Programs\orca\resources\bin`; no `orca.cmd`,
-  cmd.exe reinterpreta el texto) y `orca-ide` en Linux (`orca` es el lector de pantalla de
-  GNOME). Opción `cli` para fijarla.
+  cmd.exe reinterpreta el texto), `orca-ide` en Linux (`orca` es el lector de pantalla de
+  GNOME) y `orca` en macOS (`Orca.app/Contents/Resources/bin`, sin probar; manda
+  `ORCA_CLI_COMMAND`). Opción `cli` para fijarla.
 - Bytes: `\x1bv` (Alt+V) en Windows, `\x16` en Linux (`paste_text`). Sin `--enter`.
 - Recencia: cualquier ventana del proceso `orca.exe`/`orca-ide` (la usada más recientemente).
+
+## macOS (`iterm2`, `terminal_app`, `macos_terminal`, `macos_browser`)
+- `TERM_PROGRAM` (lo fija el terminal más interno: `iTerm.app`, `Apple_Terminal`, `tmux`,
+  `ghostty`...) decide el destino; `ITERM_SESSION_ID`/`TERM_SESSION_ID` se heredan si se abre
+  otro terminal desde iTerm2/Terminal, así que no bastan.
+- AppleScript con `osascript -` y datos por `argv` (`_applescript.py`). Dentro de un `tell`
+  a Terminal o Chrome, `tab` es su clase "pestaña", **no** el tabulador: los separadores se
+  crean fuera (`character id 9`). Las palabras de cada app se resuelven al compilar: el
+  bundle id va literal en el texto (nunca una variable) y nunca se usa `tell` con una app
+  que no esté abierta (la abriría).
+- Las sesiones de iTerm2 cuelgan de `iTermServer` y todas las ventanas de Terminal son del
+  mismo proceso: la recencia usa la ventana de la app usada más recientemente.
+- `macos_browser`: la ventana del SO de una ventana de AppleScript = la de AX cuyo título
+  empieza por el de su pestaña activa. Si la Automatización falla, ese navegador pasa a la vía
+  por título.
+- CI compila los scripts con `osacompile` (`tests/integration/test_macos.py`): un error de
+  sintaxis o de vocabulario se ve sin un Mac.
 
 ## Teclas para pegar imágenes (fuente: docs oficiales, *Interactive mode*)
 Elige `paste_keys` según **dónde corre Claude**, no según el destino:

@@ -68,6 +68,12 @@ Linux-only dependencies (`sys_platform == 'linux'` markers):
 | [python-xlib](https://github.com/python-xlib/python-xlib) | 0.33 | **LGPL-2.1-or-later** | X11 windows (EWMH), XTEST keys, XFixes clipboard events | pip/pipx dependency; on Debian, the system package `python3-xlib` (not bundled) |
 | [jeepney](https://gitlab.com/takluyver/jeepney) | 0.9.0 | MIT | D-Bus: Konsole, GNOME Shell helper, KWin scripts, RemoteDesktop portal | pip/pipx dependency; on Debian, `python3-jeepney` (not bundled) |
 
+macOS-only dependencies (`sys_platform == 'darwin'` markers):
+
+| Component | Version | License (SPDX) | What we use it for | How it reaches users |
+|---|---|---|---|---|
+| [PyObjC](https://github.com/ronaldoussoren/pyobjc) (`pyobjc-framework-Cocoa`, `-Quartz`, `-ApplicationServices`, and `pyobjc-core`) | ≥ 10 | MIT | Clipboard (`NSPasteboard`), windows and focus (Accessibility API), keys (Quartz events), menu bar icon (also required by pystray) | pip/pipx dependency (not bundled: there is no macOS installer yet) |
+
 The `.deb` uses Debian's own packages for Pillow, psutil, python-xlib, jeepney, tomlkit and
 six (declared in `Depends`), so it does not redistribute them. It only ships **pystray**,
 which Debian doesn't package, as unmodified source in `/usr/lib/paste-photo/vendor/pystray`.

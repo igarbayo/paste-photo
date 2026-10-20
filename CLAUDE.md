@@ -2,9 +2,10 @@
 
 Pega automáticamente cada captura de pantalla en el Claude que estés usando: Claude Code en
 cualquier terminal (Windows Terminal, también con WSL; en Linux tmux, kitty, WezTerm, Konsole
-o cualquier otro) o cualquier chat de claude.ai en navegadores Chromium. Corre en la bandeja
-del sistema en **Windows y Linux** (X11, GNOME Wayland, KDE Wayland). Diseñado para crecer
-(macOS, app de escritorio, VS Code) **sin tocar el núcleo**.
+o cualquier otro) o cualquier chat de claude.ai en navegadores Chromium y Firefox (y Safari en macOS).
+Corre en la bandeja del sistema en **Windows, macOS** (experimental: iTerm2, Terminal, tmux...)
+**y Linux** (X11, GNOME Wayland, KDE Wayland). Diseñado para crecer (app de escritorio,
+VS Code) **sin tocar el núcleo**.
 
 ## ⚠️ Regla obligatoria: CHANGELOG
 **Todo cambio** (código, config, docs, dependencias) se acompaña de una entrada en
@@ -63,7 +64,7 @@ Los avisos de terceros del instalador los genera `packaging/third_party.py`.
 paste_photo/
   core/          dominio puro: eventos, puertos (Protocols), Orchestrator   → core/CLAUDE.md
   platforms/     Abstract Factory por SO: capturas, ventanas, foco, teclado,
-                 autoarranque (windows/, linux/ por sesión)                  → platforms/CLAUDE.md
+                 autoarranque (windows/, macos/, linux/ por sesión)          → platforms/CLAUDE.md
   targets/       Strategy + Registry: dónde está Claude y cómo pegar         → targets/CLAUDE.md
   bridge/        puente con la extensión del navegador (native messaging)    → bridge/CLAUDE.md
   ui/            interfaces: bandeja (por defecto) y consola                 → ui/CLAUDE.md
@@ -72,12 +73,14 @@ paste_photo/
   doctor.py      `paste-photo doctor`: diagnóstico con soluciones
   config.py      config.toml → Config; guardar ajustes (tomlkit)
   paths.py       rutas de usuario por SO (config, logs, datos, estado)
-  imaging.py     conversión a PNG (DIB de Windows, formatos de Linux)
+  imaging.py     conversión a PNG (DIB de Windows, formatos de Linux, TIFF de macOS)
   resources/     default_config.toml, iconos, extension/ (Chromium), gnome_extension/
   __main__.py    CLI: [tray|run|doctor|setup browser|gnome] --probe --list-targets
 packaging/       build.py, PyInstaller, Inno Setup, winget, linux/build_deb.py → packaging/CLAUDE.md
-.github/workflows/  ci.yml (tests Win/Linux, integración X11, .exe, .deb) y release.yml
-tests/           pytest con fakes; tests/integration: Linux/X11 real (PASTE_PHOTO_INTEGRATION=1)
+.github/workflows/  ci.yml (tests Win/macOS/Linux, integración X11 y macOS, .exe, .deb) y
+                 release.yml
+tests/           pytest con fakes; tests/integration: Linux/X11 y macOS reales
+                 (PASTE_PHOTO_INTEGRATION=1)
 docs/adr/        decisiones de arquitectura
 ```
 
@@ -116,8 +119,10 @@ python -m venv .venv && .venv/Scripts/python -m pip install -e ".[dev,build]"   
 .venv/Scripts/python packaging/build.py            # .exe en dist/paste-photo
 python3 packaging/linux/build_deb.py               # .deb (en Linux, con dpkg-deb)
 ```
-Logs: `%LOCALAPPDATA%\paste-photo\logs` (Windows), `~/.local/state/paste-photo/logs` (Linux).
-Config: `%APPDATA%\paste-photo\config.toml` / `~/.config/paste-photo/config.toml`.
+Logs: `%LOCALAPPDATA%\paste-photo\logs` (Windows), `~/Library/Logs/paste-photo` (macOS),
+`~/.local/state/paste-photo/logs` (Linux).
+Config: `%APPDATA%\paste-photo\config.toml` / `~/Library/Application Support/paste-photo/` /
+`~/.config/paste-photo/config.toml`.
 
 ## Convenciones
 - **Nombre**: el producto se llama **PastePhoto** en todo lo que se ve (README, docs, bandeja,
@@ -165,6 +170,13 @@ Config: `%APPDATA%\paste-photo\config.toml` / `~/.config/paste-photo/config.toml
 - Desde Git Bash: `MSYS_NO_PATHCONV=1` antes de pasar rutas `/mnt/...` a `wsl.exe`, y escribir
   los scripts en archivos (la shell de la herramienta reduce las `\`).
 - GNOME y KDE Wayland reales **no** se pueden probar así: quedan "Experimental".
+
+**macOS** — no hay Mac en el equipo de desarrollo: lo que se prueba en real va en CI
+(`macos-integration`: portapapeles, carpeta de capturas, captura → tmux con un Claude falso,
+AppleScripts compilados con `osacompile` contra Terminal, Safari y Chrome). Lo que necesita
+los permisos de Accesibilidad o Automatización (foco, teclas, ejecutar AppleScript) no se
+puede conceder en CI: queda "Experimental" hasta probarlo en un Mac de verdad
+(`paste-photo doctor`, `--probe`, Cmd+Ctrl+Shift+4 con Claude en Terminal/iTerm2/Safari).
 
 ## No tocar sin motivo
 - `platforms/windows/focus.py`: `AttachThreadInput` + tecla virtual sin asignar (0xE8) para

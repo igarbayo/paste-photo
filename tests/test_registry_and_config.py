@@ -56,7 +56,8 @@ def test_config_defaults_when_no_file(tmp_path, monkeypatch):
     assert cfg.source is None
     assert [t["type"] for t in cfg.targets] == [
         "browser_extension", "orca", "windows_terminal", "browser", "tmux", "kitty", "wezterm",
-        "konsole", "linux_terminal", "linux_browser"]
+        "konsole", "iterm2", "terminal_app", "macos_terminal", "macos_browser",
+        "linux_terminal", "linux_browser"]
 
 
 def test_config_from_file_skips_disabled(tmp_path):

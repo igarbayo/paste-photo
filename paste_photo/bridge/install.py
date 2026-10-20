@@ -32,6 +32,21 @@ LINUX_GECKO_DIRS = {
     "Firefox": ".mozilla",
     "LibreWolf": ".librewolf",
 }
+# macOS: carpetas de cada navegador Chromium (en ~/Library/Application Support).
+MACOS_BROWSER_DIRS = {
+    "Google Chrome": "Google/Chrome",
+    "Google Chrome Beta": "Google/Chrome Beta",
+    "Google Chrome Canary": "Google/Chrome Canary",
+    "Chromium": "Chromium",
+    "Microsoft Edge": "Microsoft Edge",
+    "Brave": "BraveSoftware/Brave-Browser",
+    "Vivaldi": "Vivaldi",
+}
+# macOS: la familia Firefox (también en Application Support).
+MACOS_GECKO_DIRS = {
+    "Firefox": "Mozilla",
+    "LibreWolf": "LibreWolf",
+}
 # Windows: claves de registro (HKCU) donde cada navegador Chromium busca hosts nativos.
 WINDOWS_REGISTRY_KEYS = {
     "Google Chrome": r"Software\Google\Chrome\NativeMessagingHosts",
@@ -129,6 +144,22 @@ def linux_host_manifests(home: Path) -> dict[str, tuple[Path, bool]]:
             for browser, (folder, gecko) in found.items()}
 
 
+def macos_host_manifests(home: Path) -> dict[str, tuple[Path, bool]]:
+    """navegador → (ruta del manifiesto del host, es Firefox). Todos en `NativeMessagingHosts`."""
+    support = home / "Library" / "Application Support"
+    found = {browser: (support / folder, False) for browser, folder in MACOS_BROWSER_DIRS.items()}
+    found |= {browser: (support / folder, True) for browser, folder in MACOS_GECKO_DIRS.items()}
+    return {browser: (folder / "NativeMessagingHosts" / f"{protocol.HOST_NAME}.json", gecko)
+            for browser, (folder, gecko) in found.items()}
+
+
+def posix_host_manifests(home: Path) -> dict[str, tuple[Path, bool]]:
+    """Manifiestos del host en este SO (macOS o Linux)."""
+    if sys.platform == "darwin":
+        return macos_host_manifests(home)
+    return linux_host_manifests(home)
+
+
 def windows_host_keys() -> dict[str, tuple[str, bool]]:
     """navegador → (clave de HKCU del host, es Firefox)."""
     keys = {browser: (key, False) for browser, key in WINDOWS_REGISTRY_KEYS.items()}
@@ -144,14 +175,15 @@ def install_native_host(executable: Path | None = None, home: Path | None = None
              for gecko in (False, True)}
     if sys.platform == "win32":
         return _install_windows(texts)
-    return _install_linux(texts, home or Path.home())
+    return _install_posix(texts, posix_host_manifests(home or Path.home()))
 
 
-def _install_linux(texts: dict[bool, str], home: Path) -> list[str]:
+def _install_posix(texts: dict[bool, str], manifests: dict[str, tuple[Path, bool]]) -> list[str]:
     report = []
-    for browser, (target, gecko) in linux_host_manifests(home).items():
-        # La carpeta del navegador (~/.config/chromium, ~/.mozilla...) debe existir, salvo en
-        # Chrome, Chromium y Firefox, que se registran aunque aún no se hayan abierto.
+    for browser, (target, gecko) in manifests.items():
+        # La carpeta del navegador (~/.config/chromium, ~/.mozilla, Application Support/...)
+        # debe existir, salvo en Chrome, Chromium y Firefox, que se registran aunque aún no
+        # se hayan abierto.
         if not target.parent.parent.exists() and browser not in (
                 "Google Chrome", "Chromium", "Firefox"):
             continue

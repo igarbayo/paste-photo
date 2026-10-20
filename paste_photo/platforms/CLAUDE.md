@@ -10,7 +10,7 @@ factoría que crea la familia coherente: `ScreenshotSource`, `FocusManager`, `Ke
 |---|---|
 | Windows | ✅ `windows/` (pywin32 + UI Automation en los destinos) |
 | Linux | ✅ `linux/`: X11 probado en real; GNOME/KDE Wayland implementados, sin probar en real |
-| macOS | ⏳ stub `macos/__init__.py` |
+| macOS | ⚠️ `macos/` (pyobjc): implementado; en CI real solo portapapeles, carpeta y tmux |
 
 ## Receta: añadir/completar un SO
 1. En `platforms/<so>/` implementa los puertos (contratos en `core/CLAUDE.md`).
@@ -20,9 +20,33 @@ factoría que crea la familia coherente: `ScreenshotSource`, `FocusManager`, `Ke
 5. Declara en los destinos que funcionen ahí `platforms=(..., "<so>")`.
 6. Actualiza la tabla de arriba, el README, `doctor.py` y el CHANGELOG (`Added`).
 
-Pista **macOS**: portapapeles con `NSPasteboard.changeCount` (sondeo ~250 ms) y tipo
-`public.png`; foco con `NSRunningApplication.activateWithOptions_`; teclas con
-`CGEventCreateKeyboardEvent` (permiso de Accesibilidad). tmux/kitty/WezTerm ya declaran macOS.
+## macOS (`macos/`)
+| Puerto | Implementación |
+|---|---|
+| Capturas | `MacScreenshotSource`: sondeo de `NSPasteboard.changeCount` (250 ms; `public.png`, si no `public.tiff`; nada si hay `public.file-url`) **y** archivos nuevos de la carpeta de capturas (`defaults read com.apple.screencapture location`, por defecto el escritorio; nombre por prefijos de cada idioma o `... name`) |
+| Ventanas | `MacWindowSystem`: pids con ventanas por `CGWindowListCopyWindowInfo`; ventanas y títulos por AX (`AXWindows`, `AXTitle`); id = `CGWindowID` con `_AXUIElementGetWindow` (privada, por ctypes) o id sintético |
+| Foco | `MacFocus`: Memento = ventana con el foco (AX `AXFocusedApplication` → `AXFocusedWindow`), o `-pid` si la app no tiene ventana; activar = `AXRaise` + `AXFrontmost` |
+| Teclado | `MacKeyboard`: `CGEventPost` con fuente privada (`kCGEventSourceStatePrivate`); keycodes ANSI |
+| Autoarranque | `LaunchAgentAutostart`: `~/Library/LaunchAgents/io.github.igarbayo.paste-photo.plist` |
+
+Permisos: **Accesibilidad** (foco, teclas, títulos) y **Automatización** (AppleScript de los
+destinos `iterm2`, `terminal_app`, `macos_browser`; macOS lo pide por app la primera vez).
+
+### Trampas de macOS
+- `NSWorkspace.frontmostApplication`/`runningApplications` no se actualizan sin bucle de
+  eventos en el hilo principal (modo `run`, `--probe`): por eso AX y CGWindowList.
+- Activación cooperativa (macOS 14+): `NSRunningApplication.activate` desde una app de fondo
+  puede no hacer nada; `AXFrontmost` sí (con Accesibilidad). Queda como respaldo.
+- Hilos largos con AppKit/AX: cada iteración en su `objc.autorelease_pool()` (no hay pool
+  automático en hilos de Python).
+- Las capturas con Cmd+Shift+4 son **solo archivo**: se copian al portapapeles (Claude Code
+  lee de ahí con Ctrl+V) y el `changeCount` propio se ignora. macOS escribe el archivo al
+  desaparecer la miniatura flotante (~5 s).
+- El permiso de Accesibilidad es del **proceso responsable**: lanzado desde Terminal, lo
+  hereda de Terminal; con el LaunchAgent, el binario de Python (`doctor` muestra la ruta).
+- launchd arranca con PATH mínimo: el LaunchAgent guarda el PATH actual + Homebrew.
+- La bandeja (pystray darwin) corre el bucle de AppKit en el hilo principal; `hide_dock_icon()`
+  (`ui/_system.py`) la deja como app de la barra de menús (`ActivationPolicyAccessory`).
 
 ## Linux (`linux/`)
 La familia depende de la **sesión** (`session.detect()`, forzable con `PASTE_PHOTO_BACKEND`):

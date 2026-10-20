@@ -11,7 +11,7 @@ Menú:
     ¿Dónde pegaría ahora?
     Abrir configuración
     Ver registro
-    ✔ Iniciar con Windows        (solo si el SO lo soporta)
+    ✔ Iniciar con Windows        (solo si el SO lo soporta; "al iniciar sesión" en macOS/Linux)
     Salir
 
 Para añadir una opción: un `MenuItem` en `_menu()` que llame a un método de este archivo; ese
@@ -36,13 +36,15 @@ from paste_photo.core.events import NotPasted, Pasted, ServiceEvent, StateChange
 from paste_photo.core.orchestrator import PREFER_ORDER, PREFER_RECENT
 from paste_photo.core.ports import Autostart
 from paste_photo.service import PasteService
-from paste_photo.ui._system import open_path
+from paste_photo.ui._system import hide_dock_icon, open_path
 
 log = logging.getLogger(__name__)
 
 APP_ID = "paste-photo"  # identificador del icono (AppIndicator en Linux): no cambia
 APP_TITLE = "PastePhoto"  # nombre visible
-TARGET_NAMES = {"windows_terminal": "Windows Terminal", "browser": "el navegador"}
+TARGET_NAMES = {"windows_terminal": "Windows Terminal", "browser": "el navegador",
+                "macos_browser": "el navegador", "terminal_app": "Terminal",
+                "iterm2": "iTerm2"}
 MAX_LABEL = 60
 
 
@@ -72,6 +74,7 @@ class TrayApp:
 
     def run(self) -> None:
         """Bloquea hasta que el usuario elige "Salir"."""
+        hide_dock_icon()  # macOS: solo el icono de la barra de menús
         self._icon = pystray.Icon(APP_ID, self._images[True], APP_TITLE, menu=self._menu())
         self._service.subscribe(self._on_event)
         self._icon.run(setup=self._setup)

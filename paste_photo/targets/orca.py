@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2026 igarbayo
 # SPDX-License-Identifier: MIT
 
-"""Claude Code en una terminal de Orca (stablyai/orca), en Windows y Linux.
+"""Claude Code en una terminal de Orca (stablyai/orca), en Windows, macOS y Linux.
 
 Orca exporta a sus terminales `ORCA_TERMINAL_HANDLE` (el handle exacto de esa terminal) y
 trae una CLI: `orca terminal send --terminal <handle> --text <bytes>` escribe en el PTY sin
 foco ni pestaña visible. Se envía la tecla de pegado de Claude Code (Alt+V en Windows,
-Ctrl+V en Linux) y Claude inserta `[Image #N]` en su cursor. Nunca `--enter`.
+Ctrl+V en macOS y Linux) y Claude inserta `[Image #N]` en su cursor. Nunca `--enter`.
 """
 
 from __future__ import annotations
@@ -26,8 +26,19 @@ from paste_photo.targets.registry import TargetContext, register_target
 ALT_V = "\x1bv"  # en un PTY, Alt+V llega como ESC + v
 # Proceso de la ventana de Orca (Electron). El daemon que aloja los PTY y la CLI se llaman
 # igual pero no tienen ventanas, así que no estorban. En Linux es `orca-ide`: `orca` es el
-# lector de pantalla de GNOME.
+# lector de pantalla de GNOME. En macOS, la app `Orca` (psutil, en minúsculas).
 DEFAULT_APP_NAMES = ("orca.exe", "orca-ide")
+MACOS_APP_NAMES = ("orca",)
+
+
+def default_app_names(platform: str) -> tuple[str, ...]:
+    return MACOS_APP_NAMES if platform == "macos" else DEFAULT_APP_NAMES
+
+
+def default_cli_name() -> str:
+    if sys.platform == "win32":
+        return "orca.exe"  # no `orca.cmd`: cmd.exe reinterpreta lo que se le pasa
+    return "orca" if sys.platform == "darwin" else "orca-ide"
 
 
 def default_paste_text(platform: str) -> str:
@@ -40,6 +51,9 @@ def known_cli_paths() -> list[Path]:
     if sys.platform == "win32":
         local = os.environ.get("LOCALAPPDATA", "")
         return [Path(local, "Programs", "orca", "resources", "bin", "orca.exe")] if local else []
+    if sys.platform == "darwin":
+        bundle = "Orca.app/Contents/Resources/bin/orca"
+        return [Path("/Applications", bundle), Path.home() / "Applications" / bundle]
     return [Path("/usr/bin/orca-ide"), Path("/opt/Orca/resources/bin/orca-ide"),
             Path.home() / ".local/bin/orca-ide"]
 
@@ -49,12 +63,12 @@ class OrcaTarget(EnvTerminalTarget):
     required_env = ("ORCA_TERMINAL_HANDLE",)
 
     def __init__(self, ctx: TargetContext, *, paste_text: str | None = None, cli: str = "",
-                 app_names: tuple[str, ...] = DEFAULT_APP_NAMES) -> None:
+                 app_names: tuple[str, ...] | None = None) -> None:
         super().__init__(ctx)
         self._paste_text = paste_text if paste_text is not None else default_paste_text(
             ctx.platform)
         self._cli = cli
-        self._app_names = {n.lower() for n in app_names}
+        self._app_names = {n.lower() for n in (app_names or default_app_names(ctx.platform))}
 
     def describe(self, proc: ClaudeProcess) -> str:
         return f"Orca {proc.environ['ORCA_TERMINAL_HANDLE']}"
@@ -69,9 +83,9 @@ class OrcaTarget(EnvTerminalTarget):
         if self._cli:
             return self._cli
         if sys.platform == "win32":
-            exe = "orca.exe"  # no `orca.cmd`: cmd.exe reinterpreta lo que se le pasa
+            exe = default_cli_name()
         else:
-            exe = proc.environ.get("ORCA_CLI_COMMAND") or "orca-ide"
+            exe = proc.environ.get("ORCA_CLI_COMMAND") or default_cli_name()
         for path in (proc.environ.get("PATH"), None):
             if found := shutil.which(exe, path=path):
                 return found
@@ -106,11 +120,11 @@ def _win32_windows() -> list[WindowInfo]:
     return found
 
 
-@register_target("orca", platforms=("windows", "linux"))
+@register_target("orca", platforms=("windows", "macos", "linux"))
 def build(options: Mapping[str, Any], ctx: TargetContext) -> OrcaTarget:
     return OrcaTarget(
         ctx,
         paste_text=options.get("paste_text"),
         cli=options.get("cli", ""),
-        app_names=tuple(options.get("app_names", DEFAULT_APP_NAMES)),
+        app_names=tuple(options["app_names"]) if "app_names" in options else None,
     )

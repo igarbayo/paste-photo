@@ -19,3 +19,17 @@ def open_path(path: Path) -> None:
         subprocess.Popen(["open", str(path)])
     else:
         subprocess.Popen(["xdg-open", str(path)])
+
+
+def hide_dock_icon() -> None:
+    """macOS: app de la barra de menús, sin icono en el Dock ni menú de app. En otros SO no
+    hace nada."""
+    if sys.platform != "darwin":
+        return
+    try:
+        from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
+
+        NSApplication.sharedApplication().setActivationPolicy_(
+            NSApplicationActivationPolicyAccessory)
+    except Exception:  # sin pyobjc la bandeja tampoco funcionaría: que falle allí
+        pass

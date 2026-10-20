@@ -10,12 +10,15 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "igarbayo" }]
-keywords = ["claude", "claude-code", "screenshot", "clipboard", "productivity", "tray"]
+keywords = ["claude", "claude-code", "screenshot", "clipboard", "productivity", "tray",
+            "windows", "macos", "linux"]
 classifiers = [
     "Development Status :: 4 - Beta",
+    "Environment :: MacOS X",
     "Environment :: Win32 (MS Windows)",
     "Environment :: X11 Applications",
     "Intended Audience :: Developers",
+    "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows :: Windows 10",
     "Operating System :: Microsoft :: Windows :: Windows 11",
     "Operating System :: POSIX :: Linux",
@@ -33,6 +36,9 @@ dependencies = [
     "uiautomation>=2.0.18; sys_platform == 'win32'",
     "python-xlib>=0.33; sys_platform == 'linux'",
     "jeepney>=0.8; sys_platform == 'linux'",
+    "pyobjc-framework-Cocoa>=10; sys_platform == 'darwin'",
+    "pyobjc-framework-Quartz>=10; sys_platform == 'darwin'",
+    "pyobjc-framework-ApplicationServices>=10; sys_platform == 'darwin'",
 ]
 
 [project.optional-dependencies]

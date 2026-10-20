@@ -24,7 +24,8 @@ packaging/
     build_deb.py         .deb `all`: paquete en /usr/lib/paste-photo, pystray vendorizado,
                          resto de dependencias de Debian (Depends), lanzadores en /usr/bin
 .github/workflows/
-  ci.yml                 lint + tests (Windows y Linux), integración X11 (Xvfb), .exe y .deb
+  ci.yml                 lint + tests (Windows, macOS y Linux), integración X11 (Xvfb) y
+                         macOS (runner real), .exe y .deb
   release.yml            tag vX.Y.Z → .deb + zip de la extensión + .xpi de Firefox (job
                          linux) → instalador, sha256 y manifiestos (job release) → GitHub
                          Release (+ winget)
@@ -98,6 +99,14 @@ captura real con Win+Shift+S y monta `docs/assets/demo.gif`; luego cierra todo s
   inicio automático). Probado: `apt install ./paste-photo_X_all.deb` en Debian 13 y en CI.
 - pipx: `pipx install --system-site-packages ...` (AppIndicator vía `python3-gi` del sistema).
 
+## macOS: pipx (aún sin .app)
+- Se instala con `pipx install git+https://github.com/igarbayo/paste-photo` (pyobjc llega como
+  dependencia con marcador `darwin`). No hay `.app`, `.dmg` ni Homebrew todavía.
+- Siguiente paso natural: `.app` con PyInstaller (`BUNDLE`, `LSUIElement` para no salir en el
+  Dock) en un job `macos` de `release.yml`. Sin firma ni notarización (cuenta de Apple
+  Developer), Gatekeeper lo bloquea (`xattr -d com.apple.quarantine`); con un `.app`, los
+  permisos de Accesibilidad irían a la app y no al Python que la lanza.
+
 ## Otro SO (futuro)
-`build.py` sale con error fuera de Windows. Para macOS/Linux: añadir `packaging/<so>/` y una
+`build.py` sale con error fuera de Windows. Para otro SO: añadir `packaging/<so>/` y una
 rama en `build.py`, más un job en `release.yml`.

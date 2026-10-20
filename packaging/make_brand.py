@@ -29,7 +29,8 @@ CHIP = (242, 226, 218, 255)  # fondo de las etiquetas (tono del icono, muy claro
 
 TITLE = "PastePhoto"
 TAGLINE = ("Take a screenshot.", "It shows up in Claude.")
-CHIPS = ("Windows · Linux", "Claude Code in any terminal", "claude.ai in Chrome, Edge, Firefox")
+CHIPS = ("Windows · macOS · Linux", "Claude Code in any terminal",
+         "claude.ai in Chrome, Edge, Firefox, Safari")
 
 
 def font(size: int) -> ImageFont.FreeTypeFont:
