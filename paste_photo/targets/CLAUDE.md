@@ -107,6 +107,11 @@ en la línea de órdenes) y lee su **entorno**, que delata el panel exacto: `TMU
   que no esté abierta (la abriría).
 - Las sesiones de iTerm2 cuelgan de `iTermServer` y todas las ventanas de Terminal son del
   mismo proceso: la recencia usa la ventana de la app usada más recientemente.
+- Terminal.app con pestañas nativas de macOS: AppleScript ve cada pestaña como una ventana
+  con una sola pestaña (`count of tabs` = 1). Para volver a tu pestaña se reordena la
+  ventana (`set index of window id ... to 1`), no `selected of tab`. Limitación: si estabas
+  en otra app y la ventana delantera de Terminal es de otro grupo, no se sabe qué pestaña se
+  veía en el grupo de Claude (AppleScript no da los grupos).
 - `macos_browser`: la ventana del SO de una ventana de AppleScript = la de AX cuyo título
   empieza por el de su pestaña activa. Si la Automatización falla, ese navegador pasa a la vía
   por título.

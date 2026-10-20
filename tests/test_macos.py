@@ -208,7 +208,7 @@ def test_terminal_app_selects_tab_pastes_and_restores(procs, monkeypatch):
 
     def fake_osascript(script, *args):
         scripts.append(args)
-        return "41\t1\t3" if len(args) == 1 else ""
+        return "41\t1\t3\t41" if len(args) == 1 else ""
 
     monkeypatch.setattr(terminal_app, "osascript", fake_osascript)
     monkeypatch.setattr(terminal_app, "tty_of", lambda pid: "/dev/ttys004")
@@ -218,8 +218,30 @@ def test_terminal_app_selects_tab_pastes_and_restores(procs, monkeypatch):
     handle = target.locate()
     assert handle.label == "Terminal ttys004" and len(handle.extra["candidates"]) == 1
     target.paste(handle)
-    assert scripts == [("/dev/ttys004",), ("41", "1")]  # pestaña 3 → Ctrl+V → vuelve a la 1
+    assert scripts == [("/dev/ttys004",), ("41", "1", "0")]  # pestaña 3 → Ctrl+V → la 1
     assert context.keyboard.sent == ["ctrl+v"]
+
+
+@pytest.mark.parametrize(("selected", "restore"), [
+    ("41\t1\t1\t57", ("41", "0", "57")),  # pestañas nativas: vuelve a la ventana 57
+    ("41\t1\t1\t41", None),               # Claude ya estaba delante: nada que restaurar
+])
+def test_terminal_app_restores_native_tab(procs, monkeypatch, selected, restore):
+    """Con pestañas nativas cada pestaña es una ventana de AppleScript con una sola pestaña."""
+    from paste_photo.targets import terminal_app
+
+    scripts = []
+
+    def fake_osascript(script, *args):
+        scripts.append(args)
+        return selected if len(args) == 1 else ""
+
+    monkeypatch.setattr(terminal_app, "osascript", fake_osascript)
+    monkeypatch.setattr(terminal_app, "tty_of", lambda pid: "/dev/ttys004")
+    procs.append(claude(1, TERM_PROGRAM="Apple_Terminal"))
+    target = terminal_app.TerminalAppTarget(ctx(), settle_ms=0)
+    target.paste(target.locate())
+    assert scripts[1:] == ([restore] if restore else [])
 
 
 def test_macos_terminal_picks_the_window_titled_by_claude(procs):

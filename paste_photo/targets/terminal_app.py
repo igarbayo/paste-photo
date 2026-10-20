@@ -7,6 +7,10 @@ Terminal no tiene forma de escribir en una pestaña sin teclear (`do script` añ
 que se trae al frente la pestaña cuyo `tty` es el del proceso `claude`, se pulsa Ctrl+V (la
 tecla de pegado de imágenes de Claude Code en macOS) y se vuelve a la pestaña que estaba
 seleccionada. El foco de ventana lo restaura el Orchestrator.
+
+Con las pestañas nativas de macOS (las de Terminal actual), AppleScript presenta cada pestaña
+como una ventana con una sola pestaña: para volver a la tuya se guarda la ventana delantera de
+Terminal antes de seleccionar la de Claude y después se vuelve a poner delante.
 """
 
 from __future__ import annotations
@@ -34,6 +38,9 @@ on run argv
     -- dentro del tell, `tab` es la clase "pestaña" de Terminal, no el tabulador
     set sep to character id 9
     tell application id "com.apple.Terminal"
+        -- con pestañas nativas, la ventana delantera es la pestaña visible que usabas
+        set frontId to 0
+        if (count of windows) > 0 then set frontId to id of front window
         repeat with w in windows
             set previous to 0
             set found to 0
@@ -47,7 +54,7 @@ on run argv
                 set selected of tab found of w to true
                 set index of w to 1
                 activate
-                return (id of w as text) & sep & previous & sep & found
+                return (id of w as text) & sep & previous & sep & found & sep & frontId
             end if
         end repeat
     end tell
@@ -58,8 +65,12 @@ RESTORE_SCRIPT = """
 on run argv
     set wid to (item 1 of argv) as integer
     set ti to (item 2 of argv) as integer
+    set frontId to (item 3 of argv) as integer
     tell application id "com.apple.Terminal"
-        set selected of tab ti of window id wid to true
+        -- pestañas clásicas: varias pestañas dentro de una ventana
+        if ti > 0 then set selected of tab ti of window id wid to true
+        -- pestañas nativas: cada pestaña es una ventana del grupo
+        if frontId > 0 then set index of window id frontId to 1
     end tell
 end run
 """
@@ -95,16 +106,18 @@ class TerminalAppTarget(EnvTerminalTarget):
             return f"Terminal (pid {proc.pid})"
 
     def send_ctrl_v(self, proc: ClaudeProcess) -> None:
-        rows = parse_rows(osascript(SELECT_SCRIPT, tty_of(proc.pid)), 3)
+        rows = parse_rows(osascript(SELECT_SCRIPT, tty_of(proc.pid)), 4)
         if not rows:
             raise RuntimeError("Terminal no devolvió la pestaña")
-        window, previous, found = rows[0]
+        window, previous, found, front = rows[0]
         time.sleep(self._settle_s)
         self._ctx.keyboard.send_hotkey(self._paste_keys)
         time.sleep(self._settle_s)
-        if self._restore_tab and previous not in ("0", found):
+        tab = previous if previous not in ("0", found) else "0"
+        front = front if front != window else "0"
+        if self._restore_tab and (tab, front) != ("0", "0"):
             try:
-                osascript(RESTORE_SCRIPT, window, previous)
+                osascript(RESTORE_SCRIPT, window, tab, front)
             except (OSError, RuntimeError) as error:
                 log.debug("No se pudo volver a la pestaña anterior: %s", error)
 

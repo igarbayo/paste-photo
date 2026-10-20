@@ -67,6 +67,10 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   GitHub sin "(experimental)".
 
 ### Fixed
+- macOS (Terminal): tras pegar, la ventana de Terminal vuelve a mostrar tu pestaña y no la de
+  Claude. Con las pestañas nativas de macOS, AppleScript ve cada pestaña como una ventana con
+  una sola pestaña, así que la restauración nunca se ejecutaba; ahora se guarda la ventana
+  delantera de Terminal antes de seleccionar la de Claude y se vuelve a poner delante.
 - macOS: las capturas guardadas como archivo se detectan también en la carpeta elegida en
   Cmd+Shift+5 → Opciones → Guardar en (`location-last` de `com.apple.screencapture`, p. ej.
   `~/Desktop/Screenshots`); antes solo se leía `location` y, si no estaba, se vigilaba el
