@@ -87,8 +87,10 @@ how it goes in an [issue](https://github.com/igarbayo/paste-photo/issues).
 ### Windows
 
 **Installer (recommended).** Download `paste-photo-setup-X.Y.Z.exe` from
-[Releases](https://github.com/igarbayo/paste-photo/releases) and run it. You can choose to
-start PastePhoto with Windows and to add `paste-photo-cli` to your PATH.
+[Releases](https://github.com/igarbayo/paste-photo/releases) and run it. It adds
+**PastePhoto** to the Start menu; you can also choose a desktop icon (off by default), to
+start PastePhoto with Windows and to add `paste-photo-cli` to your PATH. Open it from either
+icon and it stays in the system tray.
 
 > The installer is not code-signed yet, so Windows SmartScreen may say "Windows protected
 > your PC". Click **More info → Run anyway**.
@@ -108,8 +110,12 @@ winget install igarbayo.paste-photo
 sudo apt install ./paste-photo_X.Y.Z_all.deb
 ```
 
-**Any distribution, with pipx.** You also need `xclip` (X11) or `wl-clipboard` (Wayland),
-which Claude Code itself uses to read pasted images:
+It adds **PastePhoto** to your applications menu: open it from there and it stays in the
+system tray.
+
+**Any distribution, with pipx.** This does not add a menu entry: start it with `paste-photo`
+from a terminal. You also need `xclip` (X11) or `wl-clipboard` (Wayland), which Claude Code
+itself uses to read pasted images:
 
 ```bash
 pipx install --system-site-packages git+https://github.com/igarbayo/paste-photo

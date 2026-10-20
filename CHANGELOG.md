@@ -65,6 +65,9 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - macOS deja de ser "Experimental": probado en un Mac real. README (tabla de plataformas,
   instalación), `CONTRIBUTING.md`, ADR 0003, `CLAUDE.md` y descripción del repositorio en
   GitHub sin "(experimental)".
+- README: cómo abrir PastePhoto con un icono. En Windows, el instalador añade el acceso
+  directo del menú Inicio y, si se elige, el del escritorio; en Linux, el `.deb` lo añade al
+  menú de aplicaciones y con pipx se arranca desde la terminal.
 
 ### Fixed
 - macOS (Terminal): tras pegar, la ventana de Terminal vuelve a mostrar tu pestaña y no la de
