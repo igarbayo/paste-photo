@@ -99,7 +99,8 @@ def _bridge() -> list[str]:
             lines.append(f"{OK} Extensión conectada en {len(browsers)} navegador(es)")
         else:
             lines.append(f"{WARN} paste-photo está abierto pero ninguna extensión conectada: "
-                         "cárgala en chrome://extensions (ver `paste-photo setup browser`)")
+                         "cárgala en chrome://extensions o instala el .xpi en Firefox "
+                         "(ver `paste-photo setup browser`)")
     except (OSError, EOFError):
         lines.append(f"{WARN} paste-photo no está abierto (no se puede ver si la extensión "
                      "está conectada)")
@@ -107,22 +108,21 @@ def _bridge() -> list[str]:
 
 
 def _installed_host_manifests() -> list[str]:
-    from paste_photo.bridge import install, protocol
+    from paste_photo.bridge import install
 
     if sys.platform == "win32":
         import winreg
 
         found = []
-        for browser, key in install.WINDOWS_REGISTRY_KEYS.items():
+        for browser, (key, _gecko) in install.windows_host_keys().items():
             try:
-                winreg.OpenKey(winreg.HKEY_CURRENT_USER, rf"{key}\{protocol.HOST_NAME}").Close()
+                winreg.OpenKey(winreg.HKEY_CURRENT_USER, key).Close()
                 found.append(browser)
             except OSError:
                 pass
         return found
-    config = Path.home() / ".config"
-    return [browser for browser, folder in install.LINUX_BROWSER_DIRS.items()
-            if (config / folder / "NativeMessagingHosts" / f"{protocol.HOST_NAME}.json").exists()]
+    return [browser for browser, (manifest, _gecko)
+            in install.linux_host_manifests(Path.home()).items() if manifest.exists()]
 
 
 def _claude_processes() -> list[str]:

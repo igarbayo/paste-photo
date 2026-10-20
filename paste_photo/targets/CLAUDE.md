@@ -13,32 +13,58 @@ omiten solos (`service.build_targets`), así que la config por defecto los lista
 |---|---|---|---|
 | `browser_extension` | Windows, Linux | la extensión inyecta un `paste` con el PNG en el editor | no |
 | `windows_terminal` | Windows | UI Automation: selecciona la pestaña, **Alt+V** | sí |
-| `browser` | Windows | UI Automation: pestaña + editor (solo enfoca si no lo tenía), Ctrl+V | sí |
+| `browser` | Windows | UI Automation (Chromium y Firefox): pestaña + editor (solo enfoca si no lo tenía), Ctrl+V | sí |
 | `orca` | Windows, Linux | `orca terminal send --terminal $ORCA_TERMINAL_HANDLE --text <tecla>` | no |
 | `tmux` | Linux, macOS | `tmux -S <socket> send-keys -t <pane> C-v` | no |
 | `kitty` | Linux, macOS | `kitty @ --to $KITTY_LISTEN_ON send-text --match id:N ` | no |
 | `wezterm` | Linux, macOS | `wezterm cli send-text --no-paste --pane-id N ` | no |
 | `konsole` | Linux | D-Bus `org.kde.konsole.Session.sendText("")` | no |
 | `linux_terminal` | Linux | `WindowSystem.activate` + **Ctrl+V** (solo si la pestaña de Claude es la activa) | sí |
+| `linux_browser` | Linux | ventana de navegador con título de Claude → `activate` + **Ctrl+V** (sin extensión: GNOME Web, Falkon...) | sí |
 | `desktop_app`, `vscode` | — | ⏳ `_pending` | |
 
 Estado real: probados de punta a punta en Linux (WSL + Xvfb/Openbox) tmux, kitty, Konsole,
-`linux_terminal` (xterm), `orca` (.deb) y `browser_extension` (Chromium); `orca` también en
-Windows; WezTerm solo con tests unitarios.
+`linux_terminal` (xterm), `orca` (.deb), `browser_extension` (Chromium y Firefox ESR) y
+`linux_browser` (Firefox ESR sin extensión); en Windows `orca`, `browser` (Chrome y Firefox
+ESR) y `browser_extension` en Firefox ESR; WezTerm solo con tests unitarios. GNOME Web,
+Falkon y qutebrowser: sin probar (mismo mecanismo que `linux_browser` con Firefox).
+
+## Navegadores: qué vía tiene cada uno
+| Motor | Navegadores | Extensión (`browser_extension`) | Sin extensión |
+|---|---|---|---|
+| Chromium | Chrome, Edge, Brave, Vivaldi, Opera, Chromium | sí (descomprimida) | Windows `browser`; Linux `linux_browser` |
+| Gecko | Firefox, LibreWolf (Waterfox, Floorp, Zen: sin registro de host) | sí (`.xpi`, firmado para Firefox normal) | Windows `browser`; Linux `linux_browser` |
+| WebKit | GNOME Web (Epiphany) | no: sin native messaging | Linux `linux_browser` |
+| QtWebEngine | Falkon, qutebrowser, Konqueror | no admiten WebExtensions | Linux `linux_browser` |
+Safari (WebKit) solo existe en macOS: sería otra extensión (Safari Web Extension con app).
 
 ## Posición del cursor: la imagen va donde estaba el cursor
 - **Terminales**: se envía solo la tecla de pegado; Claude Code inserta `[Image #N]` en su
   cursor. Nunca escribir texto ni mover el cursor (flechas, Fin...).
 - **`browser_extension`**: `cursor.js` (content script, mismo mundo aislado que
-  `pasteImage`) guarda la última selección dentro del prompt. `pasteImage` usa la actual si
-  está en el prompt, si no esa última, si no el final; espera 50 ms antes del `paste` para que
-  ProseMirror lea la selección (`selectionchange` es asíncrono).
+  `placeCaret`) guarda la última selección dentro del prompt. `placeCaret` usa la actual si
+  está en el prompt, si no esa última, si no el final, y espera 50 ms para que ProseMirror lea
+  la selección (`selectionchange` es asíncrono); luego `dispatchPaste` (mundo de la página).
 - **`browser` (UIA)**: si el editor ya tiene el foco no se toca; si no, `SetFocus()` y
   ProseMirror restaura su última selección (~20 ms). Un `Ctrl+End` la pisaría. Sin
   extensión no se distingue "nunca tuvo cursor" (va al principio).
+- **`linux_browser`**: solo activa la ventana; el navegador devuelve el foco al elemento que
+  lo tenía. Si no era el prompt, el `paste` cae fuera y no se inserta (sin AT-SPI no se puede
+  enfocar el editor).
 - Pruebas: página con ProseMirror real (`esm.sh`, `role="textbox"` para que UIA lo vea como
   `EditControl`); en Chromium con `--load-extension`, **perfil nuevo** en cada prueba: el
   service worker de la extensión queda en caché aunque cambie el archivo.
+
+## Firefox por UI Automation (`browser`, Windows)
+- Ventana `MozillaWindowClass`; pestañas `TabItemControl`; URL en el `ComboBoxControl`
+  `AutomationId="urlbar-input"`; el prompt es `EditControl` con la clase CSS en `ClassName`.
+- Firefox devuelve `ClassName` **vacío** hasta que se lee otra propiedad del elemento (lo crea
+  al pedírsela): `_class_name()` pide `AutomationId` y vuelve a leer. Además el árbol se monta
+  poco a poco tras la primera consulta: `_before_paste` reintenta hasta `EDITOR_WAIT_S`. Hacen
+  falta las dos cosas (probado: sin el reintento, la primera captura fallaba a veces).
+- Firefox expone también los documentos de las pestañas de fondo: el editor válido es el que
+  no está `IsOffscreen` (si no, se pegaría en otra pestaña).
+- Títulos de ventana con raya larga: "… - Claude — Mozilla Firefox" (`DEFAULT_TITLE_REGEX`).
 
 ## Destinos de terminal en Linux: el entorno del proceso manda
 `_processes.claude_processes()` encuentra los `claude` (nombre o `@anthropic-ai/claude-code`

@@ -63,12 +63,14 @@ wsl = true
 # Cualquier chat de Claude en la web (claude.ai: Chat, Code, Design...).
 [[targets]]
 type = "browser"
-# Navegadores (nombre del proceso). Soportados: los basados en Chromium.
-browsers = ["chrome.exe", "msedge.exe", "brave.exe", "vivaldi.exe", "opera.exe"]
+# Navegadores (nombre del proceso). Soportados: los basados en Chromium y Firefox
+# (y sus derivados).
+browsers = ["chrome.exe", "msedge.exe", "brave.exe", "vivaldi.exe", "opera.exe",
+            "firefox.exe", "librewolf.exe", "waterfox.exe", "floorp.exe", "zen.exe"]
 # Coincidencia fuerte: URL de la pestaña visible de cada ventana.
 url_regex = "^(?:https?://)?(?:[\\w-]+\\.)*claude\\.ai(?:[/?#]|$)"
 # Coincidencia débil (pestañas en segundo plano): "... - Claude", "Claude Code"...
-title_regex = "(?:^|\\s)Claude(?:\\s(?:Code|Design))?(?=$|[:(]|\\s[-–|]\\s|\\s\\()"
+title_regex = "(?:^|\\s)Claude(?:\\s(?:Code|Design))?(?=$|[:(]|\\s[-–—|]\\s|\\s\\()"
 # Solo se pega si la pestaña tiene el prompt (editor con esta clase CSS); si no, se
 # prueba la siguiente candidata.
 editor_class = "ProseMirror"
@@ -101,6 +103,16 @@ title_regex = "^[✳✻✽✶✢·◐◓◑◒]\\s|Claude Code"
 # En Linux Claude Code pega imágenes con Ctrl+V (Alt+V es solo para Windows y WSL).
 paste_keys = "ctrl+v"
 settle_ms = 150
+
+# claude.ai en cualquier navegador SIN la extensión (GNOME Web, Falkon, qutebrowser... o
+# Firefox/Chromium sin ella): ventana del navegador → foco → Ctrl+V. Solo pega si la pestaña
+# de Claude es la activa de su ventana; la imagen va al prompt si el cursor estaba en él.
+[[targets]]
+type = "linux_browser"
+# Navegadores (nombre del proceso).
+# browsers = ["firefox", "firefox-esr", "epiphany", "falkon", "qutebrowser", "chromium"]
+# Regex sobre el título de la ventana ("<conversación> - Claude — Mozilla Firefox"...).
+# title_regex = "(?:^|\\s)Claude(?:\\s(?:Code|Design))?(?=$|[:(]|\\s[-–—|]\\s|\\s\\()"
 
 # Pendientes de implementar (ver paste_photo/targets/CLAUDE.md):
 # [[targets]]

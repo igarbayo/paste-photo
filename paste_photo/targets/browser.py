@@ -3,7 +3,7 @@
 
 """Cualquier chat de Claude en la web (claude.ai: Chat, Code, Design...) en un navegador.
 
-Soportados en Windows: Chrome, Edge y demás navegadores Chromium.
+Soportados en Windows: Chrome, Edge y demás navegadores Chromium, y Firefox (y derivados).
 """
 
 from __future__ import annotations
@@ -24,20 +24,25 @@ DEFAULT_URL_REGEX = r"^(?:https?://)?(?:[\w-]+\.)*claude\.ai(?:[/?#]|$)"
 # Coincidencia débil, para pestañas en segundo plano: "<conversación> - Claude",
 # "Claude Code", "Claude Design"... El navegador añade texto al nombre accesible
 # ("Uso de memoria de ...: 345 MB", ": parte del grupo ...", " - Uso de memoria - ..."),
+# y el título de la ventana el del navegador (" — Mozilla Firefox", " - Chromium"),
 # por eso se busca la palabra suelta seguida de fin, separador o decoración.
 # Los proyectos de Design se titulan con su nombre: solo se detectan visibles (por URL).
-DEFAULT_TITLE_REGEX = r"(?:^|\s)Claude(?:\s(?:Code|Design))?(?=$|[:(]|\s[-–|]\s|\s\()"
+DEFAULT_TITLE_REGEX = r"(?:^|\s)Claude(?:\s(?:Code|Design))?(?=$|[:(]|\s[-–—|]\s|\s\()"
 DEFAULT_PASTE_KEYS = "ctrl+v"
-DEFAULT_BROWSERS = ("chrome.exe", "msedge.exe", "brave.exe", "vivaldi.exe", "opera.exe")
+DEFAULT_BROWSERS = ("chrome.exe", "msedge.exe", "brave.exe", "vivaldi.exe", "opera.exe",
+                    "firefox.exe", "librewolf.exe", "waterfox.exe", "floorp.exe", "zen.exe")
 # El prompt de claude.ai es un editor ProseMirror en Chat, Code y Design; su clase CSS llega
 # a UI Automation como ClassName y no depende del idioma (el aria-label sí). Se compara como
 # token exacto: hay contenedores con clases tipo "[&_.ProseMirror]:...".
 DEFAULT_EDITOR_CLASS = "ProseMirror"
 CHROMIUM_WINDOW_CLASS = "Chrome_WidgetWin_1"
-OMNIBOX_CLASS = "OmniboxViewViews"
+GECKO_WINDOW_CLASS = "MozillaWindowClass"
+OMNIBOX_CLASS = "OmniboxViewViews"  # barra de direcciones de Chromium (EditControl)
+URLBAR_ID = "urlbar-input"  # la de Firefox (ComboBoxControl, AutomationId)
 
 # ProseMirror devuelve el cursor a su última posición ~20 ms después de recibir el foco.
 FOCUS_SETTLE_S = 0.1
+EDITOR_WAIT_S = 5  # Firefox, en frío, a veces tarda más de 1,5 s en exponer el prompt
 
 RANK_URL, RANK_TITLE = 0, 1
 
@@ -69,7 +74,7 @@ def _windows_browser_target():
         def _candidate_windows(self) -> list[int]:
             return [
                 w
-                for w in self._windows_of_class(CHROMIUM_WINDOW_CLASS)
+                for w in self._windows_of_class(CHROMIUM_WINDOW_CLASS, GECKO_WINDOW_CLASS)
                 if self._win32gui.GetWindowText(w)
                 and process_name(self._window_pid(w)) in self._browsers
             ]
@@ -82,6 +87,13 @@ def _windows_browser_target():
         def _before_paste(self, handle: TargetHandle) -> None:
             # UI Automation solo ve el contenido de la pestaña activa, por eso va aquí.
             editor = self._find_editor(handle.window_id)
+            # Firefox monta su árbol de accesibilidad poco a poco tras la primera consulta.
+            start = time.monotonic()
+            while editor is None and time.monotonic() - start < EDITOR_WAIT_S:
+                time.sleep(0.25)
+                editor = self._find_editor(handle.window_id)
+                if editor is not None:
+                    log.debug("browser: prompt encontrado tras %.1f s", time.monotonic() - start)
             if editor is None:
                 raise TabNotReady("no tiene prompt de Claude")
             # La imagen va al cursor del prompt. Si ya tiene el foco (Chrome se lo devuelve
@@ -93,9 +105,13 @@ def _windows_browser_target():
 
         def _visible_url(self, hwnd: int) -> str:
             root = self._auto.ControlFromHandle(hwnd)
-            omnibox = root.EditControl(searchDepth=12, ClassName=OMNIBOX_CLASS) if root else None
-            if omnibox is None or not omnibox.Exists(0, 0):
+            if root is None:
                 return ""
+            omnibox = root.EditControl(searchDepth=12, ClassName=OMNIBOX_CLASS)
+            if not omnibox.Exists(0, 0):
+                omnibox = root.ComboBoxControl(searchDepth=12, AutomationId=URLBAR_ID)
+                if not omnibox.Exists(0, 0):
+                    return ""
             try:
                 return omnibox.GetValuePattern().Value or ""
             except Exception:
@@ -103,15 +119,27 @@ def _windows_browser_target():
 
         def _find_editor(self, hwnd: int) -> Any | None:
             # Se recorre la ventana entera: Chrome tiene varios DocumentControl (paneles
-            # internos) y el primero no es la página.
+            # internos) y el primero no es la página. Firefox expone también las pestañas de
+            # fondo: su editor está fuera de pantalla (`IsOffscreen`).
             edit_type = self._auto.ControlType.EditControl
             for ctrl in self._walk(hwnd, self._editor_depth):
                 if (
                     safe_attr(ctrl, "ControlType") == edit_type
-                    and self._editor_class in safe_attr(ctrl, "ClassName").split()
+                    and self._editor_class in self._class_name(ctrl).split()
+                    and not safe_attr(ctrl, "IsOffscreen")
                 ):
                     return ctrl
             return None
+
+        @staticmethod
+        def _class_name(ctrl: Any) -> str:
+            # Firefox da la clase vacía hasta que se lee otra propiedad del elemento (lo
+            # crea al pedírsela): se pide su AutomationId y se vuelve a leer.
+            name = safe_attr(ctrl, "ClassName")
+            if not name:
+                safe_attr(ctrl, "AutomationId")
+                name = safe_attr(ctrl, "ClassName")
+            return name
 
     return WindowsBrowserTarget
 

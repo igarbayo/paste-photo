@@ -15,6 +15,20 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - La imagen se pega donde está el cursor del prompt: en el navegador, la extensión recuerda
   la última posición del cursor en el prompt de claude.ai (`cursor.js`) y, si nunca estuvo
   ahí, pega al final.
+- **Firefox** (Windows y Linux): la extensión del navegador funciona también en Firefox y
+  LibreWolf (`.xpi` generado a partir de la de Chromium). `setup browser` registra el host
+  nativo para ellos (`~/.mozilla`, `~/.librewolf`; `HKCU\Software\Mozilla` y `\LibreWolf`) y
+  deja el `.xpi`; la release lo publica, firmado en addons.mozilla.org si hay credenciales.
+- Destino `browser` (Windows, sin extensión): también Firefox (y LibreWolf, Waterfox, Floorp
+  y Zen, sin probar).
+- Destino `linux_browser`: claude.ai en cualquier navegador de Linux sin la extensión
+  (GNOME Web, Falkon, qutebrowser...): enfoca su ventana y pulsa Ctrl+V.
+
+### Changed
+- Extensión: el `paste` se lanza en el mundo de la página (`world: "MAIN"`) y el cursor se
+  coloca antes en el mundo aislado; necesario en Firefox, igual en Chromium.
+- `title_regex` por defecto de `browser`: admite la raya larga de los títulos de Firefox
+  ("… - Claude — Mozilla Firefox").
 
 ### Fixed
 - Extensión de navegador: la imagen ya no va al principio del prompt cuando el cursor no

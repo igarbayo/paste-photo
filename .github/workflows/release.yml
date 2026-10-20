@@ -5,6 +5,10 @@
 # Envío automático a winget (microsoft/winget-pkgs), opcional:
 #   - el repo debe ser público (winget descarga el instalador sin autenticación);
 #   - variable del repo WINGET_SUBMIT=true y secreto WINGET_TOKEN (PAT clásico con public_repo).
+#
+# Firma de la extensión de Firefox, opcional (sin ella el .xpi solo se instala en Firefox ESR,
+# Developer Edition, Nightly o LibreWolf): secretos AMO_JWT_ISSUER y AMO_JWT_SECRET, de
+# https://addons.mozilla.org/developers/addon/api/key/ (canal "unlisted": no se publica).
 name: Release
 
 on:
@@ -35,12 +39,29 @@ jobs:
           paste-photo --version
       - name: Zip de la extensión del navegador
         run: (cd paste_photo/resources/extension && zip -qr "$GITHUB_WORKSPACE/dist/paste-photo-extension-$VERSION.zip" .)
+      - name: Extensión de Firefox (.xpi; firmada en addons.mozilla.org si hay credenciales)
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          xpi="dist/paste-photo-firefox-$VERSION.xpi"
+          python packaging/firefox_xpi.py "$xpi"
+          if [ -n "$AMO_JWT_ISSUER" ] && [ -n "$AMO_JWT_SECRET" ]; then
+            npx --yes web-ext@8 sign --channel=unlisted --source-dir "${xpi%.xpi}" \
+              --artifacts-dir web-ext-artifacts \
+              --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET"
+            cp web-ext-artifacts/*.xpi "$xpi"
+          else
+            echo "::warning::Sin AMO_JWT_ISSUER/AMO_JWT_SECRET: el .xpi va sin firmar (solo Firefox ESR, Developer Edition, Nightly o LibreWolf)"
+          fi
+          rm -rf "${xpi%.xpi}"
       - uses: actions/upload-artifact@v5
         with:
           name: linux
           path: |
             dist/*.deb
             dist/*.zip
+            dist/*.xpi
 
   release:
     needs: linux
@@ -112,6 +133,7 @@ jobs:
             "dist/winget-manifests-$VERSION.zip" \
             "dist/paste-photo_${VERSION}_all.deb" \
             "dist/paste-photo-extension-$VERSION.zip" \
+            "dist/paste-photo-firefox-$VERSION.xpi" \
             --title "paste-photo $VERSION" --notes-file notes.md
 
   winget:

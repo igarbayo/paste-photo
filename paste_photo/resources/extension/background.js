@@ -91,16 +91,25 @@ async function paste(msg) {
     const tab = await chrome.tabs.update(msg.tabId, { active: true });
     await chrome.windows.update(tab.windowId, { focused: true });
   }
+  // Dos pasos: el cursor se coloca en el mundo aislado de la extensión (ahí guarda cursor.js
+  // la última posición) y el `paste` se lanza en el de la página: en Firefox, un evento
+  // creado desde el mundo aislado llega a la página sin los archivos.
+  const target = { tabId: msg.tabId };
+  const [placed] = await chrome.scripting.executeScript({ target, func: placeCaret });
+  const ready = placed && placed.result ? placed.result : { ok: false, error: "sin resultado" };
+  if (!ready.ok) return ready;
   const [result] = await chrome.scripting.executeScript({
-    target: { tabId: msg.tabId },
-    func: pasteImage,
+    target,
+    world: "MAIN",
+    func: dispatchPaste,
     args: [msg.png, msg.name || "screenshot.png"],
   });
   return result && result.result ? result.result : { ok: false, error: "sin resultado" };
 }
 
-// Se ejecuta DENTRO de la página de claude.ai (no puede usar nada de este archivo).
-async function pasteImage(base64, name) {
+// Se ejecuta DENTRO de la página de claude.ai, en el mundo aislado (no puede usar nada de
+// este archivo).
+async function placeCaret() {
   const findEditor = () => document.querySelector('.ProseMirror[contenteditable="true"]');
   let editor = findEditor();
   for (let i = 0; !editor && i < 30; i++) {
@@ -108,9 +117,6 @@ async function pasteImage(base64, name) {
     editor = findEditor();
   }
   if (!editor) return { ok: false, error: "no-editor" };
-  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-  const data = new DataTransfer();
-  data.items.add(new File([bytes], name, { type: "image/png" }));
   // Posición del cursor: la actual si está en el prompt; si no, la última que tuvo en él
   // (la guarda cursor.js); si nunca la tuvo, al final. `focus()` lo pondría al principio.
   const inEditor = (range) =>
@@ -129,7 +135,23 @@ async function pasteImage(base64, name) {
   // ProseMirror lee la selección del DOM en `selectionchange` (asíncrono): se le da tiempo
   // para que el `paste` vaya a ese punto y no a la selección que tenía guardada.
   await new Promise((r) => setTimeout(r, 50));
-  const event = new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true });
+  return { ok: true };
+}
+
+// Se ejecuta DENTRO de la página de claude.ai, en su propio mundo (`world: "MAIN"`).
+function dispatchPaste(base64, name) {
+  const editor = document.querySelector('.ProseMirror[contenteditable="true"]');
+  if (!editor) return { ok: false, error: "no-editor" };
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  const data = new DataTransfer();
+  data.items.add(new File([bytes], name, { type: "image/png" }));
+  const init = { clipboardData: data, bubbles: true, cancelable: true };
+  let event = new ClipboardEvent("paste", init);
+  if (!event.clipboardData || event.clipboardData.files.length === 0) {
+    // Firefox crea su propio `clipboardData` (vacío): se sustituye por el nuestro.
+    event = new Event("paste", init);
+    Object.defineProperty(event, "clipboardData", { value: data });
+  }
   const handled = !editor.dispatchEvent(event);
   return handled ? { ok: true } : { ok: false, error: "paste-ignored" };
 }

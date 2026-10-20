@@ -26,6 +26,8 @@ URL = re.compile(DEFAULT_URL_REGEX, re.IGNORECASE)
         "Uso de memoria de Explicación rápida de funciones - Claude: 345 MB",
         "Chat nuevo - Claude - Uso de memoria - 353 MB",
         "Claude Design",
+        "Nuevo chat - Claude — Mozilla Firefox",  # títulos de ventana en Linux
+        "Nuevo chat - Claude - Chromium",
     ],
 )
 def test_title_matches_claude_tabs(name):

@@ -121,6 +121,7 @@ noted.
 | pytest, ruff | MIT | Tests and lint. |
 | GitHub Actions (`actions/checkout`, `actions/setup-python`, `actions/upload-artifact`) | MIT | CI only. |
 | Chocolatey, wingetcreate | Apache-2.0, MIT | Release job only. |
+| [web-ext](https://github.com/mozilla/web-ext) 8.x | MPL-2.0 | Release job only: sends the Firefox `.xpi` to addons.mozilla.org to be signed. Not distributed; the signed `.xpi` contains only our own files. |
 
 ### 2.4 Assets and content
 
@@ -134,10 +135,10 @@ noted.
 
 ### 2.5 Trademarks and services
 
-paste-photo mentions **Claude**, **Claude Code**, **claude.ai**, **Windows**, **Chrome** and
-**Edge** only to describe what it works with (nominative use). paste-photo is an independent
-project and is **not affiliated with, endorsed by or sponsored by Anthropic, Microsoft or
-Google**. It does not use their logos, and its icon is original. It does not call any Claude
+paste-photo mentions **Claude**, **Claude Code**, **claude.ai**, **Windows**, **Chrome**,
+**Edge** and **Firefox** only to describe what it works with (nominative use). paste-photo is
+an independent project and is **not affiliated with, endorsed by or sponsored by Anthropic,
+Microsoft, Google or Mozilla**. It does not use their logos, and its icon is original. It does not call any Claude
 API and does not send data anywhere: it only simulates the paste shortcut on the local machine.
 
 ## 3. Compatibility analysis

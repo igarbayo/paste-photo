@@ -51,6 +51,7 @@ _BUILTIN_MODULES = (
     "konsole",
     "orca",
     "linux_terminal",
+    "linux_browser",
     "desktop_app",
     "vscode",
 )

@@ -7,6 +7,8 @@ packaging/
   build.py               punto de entrada único (local y CI): .exe y, con --installer, instalador
   make_icon.py           genera paste_photo/resources/icon.png e icon.ico
   release_notes.py       sección de una versión del CHANGELOG (notas de la release)
+  firefox_xpi.py         .xpi de Firefox a partir de la extensión de Chromium (+ carpeta
+                         para `web-ext sign`)
   windows/
     paste-photo.spec     PyInstaller: paste-photo.exe (bandeja), paste-photo-cli.exe (consola)
                          y paste-photo-native-host.exe (lo lanza el navegador)
@@ -19,8 +21,9 @@ packaging/
                          resto de dependencias de Debian (Depends), lanzadores en /usr/bin
 .github/workflows/
   ci.yml                 lint + tests (Windows y Linux), integración X11 (Xvfb), .exe y .deb
-  release.yml            tag vX.Y.Z → .deb + zip de la extensión (job linux) → instalador,
-                         sha256 y manifiestos (job release) → GitHub Release (+ winget)
+  release.yml            tag vX.Y.Z → .deb + zip de la extensión + .xpi de Firefox (job
+                         linux) → instalador, sha256 y manifiestos (job release) → GitHub
+                         Release (+ winget)
 ```
 
 ## Versión: una sola fuente
@@ -64,6 +67,13 @@ nombre del instalador), el instalador (`/DAppVersion`) y la release (el tag **de
   La primera PR fue microsoft/winget-pkgs#456268 (0.2.1). El primer envío falló porque
   wingetcreate acababa de crear el fork `igarbayo/winget-pkgs`: relanzar el job basta.
 - `License: MIT` (+ `LicenseUrl`, `Copyright`). Si cambia la licencia, actualizar `make_manifests.py`.
+
+## Firefox: .xpi y firma
+- `python packaging/firefox_xpi.py dist/paste-photo-firefox-X.Y.Z.xpi` (cualquier SO).
+- Firefox normal solo instala extensiones firmadas. Con los secretos `AMO_JWT_ISSUER` y
+  `AMO_JWT_SECRET` (cuenta de addons.mozilla.org → *Manage API Keys*), la release la firma con
+  `npx web-ext@8 sign --channel=unlisted` (no se publica en el catálogo). Sin ellos, avisa y
+  publica el `.xpi` sin firmar. AMO no deja firmar dos veces la misma `version`.
 
 ## Linux: .deb y pipx
 - `python3 packaging/linux/build_deb.py` (Linux, `dpkg-deb`, pystray instalado en ese Python).

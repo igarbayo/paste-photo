@@ -12,7 +12,8 @@ Take a screenshot and it shows up in Claude by itself.
 
 paste-photo lives in the system tray. When you take a screenshot, it pastes the image into
 the Claude you used last, without sending it, and puts you back where you were. It works on
-**Windows and Linux**, in **any terminal** and in **any Chromium-based browser**.
+**Windows and Linux**, in **any terminal** and in **Chromium-based browsers and Firefox**
+(and, without the extension, in other Linux browsers such as GNOME Web).
 
 ## Features
 
@@ -22,10 +23,11 @@ the Claude you used last, without sending it, and puts you back where you were. 
 - **Never sends anything**: the image is attached to the prompt and you decide when to send.
 - **Lands where your cursor is**: the image goes where you left the cursor in the prompt, even
   if you clicked elsewhere afterwards. If the cursor was never in that prompt, it goes at the
-  end (browser extension).
+  end (browser extension; see [How it works](#how-it-works) for the other ways).
 - **Each screenshot is pasted once**: if you remove it, it does not come back.
-- **Browser extension**: pastes into claude.ai without switching tabs, even into a background
-  tab, on Windows, X11 and Wayland.
+- **Browser extension** for Chrome, Edge, Brave, Vivaldi, Opera and **Firefox** (also
+  LibreWolf): pastes into claude.ai without switching tabs, even into a background tab, on
+  Windows, X11 and Wayland.
 - **System tray icon**: pause or resume, choose where to paste, notifications, and start when
   you sign in.
 - **`paste-photo doctor`** tells you what will work on your computer and how to fix what won't.
@@ -37,6 +39,8 @@ the Claude you used last, without sending it, and puts you back where you were. 
 | Windows 10/11 (x64) | Claude Code in Windows Terminal (also inside WSL) | focuses the tab, Alt+V | ✅ |
 | Windows 10/11 (x64) | Claude Code in an **Orca** terminal | Orca's CLI, no focus needed | ✅ |
 | Windows 10/11 (x64) | claude.ai in Chrome, Edge, Brave, Vivaldi, Opera | browser extension, or focus + Ctrl+V | ✅ |
+| Windows 10/11 (x64) | claude.ai in **Firefox** | browser extension, or focus + Ctrl+V | ✅ |
+| Windows 10/11 (x64) | claude.ai in LibreWolf, Waterfox, Floorp, Zen | same as Firefox | ⚠️ Experimental |
 | Linux (any) | Claude Code inside **tmux** | `tmux send-keys`, no focus needed | ✅ |
 | Linux (any) | Claude Code in **kitty** (remote control on) or **WezTerm** | terminal's own CLI, no focus needed | ✅ |
 | Linux (any) | Claude Code in **Konsole** | D-Bus, no focus needed | ✅ |
@@ -45,6 +49,10 @@ the Claude you used last, without sending it, and puts you back where you were. 
 | Linux, GNOME Wayland | Any other terminal | needs `paste-photo setup gnome` | ⚠️ Experimental |
 | Linux, KDE Wayland | Any other terminal | KWin + permission prompt once | ⚠️ Experimental |
 | Linux (any) | claude.ai in Chrome, Chromium, Edge, Brave, Vivaldi, Opera | browser extension | ✅ |
+| Linux (any) | claude.ai in **Firefox** | browser extension | ✅ |
+| Linux (any) | claude.ai in LibreWolf | browser extension | ⚠️ Experimental |
+| Linux, X11 | claude.ai in **any browser without the extension** (GNOME Web, Falkon, qutebrowser…) | focuses the window, Ctrl+V; only if Claude's tab is the active one and the cursor is in the prompt | ✅ (tested with Firefox) |
+| Linux, GNOME/KDE Wayland | claude.ai in any browser without the extension | same, through `setup gnome` / KWin | ⚠️ Experimental |
 | macOS | Any | | Planned |
 
 "Experimental" means it is implemented but has not been tested on a real desktop yet. Tell us
@@ -100,9 +108,22 @@ background tabs. Run this once:
 paste-photo setup browser        # paste-photo-cli setup browser on Windows
 ```
 
-It registers paste-photo with your browsers and prints a folder. Open `chrome://extensions`
-(or `edge://extensions`, `brave://extensions`…), turn on **Developer mode**, click **Load
-unpacked** and choose that folder.
+It registers paste-photo with your browsers and prints where the extension is.
+
+**Chrome, Edge, Brave, Vivaldi, Opera.** Open `chrome://extensions` (or `edge://extensions`,
+`brave://extensions`…), turn on **Developer mode**, click **Load unpacked** and choose the
+folder that `setup browser` printed.
+
+**Firefox (and LibreWolf).** Install `paste-photo-firefox-X.Y.Z.xpi` from
+[Releases](https://github.com/igarbayo/paste-photo/releases): open the file with Firefox, or
+go to `about:addons` → ⚙ → **Install Add-on From File**. Regular Firefox only installs
+add-ons signed by Mozilla; if the release's `.xpi` is not signed, it installs in Firefox ESR,
+Developer Edition, Nightly and LibreWolf after setting `xpinstall.signatures.required` to
+`false` in `about:config` (`setup browser` also writes the `.xpi` to your computer). Firefox
+121 or later (128 or later recommended).
+
+GNOME Web (Epiphany) can't use the extension: its extensions can't talk to other apps
+(no native messaging). paste-photo uses its window instead (see the table above).
 
 ### GNOME on Wayland
 
@@ -181,6 +202,9 @@ The most useful options:
   the `[[targets]]` list instead.
 - `title_regex`: only paste into a specific terminal tab, e.g. `"my-project"`.
 - `enabled = false` on a `[[targets]]` entry turns that place off.
+- `browsers` on the `browser` (Windows) and `linux_browser` targets: the browsers to look in,
+  by process name. A settings file created by an older version may not list Firefox: add
+  `"firefox.exe"` to `browsers` of the `browser` target, or delete the file to recreate it.
 - `cli` on the `orca` target: path to Orca's CLI if paste-photo can't find it (it looks in
   your PATH and in Orca's install folder).
 
@@ -208,16 +232,22 @@ Claude runs, even if that terminal isn't the visible one.
 
 ```text
  screenshot ──► clipboard / screenshot folder ──► orchestrator ──► most recently used Claude
-                (new image only)                  (each image     ├─ browser extension (any tab)
+                (new image only)                  (each image     ├─ browser extension (any tab; Chromium, Firefox)
                                                    pasted once)   ├─ tmux · kitty · WezTerm · Konsole · Orca
                                                                   │   (writes Ctrl+V into the pane)
-                                                                  └─ any terminal: focus + Ctrl+V
-                                                                     (Alt+V on Windows), focus back
+                                                                  └─ any terminal or browser window:
+                                                                     focus + Ctrl+V (Alt+V in Windows
+                                                                     terminals), focus back
 ```
 
 In terminals paste-photo only presses Claude Code's paste key, so Claude inserts
 `[Image #N]` at its own cursor. In the browser, the extension pastes at the prompt's current
-cursor, or the last one it had there, or at the end.
+cursor, or the last one it had there, or at the end. Without the extension:
+
+- **Windows** (Chromium and Firefox): paste-photo focuses the prompt and the browser puts the
+  cursor back where it was; if it was never there, the image goes at the start.
+- **Linux**: paste-photo only switches to the browser window and presses Ctrl+V, so the
+  image goes in only if the cursor was in the prompt.
 
 The core does not depend on the operating system. Each OS, each place Claude can run and each
 user interface (tray, console) is a separate piece, so new ones can be added without touching
@@ -231,7 +261,9 @@ the core.
 | I can't see the tray icon | Windows 11: look in the hidden area (`^`). GNOME: install the "AppIndicator and KStatusNotifierItem Support" extension. |
 | "paste-photo ya se está ejecutando" (already running) | Only one instance runs at a time. Use the one in the tray, or quit it first. |
 | It pastes in the wrong place | Click into the Claude you want before taking the screenshot, or set `prefer = "order"`. |
-| The browser extension doesn't connect | Run `paste-photo setup browser` again and reload the extension. Chromium installed as a **snap** restricts this; use the .deb/.rpm build of your browser. |
+| The browser extension doesn't connect | Run `paste-photo setup browser` again and reload the extension. Browsers installed as a **snap** or **Flatpak** restrict this; use the .deb/.rpm build of your browser. |
+| Linux, no extension: nothing appears in claude.ai | Claude's tab must be the active one in its window and the cursor must be in the prompt. Or install the extension. |
+| Firefox says the add-on "could not be verified" | The `.xpi` is not signed by Mozilla. Use a signed release, or Firefox ESR / Developer Edition / Nightly / LibreWolf with `xpinstall.signatures.required = false`. |
 | The image goes to the start of the claude.ai prompt | Without the browser extension paste-photo can't know whether you ever put the cursor there. Install the extension, or click in the prompt once. |
 | Orca: nothing gets pasted | Orca has to be open. Run `paste-photo doctor`; if it can't find Orca's CLI, set `cli` on the `orca` target. |
 | Linux: nothing happens in GNOME Terminal on Wayland | Run `paste-photo setup gnome` and sign out and in, or use tmux. |

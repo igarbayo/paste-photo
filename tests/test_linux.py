@@ -165,6 +165,32 @@ def test_linux_terminal_needs_window_system(procs):
     assert LinuxTerminalTarget(ctx(windows=None)).locate() is None
 
 
+def test_linux_browser_pastes_into_window_whose_active_tab_is_claude(monkeypatch):
+    from paste_photo.targets import linux_browser
+
+    names = {1: "firefox-esr", 2: "epiphany", 3: "firefox-esr", 4: "xterm"}
+    monkeypatch.setattr(linux_browser, "process_name", lambda pid: names[pid])
+    windows = FakeWindows([
+        WindowInfo(10, "Nuevo chat - Claude — Mozilla Firefox", 1),
+        WindowInfo(20, "Proyecto - Claude", 2),               # GNOME Web: sin sufijo
+        WindowInfo(30, "Noticias — Mozilla Firefox", 3),        # otra pestaña activa
+        WindowInfo(40, "✳ Claude Code", 4),                     # terminal: no es navegador
+    ])
+    context = ctx(windows)
+    context.recency.touch(20)
+    target = linux_browser.LinuxBrowserTarget(context, settle_ms=0)
+    handle = target.locate()
+    assert handle.window_id == 20  # el usado más recientemente
+    target.paste(handle)
+    assert windows.activated == [20] and context.keyboard.sent == ["ctrl+v"]
+
+
+def test_linux_browser_needs_window_system():
+    from paste_photo.targets.linux_browser import LinuxBrowserTarget
+
+    assert LinuxBrowserTarget(ctx(windows=None)).locate() is None
+
+
 def test_owning_window_walks_ancestors():
     windows = [WindowInfo(1, "a", 300), WindowInfo(2, "b", 200)]
     assert _processes.owning_window((100, 200, 300), windows).id == 2
@@ -255,12 +281,35 @@ def test_linux_native_host_manifests(tmp_path, monkeypatch):
 
     monkeypatch.setattr(install.sys, "platform", "linux")
     (tmp_path / ".config" / "BraveSoftware" / "Brave-Browser").mkdir(parents=True)
+    (tmp_path / ".librewolf").mkdir()
     report = install.install_native_host(Path("/usr/bin/paste-photo-native-host"), home=tmp_path)
-    assert len(report) == 3  # Chrome y Chromium siempre; Brave porque existe
+    # Chrome, Chromium y Firefox siempre; Brave y LibreWolf porque existen.
+    assert len(report) == 5
     manifest = json.loads((tmp_path / ".config" / "chromium" / "NativeMessagingHosts"
                            / f"{protocol.HOST_NAME}.json").read_text())
     assert manifest["allowed_origins"] == [f"chrome-extension://{protocol.EXTENSION_ID}/"]
     assert manifest["path"] == str(Path("/usr/bin/paste-photo-native-host"))
+    for folder in (".mozilla", ".librewolf"):
+        gecko = json.loads((tmp_path / folder / "native-messaging-hosts"
+                            / f"{protocol.HOST_NAME}.json").read_text())
+        assert gecko["allowed_extensions"] == [protocol.FIREFOX_EXTENSION_ID]
+        assert "allowed_origins" not in gecko
+
+
+def test_firefox_extension_from_chromium(tmp_path):
+    import zipfile
+
+    from paste_photo.bridge import install, protocol
+
+    xpi = install.build_firefox_extension(tmp_path / "extension-firefox")
+    with zipfile.ZipFile(xpi) as archive:
+        names = set(archive.namelist())
+        manifest = json.loads(archive.read("manifest.json"))
+    assert {"manifest.json", "background.js", "cursor.js"} <= names
+    assert "key" not in manifest
+    assert manifest["background"] == {"scripts": ["background.js"]}
+    assert manifest["browser_specific_settings"]["gecko"]["id"] == protocol.FIREFOX_EXTENSION_ID
+    assert manifest["content_scripts"][0]["js"] == ["cursor.js"]
 
 
 def test_extension_id_matches_manifest_key():

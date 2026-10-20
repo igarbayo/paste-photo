@@ -126,7 +126,13 @@ Config: `%APPDATA%\paste-photo\config.toml` / `~/.config/paste-photo/config.toml
   `--disable-features=DisableLoadExtensionCommandLineSwitch`, copia de la extensión con URL
   `http://127.0.0.1/*` (misma `key` → mismo ID) y el manifiesto del host en
   `<user-data-dir>/NativeMessagingHosts`.
+- Firefox: `firefox-esr` de Debian con perfil propio (`--profile <dir> --no-remote`) y
+  `unset WAYLAND_DISPLAY`: si no, WSLg le da Wayland y su ventana no aparece en Xvfb.
 - `/tmp` de Debian 13 es tmpfs y WSL apaga la distro entre llamadas: guardar en `$HOME`.
+- ⚠️ **Espacio en C:**: el disco virtual de WSL y los perfiles de navegador de prueba crecen
+  rápido. Con C: lleno la distro pasa a solo lectura (errores de E/S) y no arranca
+  (`E_FAIL`): liberar espacio, `wsl --shutdown` y `dpkg --configure -a`. Mirar el espacio libre
+  antes de instalar navegadores y borrar los perfiles de prueba al acabar.
 - Desde Git Bash: `MSYS_NO_PATHCONV=1` antes de pasar rutas `/mnt/...` a `wsl.exe`, y escribir
   los scripts en archivos (la shell de la herramienta reduce las `\`).
 - GNOME y KDE Wayland reales **no** se pueden probar así: quedan "Experimental".

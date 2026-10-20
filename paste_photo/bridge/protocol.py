@@ -20,6 +20,8 @@ HOST_NAME = "io.github.igarbayo.paste_photo"
 # ID fijo de la extensión: deriva de la clave pública ("key") de su manifest.json.
 EXTENSION_ID = "dhoiaidcfkhhohlacfpjealcoigcncac"
 EXTENSION_ORIGIN = f"chrome-extension://{EXTENSION_ID}/"
+# ID en Firefox (y derivados): lo fija `browser_specific_settings.gecko.id` del manifest.
+FIREFOX_EXTENSION_ID = "paste-photo@igarbayo.github.io"
 
 # El navegador no acepta mensajes del host de más de 1 MB: se trocean.
 MAX_HOST_MESSAGE = 1024 * 1024
