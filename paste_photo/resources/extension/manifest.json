@@ -9,6 +9,13 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": ["cursor.js"],
+      "run_at": "document_start"
+    }
+  ],
   "icons": {
     "128": "icon128.png"
   }

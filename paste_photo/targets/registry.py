@@ -49,6 +49,7 @@ _BUILTIN_MODULES = (
     "kitty",
     "wezterm",
     "konsole",
+    "orca",
     "linux_terminal",
     "desktop_app",
     "vscode",

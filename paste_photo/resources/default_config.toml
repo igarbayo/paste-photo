@@ -31,6 +31,17 @@ type = "browser_extension"
 # true = además de pegar, traer la pestaña al frente.
 activate = false
 
+# Claude Code en las terminales de Orca (Windows y Linux): usa la CLI de Orca
+# (`orca terminal send`) para pulsar la tecla de pegado en la terminal exacta de Claude,
+# sin foco ni cambiar de pestaña. Necesita Orca abierto.
+[[targets]]
+type = "orca"
+# Ruta de la CLI de Orca si no está en el PATH ni en su carpeta de instalación.
+# cli = "C:\\Users\\yo\\AppData\\Local\\Programs\\orca\\resources\\bin\\orca.exe"
+# Bytes que se escriben en la terminal. Por defecto, la tecla de pegado de imágenes de
+# Claude Code: Alt+V ("\u001bv") en Windows y Ctrl+V ("\u0016") en Linux.
+# paste_text = "\u0016"
+
 # --- Windows ---------------------------------------------------------------------------
 
 [[targets]]

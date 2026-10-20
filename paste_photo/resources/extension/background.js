@@ -111,7 +111,24 @@ async function pasteImage(base64, name) {
   const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
   const data = new DataTransfer();
   data.items.add(new File([bytes], name, { type: "image/png" }));
-  editor.focus();
+  // Posición del cursor: la actual si está en el prompt; si no, la última que tuvo en él
+  // (la guarda cursor.js); si nunca la tuvo, al final. `focus()` lo pondría al principio.
+  const inEditor = (range) =>
+    range && editor.contains(range.startContainer) && editor.contains(range.endContainer);
+  const selection = document.getSelection();
+  const current = selection && selection.rangeCount ? selection.getRangeAt(0) : null;
+  let range = inEditor(current) ? current.cloneRange() : globalThis.pastePhotoLastRange;
+  if (!inEditor(range)) {
+    range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
+  }
+  editor.focus({ preventScroll: true });
+  selection.removeAllRanges();
+  selection.addRange(range);
+  // ProseMirror lee la selección del DOM en `selectionchange` (asíncrono): se le da tiempo
+  // para que el `paste` vaya a ese punto y no a la selección que tenía guardada.
+  await new Promise((r) => setTimeout(r, 50));
   const event = new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true });
   const handled = !editor.dispatchEvent(event);
   return handled ? { ok: true } : { ok: false, error: "paste-ignored" };

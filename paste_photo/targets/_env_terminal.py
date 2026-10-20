@@ -1,23 +1,26 @@
 # SPDX-FileCopyrightText: 2026 igarbayo
 # SPDX-License-Identifier: MIT
 
-"""Base para terminales/multiplexores con IPC (tmux, kitty, WezTerm, Konsole).
+"""Base para terminales/multiplexores con IPC (tmux, kitty, WezTerm, Konsole, Orca).
 
 El proceso `claude` hereda variables de entorno que identifican su panel exacto
-(`TMUX_PANE`, `KITTY_WINDOW_ID`, `WEZTERM_PANE`, `KONSOLE_DBUS_SESSION`...). Con ellas se
+(`TMUX_PANE`, `KITTY_WINDOW_ID`, `WEZTERM_PANE`, `KONSOLE_DBUS_SESSION`,
+`ORCA_TERMINAL_HANDLE`...). Con ellas se
 escribe Ctrl+V (`\\x16`) directamente en ese panel: no hace falta foco, ni ventana activa,
 ni simular teclas, así que funciona igual en X11 y en Wayland y aunque la pestaña no sea
-la visible. Claude Code lee entonces la imagen del portapapeles (`xclip`/`wl-paste`).
+la visible. Claude Code lee entonces la imagen del portapapeles (`xclip`/`wl-paste`) y
+la inserta **en su cursor**: nunca se escribe texto ni se mueve el cursor.
 """
 
 from __future__ import annotations
 
 import logging
 import subprocess
+import sys
 from collections.abc import Mapping, Sequence
 
 from paste_photo.core.events import ScreenshotCaptured
-from paste_photo.core.ports import TargetHandle
+from paste_photo.core.ports import TargetHandle, WindowInfo
 from paste_photo.targets._processes import ClaudeProcess, claude_processes, owning_window
 from paste_photo.targets.registry import TargetContext
 
@@ -25,6 +28,7 @@ log = logging.getLogger(__name__)
 
 CTRL_V = "\x16"
 COMMAND_TIMEOUT_S = 5
+_CREATE_NO_WINDOW = 0x08000000  # Windows: que la CLI no abra una consola
 
 
 # Variables que delatan un multiplexor *dentro* del terminal: si están, el panel exacto lo
@@ -32,7 +36,8 @@ COMMAND_TIMEOUT_S = 5
 INNER_MULTIPLEXER_ENV = ("TMUX",)
 # Todo lo que cubre algún destino IPC (lo usa `linux_terminal` para no duplicar).
 IPC_ENV_MARKERS = (("TMUX", "TMUX_PANE"), ("KITTY_WINDOW_ID", "KITTY_LISTEN_ON"),
-                   ("WEZTERM_PANE",), ("KONSOLE_DBUS_SERVICE", "KONSOLE_DBUS_SESSION"))
+                   ("WEZTERM_PANE",), ("KONSOLE_DBUS_SERVICE", "KONSOLE_DBUS_SESSION"),
+                   ("ORCA_TERMINAL_HANDLE",))
 
 
 def handled_by_ipc(environ: Mapping[str, str]) -> bool:
@@ -55,6 +60,10 @@ class EnvTerminalTarget:
     def send_ctrl_v(self, proc: ClaudeProcess) -> None:
         raise NotImplementedError
 
+    def window_of(self, proc: ClaudeProcess, windows: list[WindowInfo]) -> WindowInfo | None:
+        """Ventana que aloja ese Claude (por defecto, la del emulador: un ancestro)."""
+        return owning_window(proc.ancestors, windows)
+
     # --- TargetStrategy ----------------------------------------------------
 
     def matches(self, proc: ClaudeProcess) -> bool:
@@ -69,7 +78,7 @@ class EnvTerminalTarget:
         windows = self._list_windows()
         handles = []
         for proc in procs:
-            window = owning_window(proc.ancestors, windows) if windows else None
+            window = self.window_of(proc, windows) if windows else None
             label = self.describe(proc) + (f" · {window.title}" if window else "")
             handles.append(TargetHandle(window_id=window.id if window else 0, label=label,
                                         extra={"proc": proc}))
@@ -91,7 +100,7 @@ class EnvTerminalTarget:
 
     # --- helpers -----------------------------------------------------------
 
-    def _list_windows(self):
+    def _list_windows(self) -> list[WindowInfo]:
         if self._ctx.windows is None:
             return []
         try:
@@ -103,7 +112,9 @@ class EnvTerminalTarget:
 
 def run(cmd: Sequence[str], env: Mapping[str, str] | None = None) -> str:
     result = subprocess.run(list(cmd), capture_output=True, text=True, timeout=COMMAND_TIMEOUT_S,
-                            env=dict(env) if env is not None else None)
+                            env=dict(env) if env is not None else None,
+                            creationflags=_CREATE_NO_WINDOW if sys.platform == "win32" else 0)
     if result.returncode != 0:
-        raise RuntimeError(f"{cmd[0]} falló ({result.returncode}): {result.stderr.strip()}")
+        output = (result.stderr or result.stdout).strip()  # la CLI de Orca informa por stdout
+        raise RuntimeError(f"{cmd[0]} falló ({result.returncode}): {output}")
     return result.stdout

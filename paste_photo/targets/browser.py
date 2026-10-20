@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from collections.abc import Mapping
 from typing import Any
 
@@ -34,6 +35,9 @@ DEFAULT_BROWSERS = ("chrome.exe", "msedge.exe", "brave.exe", "vivaldi.exe", "ope
 DEFAULT_EDITOR_CLASS = "ProseMirror"
 CHROMIUM_WINDOW_CLASS = "Chrome_WidgetWin_1"
 OMNIBOX_CLASS = "OmniboxViewViews"
+
+# ProseMirror devuelve el cursor a su última posición ~20 ms después de recibir el foco.
+FOCUS_SETTLE_S = 0.1
 
 RANK_URL, RANK_TITLE = 0, 1
 
@@ -76,12 +80,16 @@ def _windows_browser_target():
             return RANK_TITLE if self._title_re.search(safe_attr(tab, "Name")) else None
 
         def _before_paste(self, handle: TargetHandle) -> None:
-            # Al cambiar de pestaña el foco no suele quedar en el prompt: lo ponemos.
             # UI Automation solo ve el contenido de la pestaña activa, por eso va aquí.
             editor = self._find_editor(handle.window_id)
             if editor is None:
                 raise TabNotReady("no tiene prompt de Claude")
-            editor.SetFocus()
+            # La imagen va al cursor del prompt. Si ya tiene el foco (Chrome se lo devuelve
+            # al volver a la pestaña), no se toca. Si no, se enfoca y ProseMirror restaura la
+            # última posición del cursor (nunca se mueve con teclas: eso la perdería).
+            if not safe_attr(editor, "HasKeyboardFocus"):
+                editor.SetFocus()
+                time.sleep(FOCUS_SETTLE_S)
 
         def _visible_url(self, hwnd: int) -> str:
             root = self._auto.ControlFromHandle(hwnd)

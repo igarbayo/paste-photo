@@ -13,7 +13,8 @@ omiten solos (`service.build_targets`), así que la config por defecto los lista
 |---|---|---|---|
 | `browser_extension` | Windows, Linux | la extensión inyecta un `paste` con el PNG en el editor | no |
 | `windows_terminal` | Windows | UI Automation: selecciona la pestaña, **Alt+V** | sí |
-| `browser` | Windows | UI Automation: pestaña + editor, Ctrl+V | sí |
+| `browser` | Windows | UI Automation: pestaña + editor (solo enfoca si no lo tenía), Ctrl+V | sí |
+| `orca` | Windows, Linux | `orca terminal send --terminal $ORCA_TERMINAL_HANDLE --text <tecla>` | no |
 | `tmux` | Linux, macOS | `tmux -S <socket> send-keys -t <pane> C-v` | no |
 | `kitty` | Linux, macOS | `kitty @ --to $KITTY_LISTEN_ON send-text --match id:N ` | no |
 | `wezterm` | Linux, macOS | `wezterm cli send-text --no-paste --pane-id N ` | no |
@@ -22,7 +23,22 @@ omiten solos (`service.build_targets`), así que la config por defecto los lista
 | `desktop_app`, `vscode` | — | ⏳ `_pending` | |
 
 Estado real: probados de punta a punta en Linux (WSL + Xvfb/Openbox) tmux, kitty, Konsole,
-`linux_terminal` (xterm) y `browser_extension` (Chromium); WezTerm solo con tests unitarios.
+`linux_terminal` (xterm), `orca` (.deb) y `browser_extension` (Chromium); `orca` también en
+Windows; WezTerm solo con tests unitarios.
+
+## Posición del cursor: la imagen va donde estaba el cursor
+- **Terminales**: se envía solo la tecla de pegado; Claude Code inserta `[Image #N]` en su
+  cursor. Nunca escribir texto ni mover el cursor (flechas, Fin...).
+- **`browser_extension`**: `cursor.js` (content script, mismo mundo aislado que
+  `pasteImage`) guarda la última selección dentro del prompt. `pasteImage` usa la actual si
+  está en el prompt, si no esa última, si no el final; espera 50 ms antes del `paste` para que
+  ProseMirror lea la selección (`selectionchange` es asíncrono).
+- **`browser` (UIA)**: si el editor ya tiene el foco no se toca; si no, `SetFocus()` y
+  ProseMirror restaura su última selección (~20 ms). Un `Ctrl+End` la pisaría. Sin
+  extensión no se distingue "nunca tuvo cursor" (va al principio).
+- Pruebas: página con ProseMirror real (`esm.sh`, `role="textbox"` para que UIA lo vea como
+  `EditControl`); en Chromium con `--load-extension`, **perfil nuevo** en cada prueba: el
+  service worker de la extensión queda en caché aunque cambie el archivo.
 
 ## Destinos de terminal en Linux: el entorno del proceso manda
 `_processes.claude_processes()` encuentra los `claude` (nombre o `@anthropic-ai/claude-code`
@@ -33,7 +49,17 @@ en la línea de órdenes) y lee su **entorno**, que delata el panel exacto: `TMU
 - **tmux manda**: si `TMUX` está, los terminales exteriores (kitty, WezTerm, Konsole) ignoran
   ese proceso; si no, su Ctrl+V iría al panel activo de tmux, no al de Claude.
 - `linux_terminal` solo atiende procesos que **no** cubre ningún IPC (`handled_by_ipc`).
-- La ventana de un proceso = primera ventana cuyo PID es un ancestro (`owning_window`).
+- La ventana de un proceso = primera ventana cuyo PID es un ancestro (`owning_window`);
+  un destino puede cambiarlo con `window_of()` (Orca: sus PTY cuelgan del daemon).
+
+## Orca (`orca.py`, Windows y Linux)
+- Orca exporta `ORCA_TERMINAL_HANDLE` (y `ORCA_CLI_COMMAND`) a sus terminales; está en
+  `IPC_ENV_MARKERS`, así que `linux_terminal` no lo duplica.
+- CLI: `orca.exe` (Windows, `%LOCALAPPDATA%\Programs\orca\resources\bin`; no `orca.cmd`,
+  cmd.exe reinterpreta el texto) y `orca-ide` en Linux (`orca` es el lector de pantalla de
+  GNOME). Opción `cli` para fijarla.
+- Bytes: `\x1bv` (Alt+V) en Windows, `\x16` en Linux (`paste_text`). Sin `--enter`.
+- Recencia: cualquier ventana del proceso `orca.exe`/`orca-ide` (la usada más recientemente).
 
 ## Teclas para pegar imágenes (fuente: docs oficiales, *Interactive mode*)
 Elige `paste_keys` según **dónde corre Claude**, no según el destino:

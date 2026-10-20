@@ -20,6 +20,9 @@ the Claude you used last, without sending it, and puts you back where you were. 
   (Chat, Code, Design) in the browser. If Claude is open in several places, the one you used
   last wins.
 - **Never sends anything**: the image is attached to the prompt and you decide when to send.
+- **Lands where your cursor is**: the image goes where you left the cursor in the prompt, even
+  if you clicked elsewhere afterwards. If the cursor was never in that prompt, it goes at the
+  end (browser extension).
 - **Each screenshot is pasted once**: if you remove it, it does not come back.
 - **Browser extension**: pastes into claude.ai without switching tabs, even into a background
   tab, on Windows, X11 and Wayland.
@@ -32,10 +35,12 @@ the Claude you used last, without sending it, and puts you back where you were. 
 | System | Where Claude runs | How it pastes | Status |
 |---|---|---|---|
 | Windows 10/11 (x64) | Claude Code in Windows Terminal (also inside WSL) | focuses the tab, Alt+V | ✅ |
+| Windows 10/11 (x64) | Claude Code in an **Orca** terminal | Orca's CLI, no focus needed | ✅ |
 | Windows 10/11 (x64) | claude.ai in Chrome, Edge, Brave, Vivaldi, Opera | browser extension, or focus + Ctrl+V | ✅ |
 | Linux (any) | Claude Code inside **tmux** | `tmux send-keys`, no focus needed | ✅ |
 | Linux (any) | Claude Code in **kitty** (remote control on) or **WezTerm** | terminal's own CLI, no focus needed | ✅ |
 | Linux (any) | Claude Code in **Konsole** | D-Bus, no focus needed | ✅ |
+| Linux (any) | Claude Code in an **Orca** terminal | Orca's CLI, no focus needed | ✅ |
 | Linux, X11 | Claude Code in **any other terminal** (GNOME Terminal, Ptyxis, xterm, Alacritty…) | focuses the window, Ctrl+V | ✅ |
 | Linux, GNOME Wayland | Any other terminal | needs `paste-photo setup gnome` | ⚠️ Experimental |
 | Linux, KDE Wayland | Any other terminal | KWin + permission prompt once | ⚠️ Experimental |
@@ -101,8 +106,8 @@ unpacked** and choose that folder.
 
 ### GNOME on Wayland
 
-GNOME doesn't let apps see other windows. If your terminal isn't tmux, kitty, WezTerm or
-Konsole, install the small GNOME Shell helper and sign out and back in once:
+GNOME doesn't let apps see other windows. If your terminal isn't tmux, kitty, WezTerm,
+Konsole or Orca, install the small GNOME Shell helper and sign out and back in once:
 
 ```bash
 paste-photo setup gnome
@@ -176,6 +181,8 @@ The most useful options:
   the `[[targets]]` list instead.
 - `title_regex`: only paste into a specific terminal tab, e.g. `"my-project"`.
 - `enabled = false` on a `[[targets]]` entry turns that place off.
+- `cli` on the `orca` target: path to Orca's CLI if paste-photo can't find it (it looks in
+  your PATH and in Orca's install folder).
 
 Logs: `%LOCALAPPDATA%\paste-photo\logs` on Windows, `~/.local/state/paste-photo/logs` on Linux
 (tray menu: **Ver registro**).
@@ -191,16 +198,26 @@ listen_on unix:@kitty
 
 Without it, kitty is handled like any other terminal (Claude's tab has to be the active one).
 
+### Orca
+
+[Orca](https://github.com/stablyai/orca) needs no setup: while Orca is open, paste-photo uses
+its CLI (`orca terminal send`) to press Claude Code's paste key in the exact terminal where
+Claude runs, even if that terminal isn't the visible one.
+
 ## How it works
 
 ```text
  screenshot ──► clipboard / screenshot folder ──► orchestrator ──► most recently used Claude
                 (new image only)                  (each image     ├─ browser extension (any tab)
-                                                   pasted once)   ├─ tmux · kitty · WezTerm · Konsole
+                                                   pasted once)   ├─ tmux · kitty · WezTerm · Konsole · Orca
                                                                   │   (writes Ctrl+V into the pane)
                                                                   └─ any terminal: focus + Ctrl+V
                                                                      (Alt+V on Windows), focus back
 ```
+
+In terminals paste-photo only presses Claude Code's paste key, so Claude inserts
+`[Image #N]` at its own cursor. In the browser, the extension pastes at the prompt's current
+cursor, or the last one it had there, or at the end.
 
 The core does not depend on the operating system. Each OS, each place Claude can run and each
 user interface (tray, console) is a separate piece, so new ones can be added without touching
@@ -215,6 +232,8 @@ the core.
 | "paste-photo ya se está ejecutando" (already running) | Only one instance runs at a time. Use the one in the tray, or quit it first. |
 | It pastes in the wrong place | Click into the Claude you want before taking the screenshot, or set `prefer = "order"`. |
 | The browser extension doesn't connect | Run `paste-photo setup browser` again and reload the extension. Chromium installed as a **snap** restricts this; use the .deb/.rpm build of your browser. |
+| The image goes to the start of the claude.ai prompt | Without the browser extension paste-photo can't know whether you ever put the cursor there. Install the extension, or click in the prompt once. |
+| Orca: nothing gets pasted | Orca has to be open. Run `paste-photo doctor`; if it can't find Orca's CLI, set `cli` on the `orca` target. |
 | Linux: nothing happens in GNOME Terminal on Wayland | Run `paste-photo setup gnome` and sign out and in, or use tmux. |
 | Linux: the image never reaches Claude Code | Install `xclip` (X11) or `wl-clipboard` (Wayland); Claude Code needs it to read images. |
 | "Windows protected your PC" | The installer is not code-signed yet: **More info → Run anyway**. |

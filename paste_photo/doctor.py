@@ -29,6 +29,7 @@ def run(config: Config, factory) -> str:
         lambda: _tools(factory),
         _bridge,
         _claude_processes,
+        _orca,
         lambda: _probe(config, factory),
         _tray,
     ]
@@ -134,7 +135,7 @@ def _claude_processes() -> list[str]:
     if not procs:
         return [f"{WARN} No hay ningún Claude Code en ejecución en terminales"]
     lines = []
-    names = ("tmux", "kitty", "WezTerm", "Konsole")
+    names = ("tmux", "kitty", "WezTerm", "Konsole", "Orca")
     for proc in procs:
         channel = next((name for name, marker in zip(names, IPC_ENV_MARKERS, strict=True)
                         if all(proc.environ.get(v) for v in marker)), None)
@@ -146,6 +147,23 @@ def _claude_processes() -> list[str]:
         how = channel or "ventana del terminal (pestaña activa)"
         lines.append(f"{OK} Claude Code (pid {proc.pid}) → {how}")
     return lines
+
+
+def _orca() -> list[str]:
+    from paste_photo.targets.orca import known_cli_paths
+
+    cli = shutil.which("orca") or next((str(p) for p in known_cli_paths() if p.is_file()), None)
+    if cli is None:
+        return []  # Orca no está instalado: nada que comprobar
+    try:
+        from paste_photo.targets._env_terminal import run
+
+        status = json.loads(run([cli, "status", "--json"]))["result"]["runtime"]["state"]
+    except Exception as error:
+        return [f"{WARN} Orca: no se pudo consultar su CLI ({cli}): {error}"]
+    if status != "ready":
+        return [f"{WARN} Orca instalado pero no abierto (sus terminales no reciben capturas)"]
+    return [f"{OK} Orca abierto; CLI: {cli}"]
 
 
 def _probe(config: Config, factory) -> list[str]:

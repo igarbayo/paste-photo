@@ -55,7 +55,7 @@ def test_config_defaults_when_no_file(tmp_path, monkeypatch):
     cfg = load_config("windows")
     assert cfg.source is None
     assert [t["type"] for t in cfg.targets] == [
-        "browser_extension", "windows_terminal", "browser", "tmux", "kitty", "wezterm",
+        "browser_extension", "orca", "windows_terminal", "browser", "tmux", "kitty", "wezterm",
         "konsole", "linux_terminal"]
 
 

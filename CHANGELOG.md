@@ -7,6 +7,21 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+- Destino `orca` (Windows y Linux): Claude Code en las terminales de
+  [Orca](https://github.com/stablyai/orca) recibe las capturas por su CLI
+  (`orca terminal send`), sin foco y aunque la terminal no sea la visible. Comprobación de
+  Orca en `paste-photo doctor` y bloque en `default_config.toml`.
+- La imagen se pega donde está el cursor del prompt: en el navegador, la extensión recuerda
+  la última posición del cursor en el prompt de claude.ai (`cursor.js`) y, si nunca estuvo
+  ahí, pega al final.
+
+### Fixed
+- Extensión de navegador: la imagen ya no va al principio del prompt cuando el cursor no
+  estaba en él (p. ej. tras hacer clic en otra parte de la página).
+- Destino `browser` (Windows, sin extensión): ya no mueve el cursor si el prompt tiene el
+  foco; si no lo tiene, lo enfoca y se respeta la última posición del cursor.
+
 ## [0.3.0] - 2026-10-20
 
 ### Added
