@@ -28,6 +28,10 @@ the Claude you used last, without sending it, and puts you back where you were. 
 **Windows and Linux**, in **any terminal** and in **Chromium-based browsers and Firefox**
 (and, without the extension, in other Linux browsers such as GNOME Web).
 
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Demo: a screenshot taken with Win+Shift+S appears in the Claude Code prompt as [Image #1], at the cursor and without being sent" width="800">
+</p>
+
 ## Features
 
 - **Pastes into the Claude you are using**: Claude Code in a terminal, or any claude.ai chat

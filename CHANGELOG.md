@@ -27,6 +27,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Imagen de marca del repositorio: logo y cabecera del README con insignias (versión, CI,
   licencia, plataformas) e imagen social de GitHub (`docs/assets/`), generados por código
   desde el icono con `packaging/make_brand.py`.
+- Demo animada en el README (`docs/assets/demo.gif`): grabada en Windows con PastePhoto y
+  Claude Code reales (captura con Win+Shift+S); el rectángulo de Recortes se redibuja en el GIF.
 
 ### Changed
 - El producto se llama **PastePhoto** en todo lo visible (README, bandeja, mensajes,
