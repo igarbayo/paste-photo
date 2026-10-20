@@ -7,6 +7,11 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Changed
+- README: en Windows sin la extensión, PastePhoto trae al frente un momento la pestaña de
+  Claude del navegador y vuelve a la tuya; con la extensión no cambia de pestaña. También
+  se aclara que la extensión solo cubre claude.ai en el navegador, no las terminales.
+
 ## [0.4.0] - 2026-10-20
 
 ### Added

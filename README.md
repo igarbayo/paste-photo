@@ -44,7 +44,8 @@ Firefox** (and, without the extension, in **Safari** and other browsers such as 
 - **Each screenshot is pasted once**: if you remove it, it does not come back.
 - **Browser extension** for Chrome, Edge, Brave, Vivaldi, Opera and **Firefox** (also
   LibreWolf): pastes into claude.ai without switching tabs, even into a background tab, on
-  Windows, macOS, X11 and Wayland.
+  Windows, macOS, X11 and Wayland. It only covers claude.ai in the browser; Claude Code in a
+  terminal is pasted into as described in the table below.
 - **System tray icon** (menu bar on macOS): pause or resume, choose where to paste,
   notifications, and start when you sign in.
 - **`paste-photo doctor`** tells you what will work on your computer and how to fix what won't.
@@ -55,8 +56,8 @@ Firefox** (and, without the extension, in **Safari** and other browsers such as 
 |---|---|---|---|
 | Windows 10/11 (x64) | Claude Code in Windows Terminal (also inside WSL) | focuses the tab, Alt+V | ✅ |
 | Windows 10/11 (x64) | Claude Code in an **Orca** terminal | Orca's CLI, no focus needed | ✅ |
-| Windows 10/11 (x64) | claude.ai in Chrome, Edge, Brave, Vivaldi, Opera | browser extension, or focus + Ctrl+V | ✅ |
-| Windows 10/11 (x64) | claude.ai in **Firefox** | browser extension, or focus + Ctrl+V | ✅ |
+| Windows 10/11 (x64) | claude.ai in Chrome, Edge, Brave, Vivaldi, Opera | browser extension (no tab switch), or brings Claude's tab to the front, Ctrl+V, back to your tab | ✅ |
+| Windows 10/11 (x64) | claude.ai in **Firefox** | browser extension (no tab switch), or brings Claude's tab to the front, Ctrl+V, back to your tab | ✅ |
 | Windows 10/11 (x64) | claude.ai in LibreWolf, Waterfox, Floorp, Zen | same as Firefox | ⚠️ Experimental |
 | Linux (any) | Claude Code inside **tmux** | `tmux send-keys`, no focus needed | ✅ |
 | Linux (any) | Claude Code in **kitty** (remote control on) or **WezTerm** | terminal's own CLI, no focus needed | ✅ |
@@ -317,8 +318,10 @@ In terminals PastePhoto only presses Claude Code's paste key, so Claude inserts
 `[Image #N]` at its own cursor. In the browser, the extension pastes at the prompt's current
 cursor, or the last one it had there, or at the end. Without the extension:
 
-- **Windows** (Chromium and Firefox): PastePhoto focuses the prompt and the browser puts the
-  cursor back where it was; if it was never there, the image goes at the start.
+- **Windows** (Chromium and Firefox): PastePhoto briefly brings Claude's tab to the front,
+  focuses the prompt (the browser puts the cursor back where it was; if it was never there,
+  the image goes at the start), presses Ctrl+V and goes back to the tab and window you had.
+  Install the extension to paste without any tab switch.
 - **Linux**: PastePhoto only switches to the browser window and presses Ctrl+V, so the
   image goes in only if the cursor was in the prompt.
 - **macOS**: in Safari and Chromium browsers AppleScript selects Claude's tab (even a
