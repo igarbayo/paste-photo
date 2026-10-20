@@ -38,6 +38,8 @@ descripciones públicas, en inglés y con los mismos hechos que el README:
   etiquetas (plataformas, navegadores), regenerar con `python packaging/make_brand.py` y
   volver a subir `social-preview.png` en GitHub → Settings → General → Social preview
   (no hay API: a mano o con el navegador).
+- Demo animada (`docs/assets/demo.gif`): si cambia lo que se ve al pegar (bandeja, mensajes,
+  flujo en la terminal), volver a grabarla con `packaging/demo/demo.py`.
 Una tarea **no está terminada** sin ello. Lo que no está en un archivo del repo (About,
 topics) se cambia con `gh` y se anota en el CHANGELOG.
 

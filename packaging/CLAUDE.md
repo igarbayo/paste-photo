@@ -8,6 +8,8 @@ packaging/
   make_icon.py           genera paste_photo/resources/icon.png e icon.ico
   make_brand.py          docs/assets/logo.png (README) y social-preview.png (1280x640, se
                          sube a mano en Settings → Social preview) a partir del icono
+  demo/demo.py           graba docs/assets/demo.gif con PastePhoto y Claude Code reales
+                         (Windows; ver "Demo del README")
   release_notes.py       sección de una versión del CHANGELOG (notas de la release)
   firefox_xpi.py         .xpi de Firefox a partir de la extensión de Chromium (+ carpeta
                          para `web-ext sign`)
@@ -69,6 +71,19 @@ nombre del instalador), el instalador (`/DAppVersion`) y la release (el tag **de
   La primera PR fue microsoft/winget-pkgs#456268 (0.2.1). El primer envío falló porque
   wingetcreate acababa de crear el fork `igarbayo/winget-pkgs`: relanzar el job basta.
 - `License: MIT` (+ `LicenseUrl`, `Copyright`). Si cambia la licencia, actualizar `make_manifests.py`.
+
+## Demo del README
+`.venv/Scripts/python packaging/demo/demo.py` (Windows, pantalla principal 1920x1080,
+Claude Code instalado; ~40 s sin tocar ratón ni teclado). Abre la escena (fondo, app de
+facturas de `demo/scene_windows.py`, Windows Terminal "PastePhoto demo" con Claude Code en
+`~/invoice-app`), arranca PastePhoto limitado a ese título, escribe la pregunta, hace la
+captura real con Win+Shift+S y monta `docs/assets/demo.gif`; luego cierra todo sin enviar.
+- Si se lanza desde una sesión de Claude Code, la terminal nueva se abre **sin** las variables
+  `CLAUDE*` (si no, Claude Code muestra avisos en la cabecera).
+- La captura de Windows no incluye el puntero ni el rectángulo de Recortes: se dibujan con la
+  posición real del ratón (`build_gif`).
+- Coordenadas en píxeles físicos (proceso con DPI por monitor): `APP_RECT`, `TERM_RECT`,
+  `REGION`. Con otra resolución, ajustarlas.
 
 ## Firefox: .xpi y firma
 - `python packaging/firefox_xpi.py dist/paste-photo-firefox-X.Y.Z.xpi` (cualquier SO).

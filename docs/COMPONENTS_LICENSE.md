@@ -129,6 +129,7 @@ noted.
 |---|---|---|
 | App icon (`paste_photo/resources/icon.png`, `icon.ico`) | Drawn by code in `packaging/make_icon.py` (original work) | MIT, like the rest of the project |
 | Brand images (`docs/assets/logo.png`, `social-preview.png`) | Drawn by code in `packaging/make_brand.py` from the app icon (original work); text set in Aileron, the font bundled with Pillow | MIT; Aileron is CC0-1.0 (public domain) |
+| Demo animation (`docs/assets/demo.gif`) | Screen recording of PastePhoto and Claude Code made with `packaging/demo/demo.py` (original work; the example app is ours) | MIT |
 | Default configuration (`default_config.toml`) | Original | MIT |
 | Browser extension (`resources/extension/`, incl. `icon128.png`) | Original | MIT |
 | GNOME Shell helper (`resources/gnome_extension/`) | Original | MIT (compatible with the GPL-2.0-or-later that extensions.gnome.org expects) |

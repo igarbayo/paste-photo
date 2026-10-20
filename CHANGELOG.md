@@ -29,6 +29,7 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   desde el icono con `packaging/make_brand.py`.
 - Demo animada en el README (`docs/assets/demo.gif`): grabada en Windows con PastePhoto y
   Claude Code reales (captura con Win+Shift+S); el rectángulo de Recortes se redibuja en el GIF.
+  Se vuelve a grabar con `packaging/demo/demo.py`.
 
 ### Changed
 - El producto se llama **PastePhoto** en todo lo visible (README, bandeja, mensajes,
