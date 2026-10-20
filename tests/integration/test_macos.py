@@ -14,6 +14,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -107,9 +108,11 @@ def test_tmux_pane_receives_ctrl_v(tmp_path):
     receiver.parent.mkdir(parents=True)
     receiver.write_text(RECEIVER, encoding="utf-8")
     log = tmp_path / "tmux.log"
-    socket = tmp_path / "tmux.sock"
+    # Los sockets Unix de macOS admiten rutas de 104 bytes como mucho: el tmp_path es más largo.
+    sockets = Path(tempfile.mkdtemp(prefix="pp-", dir="/tmp"))
+    socket = sockets / "tmux.sock"
     os.environ["PASTE_PHOTO_STATE_DIR"] = str(tmp_path / "state")
-    os.environ["PASTE_PHOTO_BRIDGE_ADDRESS"] = str(tmp_path / "bridge.sock")
+    os.environ["PASTE_PHOTO_BRIDGE_ADDRESS"] = str(sockets / "bridge.sock")
     config = load_config("macos", Path(__file__).resolve().parents[2]
                          / "paste_photo" / "resources" / "default_config.toml")
     service = PasteService(config, MacOSFactory())
@@ -126,6 +129,7 @@ def test_tmux_pane_receives_ctrl_v(tmp_path):
     finally:
         service.stop()
         subprocess.run(["tmux", "-S", str(socket), "kill-server"])
+        shutil.rmtree(sockets, ignore_errors=True)
         from paste_photo.bridge.server import BridgeServer
 
         if BridgeServer._instance is not None:
