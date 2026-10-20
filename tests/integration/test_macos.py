@@ -95,7 +95,7 @@ def test_clipboard_and_folder_screenshots(tmp_path):
         source.stop()
 
 
-def test_tmux_pane_receives_ctrl_v(tmp_path):
+def test_tmux_pane_receives_ctrl_v(tmp_path, caplog):
     """Captura real (portapapeles) → PasteService con la familia de macOS → tmux → Claude."""
     if shutil.which("tmux") is None:
         pytest.skip("tmux no instalado (brew install tmux)")
@@ -115,6 +115,7 @@ def test_tmux_pane_receives_ctrl_v(tmp_path):
     os.environ["PASTE_PHOTO_BRIDGE_ADDRESS"] = str(sockets / "bridge.sock")
     config = load_config("macos", Path(__file__).resolve().parents[2]
                          / "paste_photo" / "resources" / "default_config.toml")
+    caplog.set_level("DEBUG", logger="paste_photo")
     service = PasteService(config, MacOSFactory())
     events = []
     service.subscribe(events.append)
@@ -124,17 +125,20 @@ def test_tmux_pane_receives_ctrl_v(tmp_path):
         service.start()
         assert wait_for(lambda: log.exists() and "READY" in log.read_text())
         copy_to_pasteboard(png_bytes("purple"))
-        assert wait_for(lambda: "16" in log.read_text().split()), log.read_text()
+        from paste_photo.targets._processes import claude_processes
+
+        assert wait_for(lambda: "16" in log.read_text().split()), (
+            log.read_text(), events, claude_processes(), caplog.text)
         assert wait_for(lambda: any(getattr(e, "target", None) == "tmux" for e in events))
     finally:
         service.stop()
         subprocess.run(["tmux", "-S", str(socket), "kill-server"])
-        shutil.rmtree(sockets, ignore_errors=True)
         from paste_photo.bridge.server import BridgeServer
 
         if BridgeServer._instance is not None:
             BridgeServer._instance.stop()
             BridgeServer._instance = None
+        shutil.rmtree(sockets, ignore_errors=True)
 
 
 def _compile(script: str, tmp_path: Path) -> None:
