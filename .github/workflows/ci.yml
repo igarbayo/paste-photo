@@ -126,6 +126,14 @@ jobs:
       - run: python -m pip install -e ".[build]"
       - name: Build (incluye prueba de humo de la app)
         run: python packaging/build.py --dmg
+      - name: Abrir la app como con doble clic (Finder) y comprobar que sigue viva
+        run: |
+          open dist/PastePhoto.app
+          sleep 10
+          pgrep -fl "PastePhoto.app/Contents/MacOS/paste-photo" || {
+            cat ~/Library/Logs/paste-photo/*.log 2>/dev/null; exit 1; }
+          cat ~/Library/Logs/paste-photo/*.log 2>/dev/null || true
+          pkill -f "PastePhoto.app/Contents/MacOS/paste-photo"
       - uses: actions/upload-artifact@v6
         with:
           name: paste-photo-macos
