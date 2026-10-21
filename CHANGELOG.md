@@ -7,6 +7,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-10-21
+
 ### Fixed
 - **Ya no se pega en páginas de claude.ai que no son un chat.** Con un artifact abierto (p. ej.
   un documento, `/artifact/...` o `/code/artifact/...`) como última pestaña usada, la captura
@@ -305,7 +307,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Configuración `config.toml` y CLI con `--probe`, `--list-targets`, `--debug` y `--config`.
 - Documentación: README, CLAUDE.md (raíz, `core/`, `platforms/`, `targets/`), ADR 0001.
 
-[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.4.3...HEAD
+[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.4.4...HEAD
+[0.4.4]: https://github.com/igarbayo/paste-photo/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/igarbayo/paste-photo/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/igarbayo/paste-photo/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/igarbayo/paste-photo/compare/v0.4.0...v0.4.1
