@@ -99,7 +99,7 @@ class OrcaTarget(EnvTerminalTarget):
     def window_of(self, proc: ClaudeProcess, windows: list[WindowInfo]) -> WindowInfo | None:
         # Los PTY cuelgan del daemon de Orca, no de su ventana: vale cualquier ventana de
         # Orca, la usada más recientemente.
-        return max(windows, key=lambda w: self._ctx.recency.last_seen(w.id), default=None)
+        return self.most_recent(windows)
 
     def _list_windows(self) -> list[WindowInfo]:
         windows = _win32_windows() if self._ctx.platform == "windows" else super()._list_windows()

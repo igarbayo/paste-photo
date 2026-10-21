@@ -112,12 +112,19 @@ def claude_processes() -> list[ClaudeProcess]:
     return list(found.values())
 
 
-def owning_window(ancestors: Iterable[int], windows: Iterable[WindowInfo]) -> WindowInfo | None:
-    """Primera ventana cuyo proceso es un ancestro (el emulador de terminal)."""
-    by_pid: dict[int, WindowInfo] = {}
+def owner_windows(ancestors: Iterable[int], windows: Iterable[WindowInfo]) -> list[WindowInfo]:
+    """Todas las ventanas del ancestro más cercano que tiene alguna (el emulador de terminal).
+    Varias si el terminal tiene todas sus ventanas en un proceso (GNOME Terminal, kitty,
+    Konsole, WezTerm...): cuál es la de ese Claude lo decide quien llama."""
+    by_pid: dict[int, list[WindowInfo]] = {}
     for window in windows:
-        by_pid.setdefault(window.pid, window)
+        by_pid.setdefault(window.pid, []).append(window)
     for pid in ancestors:
         if pid in by_pid:
             return by_pid[pid]
-    return None
+    return []
+
+
+def owning_window(ancestors: Iterable[int], windows: Iterable[WindowInfo]) -> WindowInfo | None:
+    """Primera ventana cuyo proceso es un ancestro (el emulador de terminal)."""
+    return next(iter(owner_windows(ancestors, windows)), None)

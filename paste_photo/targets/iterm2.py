@@ -95,6 +95,8 @@ class ITerm2Target(EnvTerminalTarget):
         osascript(WRITE_SCRIPT, session_uuid(proc.environ["ITERM_SESSION_ID"]), CTRL_V)
 
     def session_rank(self, procs: list[ClaudeProcess]) -> dict[int, tuple[int, ...]]:
+        if len(procs) < 2:  # todos comparten ventana: solo hace falta para desempatar
+            return {}
         try:
             rows = parse_rows(osascript(LIST_SCRIPT), 3)
         except (OSError, RuntimeError, subprocess.SubprocessError) as error:
@@ -111,7 +113,7 @@ class ITerm2Target(EnvTerminalTarget):
     def window_of(self, proc: ClaudeProcess, windows: list[WindowInfo]) -> WindowInfo | None:
         # Las sesiones cuelgan de iTermServer, no de la ventana: la de iTerm2 usada más
         # recientemente.
-        return max(windows, key=lambda w: self._ctx.recency.last_seen(w.id), default=None)
+        return self.most_recent(windows)
 
     def _list_windows(self) -> list[WindowInfo]:
         return [w for w in super()._list_windows() if process_name(w.pid) == APP_PROCESS]

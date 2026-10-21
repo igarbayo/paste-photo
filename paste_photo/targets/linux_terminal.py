@@ -21,7 +21,7 @@ from typing import Any
 from paste_photo.core.events import ScreenshotCaptured
 from paste_photo.core.ports import TargetHandle
 from paste_photo.targets._env_terminal import handled_by_ipc
-from paste_photo.targets._processes import claude_processes, owning_window
+from paste_photo.targets._processes import claude_processes, owner_windows
 from paste_photo.targets.registry import TargetContext, register_target
 
 log = logging.getLogger(__name__)
@@ -51,13 +51,19 @@ class LinuxTerminalTarget:
         windows = self._ctx.windows.list_windows()
         handles: dict[int, TargetHandle] = {}
         for proc in procs:
-            window = owning_window(proc.ancestors, windows)
-            if window is None or window.id in handles:
-                continue
-            if self._require_title and not self._title_re.search(window.title):
-                log.debug("Claude en %r no es la pestaña activa: se omite", window.title)
-                continue
-            handles[window.id] = TargetHandle(window.id, window.title, {"pid": proc.pid})
+            # GNOME Terminal, Ptyxis, Tilix...: un proceso para todas sus ventanas. La de
+            # este Claude es una con su título (la primera del proceso podía ser otra).
+            owned = owner_windows(proc.ancestors, windows)
+            if self._require_title:
+                titled = [w for w in owned if self._title_re.search(w.title)]
+                if owned and not titled:
+                    log.debug("Claude en %r no es la pestaña activa: se omite", owned[0].title)
+                owned = titled
+            else:
+                owned = owned[:1]
+            for window in owned:
+                if window.id not in handles:
+                    handles[window.id] = TargetHandle(window.id, window.title, {"pid": proc.pid})
         if not handles:
             return None
         ordered = sorted(handles.values(),

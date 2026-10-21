@@ -21,8 +21,19 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   tmux, el panel activo de la ventana activa de una sesión conectada (y, entre sesiones, la
   del cliente con la última tecla); kitty, la ventana con el foco y luego la activa de cada
   pestaña activa (`kitty @ ls`); WezTerm, el panel con el foco de la GUI y luego el activo de
-  cada pestaña (`wezterm cli list`/`list-clients`). En Windows, Windows Terminal y los
-  navegadores ya preferían la pestaña seleccionada; Konsole y Orca siguen sin desempate.
+  cada pestaña (`wezterm cli list`/`list-clients`); Konsole, la pestaña actual de su ventana
+  (D-Bus `currentSession`). En Windows, Windows Terminal y los navegadores ya preferían la
+  pestaña seleccionada. Orca sigue sin desempate entre sus terminales.
+- **tmux**: sus paneles cuelgan del servidor de tmux, sin ventana, así que en la prioridad
+  por uso reciente perdían siempre frente a otro Claude aunque fuera el que estabas usando.
+  Ahora cuentan como la ventana del terminal donde está conectado el cliente de su sesión
+  (en macOS, la de iTerm2 o Terminal usada más recientemente).
+- **Terminales con todas sus ventanas en un proceso** (GNOME Terminal, Ptyxis, Tilix,
+  kitty, Konsole, WezTerm...): un Claude contaba como la primera ventana del proceso, no la
+  suya. `linux_terminal` solo miraba esa primera ventana: con Claude en otra ventana de GNOME
+  Terminal no lo encontraba o pegaba en la que no era. Ahora `linux_terminal` busca entre
+  todas las ventanas del terminal las que tienen el título de Claude; kitty usa la ventana del
+  SO exacta de cada panel (`platform_window_id`) y el resto, la usada más recientemente.
 
 ### Changed
 - README: en Windows sin la extensión, PastePhoto trae al frente un momento la pestaña de

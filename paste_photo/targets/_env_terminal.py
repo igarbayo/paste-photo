@@ -21,7 +21,7 @@ from collections.abc import Mapping, Sequence
 
 from paste_photo.core.events import ScreenshotCaptured
 from paste_photo.core.ports import TargetHandle, WindowInfo
-from paste_photo.targets._processes import ClaudeProcess, claude_processes, owning_window
+from paste_photo.targets._processes import ClaudeProcess, claude_processes, owner_windows
 from paste_photo.targets.registry import TargetContext
 
 log = logging.getLogger(__name__)
@@ -65,13 +65,19 @@ class EnvTerminalTarget:
         raise NotImplementedError
 
     def window_of(self, proc: ClaudeProcess, windows: list[WindowInfo]) -> WindowInfo | None:
-        """Ventana que aloja ese Claude (por defecto, la del emulador: un ancestro)."""
-        return owning_window(proc.ancestors, windows)
+        """Ventana que aloja ese Claude: por defecto, la del emulador (un ancestro); si el
+        emulador tiene varias en un proceso, la usada más recientemente."""
+        return self.most_recent(owner_windows(proc.ancestors, windows))
+
+    def most_recent(self, windows: list[WindowInfo]) -> WindowInfo | None:
+        return max(windows, key=lambda w: self._ctx.recency.last_seen(w.id), default=None)
 
     def session_rank(self, procs: list[ClaudeProcess]) -> dict[int, tuple[int, ...]]:
         """PID → posición de su sesión dentro de la app (menor = más a la vista: pestaña
-        seleccionada, ventana delantera). Desempata los Claude que comparten ventana del SO
-        (iTerm2, Terminal.app). Por defecto, ninguna: solo cuenta la ventana."""
+        seleccionada, ventana delantera, panel con el foco). Desempata los Claude que comparten
+        ventana del SO (iTerm2, Terminal.app, tmux, kitty...). Se llama antes de `window_of`,
+        así que puede guardar lo que consulte para él. Por defecto, ninguna: solo cuenta la
+        ventana."""
         return {}
 
     # --- TargetStrategy ----------------------------------------------------
@@ -85,6 +91,7 @@ class EnvTerminalTarget:
         procs = [p for p in claude_processes() if self.matches(p)]
         if not procs:
             return None
+        rank = self.session_rank(procs)
         windows = self._list_windows()
         handles = []
         for proc in procs:
@@ -94,7 +101,6 @@ class EnvTerminalTarget:
                                         extra={"proc": proc}))
         # El orquestador ordena destinos entre sí; aquí, el de la ventana más reciente y,
         # dentro de una misma ventana, la sesión que el usuario tiene a la vista.
-        rank = self.session_rank(procs) if len(procs) > 1 else {}
         handles.sort(key=lambda h: (-self._ctx.recency.last_seen(h.window_id),
                                     rank.get(h.extra["proc"].pid, UNRANKED)))
         best = handles[0]

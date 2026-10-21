@@ -6,6 +6,7 @@ elección de destino por entorno del proceso, fuentes de capturas, autostart y m
 
 import json
 import time
+from types import SimpleNamespace
 
 import pytest
 
@@ -369,7 +370,7 @@ def test_tmux_prefers_the_pane_in_view(procs, monkeypatch):
         if "list-panes" in cmd:
             return ("%0\tuno\t1\t1\t0\n%1\tuno\t1\t1\t1\n"  # %1: panel activo, sesión conectada
                     "%2\tdos\t1\t1\t1\n%3\ttres\t0\t1\t1\n")  # dos: cliente más antiguo
-        return "uno\t200\ndos\t100\n"
+        return "uno\t200\t901\ndos\t100\t902\n"
 
     monkeypatch.setattr(tmux, "run", fake_run)
     procs += [claude(pid, TMUX="/s,1,0", TMUX_PANE=f"%{pid}") for pid in (3, 0, 2, 1)]
@@ -406,3 +407,69 @@ def test_wezterm_prefers_the_focused_pane(procs, monkeypatch):
     procs += [claude(pid, WEZTERM_PANE=str(pid)) for pid in (0, 1, 2)]
     handle = wezterm.WezTermTarget(ctx()).locate()
     assert [c.extra["proc"].pid for c in handle.extra["candidates"]] == [2, 1, 0]
+
+
+def test_linux_terminal_finds_each_window_of_a_single_process_terminal(procs):
+    """GNOME Terminal tiene todas sus ventanas en un proceso: antes solo se miraba la primera
+    (que podía no ser la de Claude) y se perdían las demás."""
+    from paste_photo.targets.linux_terminal import LinuxTerminalTarget
+
+    windows = FakeWindows([WindowInfo(10, "~/notas", 100), WindowInfo(11, "✳ uno", 100),
+                           WindowInfo(12, "✳ dos", 100)])
+    procs += [claude(1, ancestors=(50, 100)), claude(2, ancestors=(60, 100))]
+    context = ctx(windows)
+    context.recency.touch(11, at=1.0)
+    context.recency.touch(12, at=2.0)  # la que usaste por última vez
+    handle = LinuxTerminalTarget(context, settle_ms=0).locate()
+    assert [c.window_id for c in handle.extra["candidates"]] == [12, 11]
+
+
+def test_env_target_uses_the_most_recent_window_of_the_terminal(procs):
+    from paste_photo.targets.konsole import KonsoleTarget
+
+    procs.append(claude(1, ancestors=(50, 100), KONSOLE_DBUS_SERVICE="org.kde.konsole-100",
+                        KONSOLE_DBUS_SESSION="/Sessions/1"))
+    context = ctx(FakeWindows([WindowInfo(10, "a", 100), WindowInfo(11, "b", 100)]))
+    context.recency.touch(11)
+    assert KonsoleTarget(context).locate().window_id == 11
+
+
+def test_tmux_window_is_the_terminal_of_its_client(procs, monkeypatch):
+    """Los paneles cuelgan del servidor de tmux: sin la ventana del cliente, tmux nunca
+    ganaba en la prioridad por uso reciente a otro Claude."""
+    from paste_photo.targets import tmux
+
+    def fake_run(cmd, env=None):
+        if "list-panes" in cmd:
+            return "%1\tuno\t1\t1\t1\n"
+        return "uno\t200\t901\n"
+
+    class FakeClient:
+        def __init__(self, pid):
+            assert pid == 901
+
+        def parents(self):
+            return [SimpleNamespace(pid=pid) for pid in (300, 1)]
+
+    monkeypatch.setattr(tmux, "run", fake_run)
+    monkeypatch.setattr(tmux.psutil, "Process", FakeClient)
+    procs.append(claude(1, ancestors=(70, 1), TMUX="/s,1,0", TMUX_PANE="%1"))
+    windows = FakeWindows([WindowInfo(20, "otro", 200), WindowInfo(30, "tmux", 300)])
+    assert tmux.TmuxTarget(ctx(windows)).locate().window_id == 30
+
+
+def test_kitty_uses_the_os_window_of_each_kitty_window(procs, monkeypatch):
+    from paste_photo.targets import kitty
+
+    listing = [{"platform_window_id": 41, "tabs": [{"is_active": True, "windows": [
+                   {"id": 1, "is_active": True}]}]},
+               {"platform_window_id": 42, "tabs": [{"is_active": True, "windows": [
+                   {"id": 2, "is_active": True}]}]}]
+    monkeypatch.setattr(kitty, "run", lambda cmd, env=None: json.dumps(listing))
+    procs += [claude(pid, ancestors=(50, 100), KITTY_WINDOW_ID=str(pid),
+                     KITTY_LISTEN_ON="unix:@kitty") for pid in (1, 2)]
+    context = ctx(FakeWindows([WindowInfo(41, "a", 100), WindowInfo(42, "b", 100)]))
+    context.recency.touch(42)  # usas la ventana del SO de la segunda
+    handle = kitty.KittyTarget(context).locate()
+    assert [(c.extra["proc"].pid, c.window_id) for c in handle.extra["candidates"]] == \
+        [(2, 42), (1, 41)]

@@ -149,6 +149,8 @@ class TerminalAppTarget(EnvTerminalTarget):
                 log.debug("No se pudo volver a la pestaña anterior: %s", error)
 
     def session_rank(self, procs: list[ClaudeProcess]) -> dict[int, tuple[int, ...]]:
+        if len(procs) < 2:  # todos comparten ventana: solo hace falta para desempatar
+            return {}
         try:
             rows = parse_rows(osascript(LIST_SCRIPT), 3)
         except (OSError, RuntimeError, subprocess.SubprocessError) as error:
@@ -169,7 +171,7 @@ class TerminalAppTarget(EnvTerminalTarget):
 
     def window_of(self, proc: ClaudeProcess, windows: list[WindowInfo]) -> WindowInfo | None:
         # Todas las ventanas son del mismo proceso: la usada más recientemente.
-        return max(windows, key=lambda w: self._ctx.recency.last_seen(w.id), default=None)
+        return self.most_recent(windows)
 
     def _list_windows(self) -> list[WindowInfo]:
         return [w for w in super()._list_windows() if process_name(w.pid) == APP_PROCESS]

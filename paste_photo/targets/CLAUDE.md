@@ -83,14 +83,22 @@ en la línea de órdenes) y lee su **entorno**, que delata el panel exacto: `TMU
 - **tmux manda**: si `TMUX` está, los terminales exteriores (kitty, WezTerm, Konsole) ignoran
   ese proceso; si no, su Ctrl+V iría al panel activo de tmux, no al de Claude.
 - `linux_terminal` solo atiende procesos que **no** cubre ningún IPC (`handled_by_ipc`).
-- La ventana de un proceso = primera ventana cuyo PID es un ancestro (`owning_window`);
-  un destino puede cambiarlo con `window_of()` (Orca: sus PTY cuelgan del daemon).
-- Varios Claude en el mismo terminal empatan en la recencia por ventana (kitty, WezTerm y
-  Konsole tienen todas sus ventanas en un proceso; los paneles de tmux cuelgan del servidor,
-  sin ventana). Desempata `session_rank()` (pid → tupla, menor = más a la vista; solo con más
-  de un Claude): tmux `list-panes -a` + `list-clients` (`client_activity`), kitty `@ ls`
-  (`is_focused`, `is_active`), WezTerm `cli list` + `cli list-clients` (`focused_pane_id`).
-  Si la consulta falla, sin desempate. Konsole y Orca no lo implementan.
+- La ventana de un proceso = ventanas del ancestro más cercano que tiene alguna
+  (`owner_windows`); si son varias (GNOME Terminal, kitty, Konsole y WezTerm tienen todas en un
+  proceso), `window_of()` toma la usada más recientemente (`most_recent`). Cada destino puede
+  cambiarlo: Orca (PTY del daemon) y iTerm2, cualquier ventana de la app; tmux, la ventana del
+  terminal del cliente conectado a la sesión del panel (`client_pid`; si sus ancestros no
+  tienen ventana, la app de su `TERM_PROGRAM`); kitty, la ventana exacta
+  (`platform_window_id` de `kitty @ ls`). `linux_terminal` y `macos_terminal` miran todas las
+  ventanas del terminal con título de Claude, no solo la primera.
+- Varios Claude en la misma ventana del SO empatan en la recencia. Desempata
+  `session_rank()` (pid → tupla, menor = más a la vista; se llama antes de `window_of()` y
+  puede dejarle datos): tmux `list-panes -a` + `list-clients` (`client_activity`), kitty
+  `@ ls` (`is_focused`, `is_active`), WezTerm `cli list` + `cli list-clients`
+  (`focused_pane_id`), Konsole D-Bus `currentSession` de `KONSOLE_DBUS_WINDOW`. Si la
+  consulta falla, sin desempate. Orca no lo implementa (`orca terminal list --json` no
+  documenta el foco). Lo que solo desempata (AppleScript, D-Bus) no se consulta con un único
+  Claude.
 
 ## Orca (`orca.py`, Windows, macOS y Linux)
 - Orca exporta `ORCA_TERMINAL_HANDLE` (y `ORCA_CLI_COMMAND`) a sus terminales; está en
