@@ -44,6 +44,9 @@ Firefox** (and, without the extension, in **Safari** and other browsers such as 
 - **Lands where your cursor is**: the image goes where you left the cursor in the prompt, even
   if you clicked elsewhere afterwards. If the cursor was never in that prompt, it goes at the
   end (browser extension; see [How it works](#how-it-works) for the other ways).
+- **Only into chats**: claude.ai pages without a chat prompt (artifacts, recents, settings,
+  shared chats...) are skipped, even if you used them last (except `linux_browser`, which only
+  sees the window title).
 - **Each screenshot is pasted once**: if you remove it, it does not come back.
 - **Browser extension** for Chrome, Edge, Brave, Vivaldi, Opera and **Firefox** (also
   LibreWolf): pastes into claude.ai without switching tabs, even into a background tab, on
@@ -296,6 +299,9 @@ The most useful options:
 - `prefer = "recent"`: paste into the Claude you used last. `"order"` follows the order of
   the `[[targets]]` list instead.
 - `title_regex`: only paste into a specific terminal tab, e.g. `"my-project"`.
+- `chat_url_regex` on the `browser_extension`, `browser` and `macos_browser` targets: which
+  claude.ai URLs count as a chat (by default `/new`, `/chat/`, `/project/`, `/code`,
+  `/design`, never anything with `artifact` in the path). Other claude.ai tabs are skipped.
 - `enabled = false` on a `[[targets]]` entry turns that place off.
 - `browsers` on the `browser` (Windows), `linux_browser` and `macos_browser` targets: the
   browsers to look in, by process name. On macOS, `scriptable = false` on `macos_browser`

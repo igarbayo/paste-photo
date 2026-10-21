@@ -21,6 +21,12 @@ log = logging.getLogger(__name__)
 
 # Coincidencia fuerte: URL de la pestaña visible (UI Automation solo da la URL de esa).
 DEFAULT_URL_REGEX = r"^(?:https?://)?(?:[\w-]+\.)*claude\.ai(?:[/?#]|$)"
+# No todo claude.ai tiene prompt: artifacts (/artifact/..., /code/artifact/...), recientes,
+# ajustes, chats compartidos... Algunas (los documentos) tienen un editor ProseMirror y el
+# pegado "funcionaría" sin llegar a ningún chat. Una pestaña de claude.ai cuya URL no case con
+# esta lista blanca (Chat, proyecto, Code, Design; nunca con "artifact" en la ruta) se descarta.
+DEFAULT_CHAT_URL_REGEX = (r"^(?:https?://)?(?:[\w-]+\.)*claude\.ai(?!/(?:[^?#]*/)?artifacts?(?:[/?#]|$))"
+                          r"(?:/?(?:[?#]|$)|/(?:new|chat|project|code|design)(?:[/?#]|$))")
 # Coincidencia débil, para pestañas en segundo plano: "<conversación> - Claude",
 # "Claude Code", "Claude Design"... El navegador añade texto al nombre accesible
 # ("Uso de memoria de ...: 345 MB", ": parte del grupo ...", " - Uso de memoria - ..."),
@@ -60,6 +66,7 @@ def _windows_browser_target():
             ctx: TargetContext,
             *,
             url_regex: str = DEFAULT_URL_REGEX,
+            chat_url_regex: str = DEFAULT_CHAT_URL_REGEX,
             browsers: tuple[str, ...] = DEFAULT_BROWSERS,
             editor_class: str = DEFAULT_EDITOR_CLASS,
             editor_search_depth: int = 45,
@@ -67,6 +74,7 @@ def _windows_browser_target():
         ) -> None:
             super().__init__(ctx, **kwargs)
             self._url_re = re.compile(url_regex, re.IGNORECASE)
+            self._chat_re = re.compile(chat_url_regex, re.IGNORECASE)
             self._browsers = {b.lower() for b in browsers}
             self._editor_class = editor_class
             self._editor_depth = editor_search_depth
@@ -80,11 +88,17 @@ def _windows_browser_target():
             ]
 
         def _rank(self, hwnd: int, tab: Any, selected: bool) -> int | None:
-            if selected and self._url_re.search(self._visible_url(hwnd)):
-                return RANK_URL
+            if selected:
+                url = self._visible_url(hwnd)
+                if self._url_re.search(url):
+                    return RANK_URL if self._chat_re.search(url) else None
             return RANK_TITLE if self._title_re.search(safe_attr(tab, "Name")) else None
 
         def _before_paste(self, handle: TargetHandle) -> None:
+            # Las pestañas de fondo se eligen por título: su URL se ve ahora, ya visibles.
+            url = self._visible_url(handle.window_id)
+            if self._url_re.search(url) and not self._chat_re.search(url):
+                raise TabNotReady(f"no es un chat ({url})")
             # UI Automation solo ve el contenido de la pestaña activa, por eso va aquí.
             editor = self._find_editor(handle.window_id)
             # Firefox monta su árbol de accesibilidad poco a poco tras la primera consulta.
@@ -155,6 +169,7 @@ def build(options: Mapping[str, Any], ctx: TargetContext):
         ctx,
         title_regex=options.get("title_regex", DEFAULT_TITLE_REGEX),
         url_regex=options.get("url_regex", DEFAULT_URL_REGEX),
+        chat_url_regex=options.get("chat_url_regex", DEFAULT_CHAT_URL_REGEX),
         paste_keys=options.get("paste_keys", DEFAULT_PASTE_KEYS),
         settle_ms=int(options.get("settle_ms", 250)),
         restore_tab=bool(options.get("restore_tab", True)),

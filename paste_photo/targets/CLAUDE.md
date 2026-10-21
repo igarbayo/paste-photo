@@ -220,5 +220,13 @@ mitad de recorrido (COMError) cuando la página cambia.
 - Títulos reales observados: `Nuevo chat - Claude`, `<conversación> - Claude`,
   `Claude Code`, `Design - Claude` (galería), `<proyecto>` (proyecto de Design).
 - Mejora futura: una extensión de navegador daría la URL de todas las pestañas.
+- **Solo chats (`chat_url_regex`, lista blanca en `browser.py`):** no todo claude.ai tiene
+  prompt. Los artifacts (`/artifact/<id>`, `/code/artifact/<uuid>`: los documentos tienen un
+  editor `ProseMirror`, así que el pegado "funciona" sin llegar a un chat), `/recents`,
+  `/projects`, `/settings`, `/share/...` se descartan. Una pestaña de claude.ai que no case
+  se ignora aunque su título case. En `browser` las de fondo se eligen por título, así que la
+  URL se comprueba otra vez en `_before_paste`, ya visible. Lo aplican también
+  `browser_extension` (en `locate`, sobre la URL de cada pestaña) y `macos_browser`;
+  `linux_browser` solo ve el título y no puede.
 
 Depurar siempre con `python -m paste_photo --probe` (no pega nada).

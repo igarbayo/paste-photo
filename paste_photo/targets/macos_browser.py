@@ -27,7 +27,11 @@ from paste_photo.core.events import ScreenshotCaptured
 from paste_photo.core.ports import TargetHandle, WindowInfo
 from paste_photo.targets._applescript import osascript, parse_rows
 from paste_photo.targets._processes import process_name, processes_named
-from paste_photo.targets.browser import DEFAULT_TITLE_REGEX, DEFAULT_URL_REGEX
+from paste_photo.targets.browser import (
+    DEFAULT_CHAT_URL_REGEX,
+    DEFAULT_TITLE_REGEX,
+    DEFAULT_URL_REGEX,
+)
 from paste_photo.targets.registry import TargetContext, register_target
 
 log = logging.getLogger(__name__)
@@ -112,12 +116,14 @@ class MacBrowserTarget:
     name = "macos_browser"
 
     def __init__(self, ctx: TargetContext, *, url_regex: str = DEFAULT_URL_REGEX,
+                 chat_url_regex: str = DEFAULT_CHAT_URL_REGEX,
                  title_regex: str = DEFAULT_TITLE_REGEX,
                  browsers: tuple[str, ...] = DEFAULT_BROWSERS, scriptable: bool = True,
                  paste_keys: str = DEFAULT_PASTE_KEYS, settle_ms: int = 250,
                  restore_tab: bool = True) -> None:
         self._ctx = ctx
         self._url_re = re.compile(url_regex)
+        self._chat_re = re.compile(chat_url_regex)
         self._title_re = re.compile(title_regex)
         self._browsers = {b.lower() for b in browsers}
         self._scriptable = scriptable
@@ -143,8 +149,10 @@ class MacBrowserTarget:
                     continue
                 own = [w for w in windows if w.pid == pid]
                 for window, index, active, url, title in tabs:
-                    rank = 0 if self._url_re.search(url) else 1 if self._title_re.search(
-                        title) else None
+                    if self._url_re.search(url):
+                        rank = 0 if self._chat_re.search(url) else None  # p. ej. un artifact
+                    else:
+                        rank = 1 if self._title_re.search(title) else None
                     if rank is None:
                         continue
                     window_id = self._os_window(own, tabs, window)
@@ -233,6 +241,7 @@ def build(options: Mapping[str, Any], ctx: TargetContext) -> MacBrowserTarget:
     return MacBrowserTarget(
         ctx,
         url_regex=options.get("url_regex", DEFAULT_URL_REGEX),
+        chat_url_regex=options.get("chat_url_regex", DEFAULT_CHAT_URL_REGEX),
         title_regex=options.get("title_regex", DEFAULT_TITLE_REGEX),
         browsers=tuple(options.get("browsers", DEFAULT_BROWSERS)),
         scriptable=bool(options.get("scriptable", True)),

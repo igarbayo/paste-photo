@@ -7,6 +7,16 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Fixed
+- **Ya no se pega en páginas de claude.ai que no son un chat.** Con un artifact abierto (p. ej.
+  un documento, `/artifact/...` o `/code/artifact/...`) como última pestaña usada, la captura
+  iba a él: tiene un editor como el del prompt, así que el pegado "funcionaba" sin llegar a
+  ningún chat. Ahora `browser_extension`, `browser` (Windows) y `macos_browser` solo usan
+  pestañas cuya URL es un chat (`/new`, `/chat/`, `/project/`, `/code`, `/design` y la raíz;
+  nunca con `artifact` en la ruta) y descartan el resto de claude.ai (artifacts, recientes,
+  proyectos, ajustes, chats compartidos...). Nueva opción `chat_url_regex` en esos destinos.
+  `linux_browser` (solo título de ventana) no puede distinguirlas.
+
 ## [0.4.3] - 2026-10-21
 
 ### Added

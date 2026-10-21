@@ -7,11 +7,16 @@ import re
 
 import pytest
 
-from paste_photo.targets.browser import DEFAULT_TITLE_REGEX, DEFAULT_URL_REGEX
+from paste_photo.targets.browser import (
+    DEFAULT_CHAT_URL_REGEX,
+    DEFAULT_TITLE_REGEX,
+    DEFAULT_URL_REGEX,
+)
 from paste_photo.targets.windows_terminal import DEFAULT_TITLE_REGEX as WT_TITLE_REGEX
 
 TITLE = re.compile(DEFAULT_TITLE_REGEX)
 URL = re.compile(DEFAULT_URL_REGEX, re.IGNORECASE)
+CHAT = re.compile(DEFAULT_CHAT_URL_REGEX, re.IGNORECASE)
 
 
 @pytest.mark.parametrize(
@@ -67,6 +72,48 @@ def test_url_matches_claude(url):
 )
 def test_url_ignores_others(url):
     assert not URL.search(url)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://claude.ai",
+        "https://claude.ai/",
+        "https://claude.ai/new",
+        "https://claude.ai/new?q=hola",
+        "https://claude.ai/chat/0b1c2d3e",
+        "https://claude.ai/chat/0b1c2d3e?ref=/artifact/x",  # "artifact" solo en la query
+        "https://claude.ai/project/0b1c2d3e",
+        "https://claude.ai/code",
+        "claude.ai/code/session_011irnzLnUSxrGiKtqmR11zr",
+        "https://claude.ai/design/p/e6bfc416?file=x.html",
+    ],
+)
+def test_chat_url_accepts_prompt_pages(url):
+    assert CHAT.search(url)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://claude.ai/artifact/0b1c2d3e",
+        "https://claude.ai/code/artifact/0b1c2d3e",
+        "https://claude.ai/artifacts",
+        "https://claude.ai/code/artifacts",
+        "https://claude.ai/public/artifacts/0b1c2d3e",
+        "https://claude.ai/chat/0b1c2d3e/artifact/x",
+        "https://claude.ai/share/0b1c2d3e",
+        "https://claude.ai/recents",
+        "https://claude.ai/projects",
+        "https://claude.ai/settings/profile",
+        "https://claude.ai/login",
+        "https://claude.ai/upgrade",
+        "https://claude.ai/newsletter",
+        "https://claude.ai.evil.com/new",
+    ],
+)
+def test_chat_url_rejects_other_claude_pages(url):
+    assert not CHAT.search(url)
 
 
 def test_windows_terminal_title():

@@ -12,11 +12,13 @@ from __future__ import annotations
 
 import base64
 import logging
+import re
 from collections.abc import Mapping
 from typing import Any
 
 from paste_photo.core.events import ScreenshotCaptured
 from paste_photo.core.ports import TargetHandle
+from paste_photo.targets.browser import DEFAULT_CHAT_URL_REGEX
 from paste_photo.targets.registry import TargetContext, register_target
 
 log = logging.getLogger(__name__)
@@ -28,8 +30,11 @@ PASTE_TIMEOUT_S = 15.0
 class BrowserExtensionTarget:
     name = "browser_extension"
 
-    def __init__(self, *, activate: bool = False, server: Any = None) -> None:
+    def __init__(self, *, activate: bool = False, server: Any = None,
+                 chat_url_regex: str = DEFAULT_CHAT_URL_REGEX) -> None:
         self._activate = activate
+        # La extensión da todas las pestañas de claude.ai: solo cuentan las que son un chat.
+        self._chat_re = re.compile(chat_url_regex, re.IGNORECASE)
         self._server = server  # inyectable en tests; si no, el del proceso
 
     def _bridge(self):
@@ -50,6 +55,9 @@ class BrowserExtensionTarget:
                 log.debug("La extensión no respondió: %s", error)
                 continue
             for tab in reply.get("tabs", []):
+                if not self._chat_re.search(tab.get("url") or ""):
+                    log.debug("Pestaña %r ignorada: no es un chat", tab.get("url"))
+                    continue
                 last_used = float(tab.get("lastUsed") or 0) / 1000  # ms → s (epoch)
                 handle = TargetHandle(
                     window_id=0,  # sin ventana del SO: la prioridad usa last_used
@@ -85,7 +93,10 @@ class BrowserExtensionTarget:
 
 @register_target("browser_extension")
 def build(options: Mapping[str, Any], ctx: TargetContext) -> BrowserExtensionTarget:
-    target = BrowserExtensionTarget(activate=bool(options.get("activate", False)))
+    target = BrowserExtensionTarget(
+        activate=bool(options.get("activate", False)),
+        chat_url_regex=options.get("chat_url_regex", DEFAULT_CHAT_URL_REGEX),
+    )
     # El puente se abre ya al arrancar: la extensión (vía su host nativo) se conecta en
     # segundo plano y está lista antes de la primera captura.
     try:

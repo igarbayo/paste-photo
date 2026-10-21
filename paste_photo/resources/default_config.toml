@@ -30,6 +30,9 @@ notify = true
 type = "browser_extension"
 # true = además de pegar, traer la pestaña al frente.
 activate = false
+# Solo se pega en pestañas cuya URL es un chat (Chat, proyecto, Code, Design); nunca en
+# artifacts, recientes, ajustes... Regex sobre la URL:
+# chat_url_regex = "^(?:https?://)?(?:[\\w-]+\\.)*claude\\.ai(?!/(?:[^?#]*/)?artifacts?(?:[/?#]|$))(?:/?(?:[?#]|$)|/(?:new|chat|project|code|design)(?:[/?#]|$))"
 
 # Claude Code en las terminales de Orca (Windows, macOS y Linux): usa la CLI de Orca
 # (`orca terminal send`) para pulsar la tecla de pegado en la terminal exacta de Claude,
@@ -71,6 +74,9 @@ browsers = ["chrome.exe", "msedge.exe", "brave.exe", "vivaldi.exe", "opera.exe",
 url_regex = "^(?:https?://)?(?:[\\w-]+\\.)*claude\\.ai(?:[/?#]|$)"
 # Coincidencia débil (pestañas en segundo plano): "... - Claude", "Claude Code"...
 title_regex = "(?:^|\\s)Claude(?:\\s(?:Code|Design))?(?=$|[:(]|\\s[-–—|]\\s|\\s\\()"
+# Solo se pega en pestañas cuya URL es un chat (Chat, proyecto, Code, Design); nunca en
+# artifacts, recientes, ajustes... Una pestaña de claude.ai que no case se descarta:
+chat_url_regex = "^(?:https?://)?(?:[\\w-]+\\.)*claude\\.ai(?!/(?:[^?#]*/)?artifacts?(?:[/?#]|$))(?:/?(?:[?#]|$)|/(?:new|chat|project|code|design)(?:[/?#]|$))"
 # Solo se pega si la pestaña tiene el prompt (editor con esta clase CSS); si no, se
 # prueba la siguiente candidata.
 editor_class = "ProseMirror"
@@ -133,6 +139,9 @@ paste_keys = "cmd+v"
 # browsers = ["firefox", "librewolf", "zen", "waterfox", "floorp", "arc", "opera", "orion"]
 # false = no usar AppleScript (todos por el título de la ventana).
 # scriptable = true
+# Solo se pega en pestañas cuya URL es un chat (Chat, proyecto, Code, Design); nunca en
+# artifacts, recientes, ajustes... Regex sobre la URL:
+# chat_url_regex = "^(?:https?://)?(?:[\\w-]+\\.)*claude\\.ai(?!/(?:[^?#]*/)?artifacts?(?:[/?#]|$))(?:/?(?:[?#]|$)|/(?:new|chat|project|code|design)(?:[/?#]|$))"
 restore_tab = true
 
 # --- Linux -----------------------------------------------------------------------------

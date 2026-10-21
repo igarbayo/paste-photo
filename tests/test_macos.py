@@ -360,7 +360,8 @@ def browsers(monkeypatch):
 
     calls: list[tuple] = []
     safari_tabs = ("7\t1\tfalse\thttps://claude.ai/chat/abc\tProyecto - Claude\n"
-                   "7\t2\ttrue\thttps://news.example\tNoticias\n")
+                   "7\t2\ttrue\thttps://news.example\tNoticias\n"
+                   "7\t3\tfalse\thttps://claude.ai/artifact/def\tDoc - Claude\n")
 
     def fake_osascript(script, *args):
         calls.append(args)

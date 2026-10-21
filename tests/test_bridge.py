@@ -142,14 +142,25 @@ def shot() -> ScreenshotCaptured:
 
 
 def test_extension_target_prefers_most_recent_tab_and_skips_unready():
-    old = {"tabId": 1, "title": "Viejo - Claude", "lastUsed": 1_000_000, "active": False}
-    new = {"tabId": 2, "title": "Nuevo chat - Claude", "lastUsed": 2_000_000, "active": True}
-    client = FakeClient([old, new], accept={1})
+    old = {"tabId": 1, "url": "https://claude.ai/chat/1", "title": "Viejo - Claude",
+           "lastUsed": 1_000_000, "active": False}
+    new = {"tabId": 2, "url": "https://claude.ai/new", "title": "Nuevo chat - Claude",
+           "lastUsed": 2_000_000, "active": True}
+    # La usada más recientemente es un artifact (tiene editor, pero no es un chat): fuera.
+    doc = {"tabId": 3, "url": "https://claude.ai/artifact/abc", "title": "Doc - Claude",
+           "lastUsed": 3_000_000, "active": True}
+    client = FakeClient([old, new, doc], accept={1, 3})
     target = BrowserExtensionTarget(server=FakeServer([client]))
     handle = target.locate()
     assert handle.label == "Nuevo chat - Claude" and handle.extra["last_used"] == 2000.0
     target.paste(handle, shot())
     assert client.pasted == [2, 1]  # la 2 no tenía editor: se prueba la siguiente
+
+
+def test_extension_target_ignores_non_chat_tabs():
+    tabs = [{"tabId": 1, "url": "https://claude.ai/code/artifact/x", "title": "Doc"},
+            {"tabId": 2, "url": "https://claude.ai/recents", "title": "Claude"}]
+    assert BrowserExtensionTarget(server=FakeServer([FakeClient(tabs)])).locate() is None
 
 
 def test_extension_target_without_browsers():
