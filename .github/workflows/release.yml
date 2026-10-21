@@ -55,7 +55,7 @@ jobs:
             echo "::warning::Sin AMO_JWT_ISSUER/AMO_JWT_SECRET: el .xpi va sin firmar (solo Firefox ESR, Developer Edition, Nightly o LibreWolf)"
           fi
           rm -rf "${xpi%.xpi}"
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: linux
           path: |
@@ -115,7 +115,7 @@ jobs:
         continue-on-error: true  # winget no siempre está disponible en los runners
         run: winget validate --manifest "dist/winget/manifests/i/igarbayo/paste-photo/${{ steps.version.outputs.version }}"
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           name: linux
           path: dist
