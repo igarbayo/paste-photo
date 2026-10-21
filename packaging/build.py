@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 igarbayo
 # SPDX-License-Identifier: MIT
 
-"""Construye los artefactos de distribución (Windows y macOS). Lo usan tanto los desarrolladores como CI.
+"""Construye los artefactos de distribución (Windows y macOS). Lo usan desarrolladores y CI.
 
     python packaging/build.py               # .exe (carpeta dist/paste-photo)
     python packaging/build.py --installer   # .exe + instalador (requiere Inno Setup 6)
