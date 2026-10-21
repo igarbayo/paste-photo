@@ -143,6 +143,12 @@ paste-photo doctor
 to **Applications**. Then open it from Applications or Launchpad: its icon appears in the menu
 bar (not in the Dock). Intel Macs: use pipx (below).
 
+> **Why Experimental:** with the app, pasting into Claude Code in **Terminal** can take from a
+> couple of seconds to more than 20, while the same version started from a terminal (pipx)
+> pastes almost at once; the cause is still being investigated. And because the app is not
+> signed, the Accessibility permission stops working after each update (see below). Until
+> this is fixed, pipx is the recommended way on macOS.
+
 The app is not signed or notarized by Apple yet, so the first time macOS blocks it ("Apple
 could not verify PastePhoto…"). Click **Done**, then go to **System Settings → Privacy &
 Security**, scroll down and click **Open Anyway** next to PastePhoto. Or remove the quarantine
@@ -387,6 +393,7 @@ the core.
 | macOS: "falta el permiso de Automatización" or "not allowed to send Apple events" in the log | You declined the **Automation** prompt: allow it in System Settings → Privacy & Security → Automation. |
 | macOS: a Cmd+Shift+4 screenshot takes a few seconds to appear | macOS writes the file when the floating thumbnail goes away. Use Cmd+Ctrl+Shift+4, or turn off the thumbnail in Cmd+Shift+5 → Options. |
 | macOS: "Apple could not verify PastePhoto" | The app is not notarized yet: System Settings → Privacy & Security → **Open Anyway**, or `xattr -dr com.apple.quarantine /Applications/PastePhoto.app`. |
+| macOS app: pasting into Terminal takes several seconds | Known issue of the app (Experimental). Install with pipx and start PastePhoto from a terminal instead: it pastes almost at once. |
 | macOS: Terminal stopped working after updating the app | Each unsigned version counts as a new app: in System Settings → Privacy & Security → Accessibility, remove PastePhoto (**−**) and turn it on again. |
 | "Windows protected your PC" | The installer is not code-signed yet: **More info → Run anyway**. |
 

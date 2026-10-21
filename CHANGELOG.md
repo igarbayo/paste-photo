@@ -7,6 +7,13 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Changed
+- **README: la app de macOS sigue siendo Experimental, ahora con el motivo.** Con
+  PastePhoto.app, pegar en Claude Code en Terminal tarda de un par de segundos a más de 20
+  (desde una terminal, con pipx, es casi inmediato; la causa está sin aclarar) y, al no estar
+  firmada, el permiso de Accesibilidad deja de valer tras cada actualización. Se recomienda pipx
+  en macOS mientras tanto y hay una fila nueva en problemas frecuentes.
+
 ## [0.4.5] - 2026-10-21
 
 ### Fixed
