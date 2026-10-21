@@ -239,13 +239,47 @@ def test_iterm2_without_automation_keeps_every_session(procs, monkeypatch):
 def test_terminal_app_prefers_the_selected_tab(procs, monkeypatch):
     from paste_photo.targets import terminal_app
 
-    tabs = "1\t0\t/dev/ttys001\n1\t1\t/dev/ttys002\n2\t1\t/dev/ttys003\n"
+    tabs = "1\t0\t/dev/ttys001\t41\n1\t1\t/dev/ttys002\t41\n2\t1\t/dev/ttys003\t57\n"
     monkeypatch.setattr(terminal_app, "osascript",
                         lambda script, *args: tabs if script is terminal_app.LIST_SCRIPT else "")
+    monkeypatch.setattr(terminal_app, "onscreen_windows", lambda: None)
     monkeypatch.setattr(terminal_app, "tty_of", lambda pid: f"/dev/ttys00{pid}")
     procs += [claude(pid, TERM_PROGRAM="Apple_Terminal") for pid in (3, 1, 2)]
     handle = terminal_app.TerminalAppTarget(ctx(), settle_ms=0).locate()
     assert [c.extra["proc"].pid for c in handle.extra["candidates"]] == [2, 3, 1]
+
+
+def native_tabs(monkeypatch, onscreen):
+    """Pestañas nativas: tres ventanas de AppleScript (ids 41, 42, 43) con una pestaña
+    seleccionada cada una y todas "visibles", en orden de pestaña, no de uso."""
+    from paste_photo.targets import terminal_app
+
+    tabs = "".join(f"{i}\t1\t/dev/ttys00{i}\t4{i}\n" for i in (1, 2, 3))
+    monkeypatch.setattr(terminal_app, "osascript",
+                        lambda script, *args: tabs if script is terminal_app.LIST_SCRIPT else "")
+    monkeypatch.setattr(terminal_app, "onscreen_windows", lambda: onscreen)
+    monkeypatch.setattr(terminal_app, "tty_of", lambda pid: f"/dev/ttys00{pid}")
+    return terminal_app
+
+
+def test_terminal_app_native_tabs_prefer_the_last_focused_tab(procs, monkeypatch):
+    """Bug real: con pestañas nativas, tras pulsar la 3.ª pestaña e irse a Chrome, se pegaba en
+    la 1.ª (todas parecían seleccionadas y visibles). Gana la que tuvo el foco la última."""
+    terminal_app = native_tabs(monkeypatch, onscreen=None)
+    procs += [claude(pid, TERM_PROGRAM="Apple_Terminal") for pid in (1, 2, 3)]
+    context = ctx()
+    for window_id, at in ((41, 10.0), (43, 30.0), (42, 20.0)):
+        context.recency.touch(window_id, at)
+    handle = terminal_app.TerminalAppTarget(context, settle_ms=0).locate()
+    assert [c.extra["proc"].pid for c in handle.extra["candidates"]] == [3, 2, 1]
+
+
+def test_terminal_app_native_tabs_without_recency_prefer_the_onscreen_tab(procs, monkeypatch):
+    """Sin historial de foco (PastePhoto arrancó después): la pestaña en pantalla del grupo."""
+    terminal_app = native_tabs(monkeypatch, onscreen={43, 99})
+    procs += [claude(pid, TERM_PROGRAM="Apple_Terminal") for pid in (1, 2, 3)]
+    handle = terminal_app.TerminalAppTarget(ctx(), settle_ms=0).locate()
+    assert [c.extra["proc"].pid for c in handle.extra["candidates"]] == [3, 1, 2]
 
 
 def test_terminal_app_selects_tab_pastes_and_restores(procs, monkeypatch):

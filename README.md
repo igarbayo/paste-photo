@@ -38,7 +38,8 @@ Firefox** (and, without the extension, in **Safari** and other browsers such as 
   (Chat, Code, Design) in the browser. If Claude is open in several places, the one you used
   last wins. With several Claude Code sessions in the same terminal (Windows Terminal, iTerm2,
   Terminal, tmux, kitty, WezTerm, Konsole), the one you have in view wins: the selected tab or
-  focused pane of the front window (not yet between several Orca terminals).
+  focused pane of the front window (not yet between several Orca terminals). In macOS
+  Terminal, whose tabs are separate windows, the tab you clicked last wins.
 - **Never sends anything**: the image is attached to the prompt and you decide when to send.
 - **Lands where your cursor is**: the image goes where you left the cursor in the prompt, even
   if you clicked elsewhere afterwards. If the cursor was never in that prompt, it goes at the

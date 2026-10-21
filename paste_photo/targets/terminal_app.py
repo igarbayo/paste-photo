@@ -77,8 +77,9 @@ end run
 """
 
 # Todas las pestañas: índice de su ventana (1 = la delantera), si es la que se ve (pestaña
-# seleccionada de una ventana visible; con pestañas nativas, la ventana delantera del grupo)
-# y su `tty`.
+# seleccionada de una ventana visible), su `tty` y el `id` de su ventana (su `CGWindowID`).
+# Con pestañas nativas cada pestaña es una ventana con una sola pestaña, siempre
+# seleccionada y a veces "visible" aunque esté detrás: eso no basta para saber cuál usabas.
 LIST_SCRIPT = """
 on run argv
     set sep to character id 9
@@ -94,7 +95,7 @@ on run argv
             repeat with t in tabs of w
                 set shown to 0
                 if shownWindow and selected of t then set shown to 1
-                set out to out & i & sep & shown & sep & (tty of t) & linefeed
+                set out to out & i & sep & shown & sep & (tty of t) & sep & (id of w) & linefeed
             end repeat
         end repeat
     end tell
@@ -111,6 +112,18 @@ def tty_of(pid: int) -> str:
     if not tty:
         raise RuntimeError(f"no se conoce el tty del proceso {pid}")
     return tty
+
+
+def onscreen_windows() -> set[int] | None:
+    """`CGWindowID` de las ventanas en pantalla, o `None` si no se puede saber."""
+    try:
+        import Quartz
+
+        infos = Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionOnScreenOnly,
+                                                  Quartz.kCGNullWindowID) or []
+    except Exception:  # sin pyobjc o fuera de macOS
+        return None
+    return {int(info.get("kCGWindowNumber", 0)) for info in infos}
 
 
 class TerminalAppTarget(EnvTerminalTarget):
@@ -152,13 +165,20 @@ class TerminalAppTarget(EnvTerminalTarget):
         if len(procs) < 2:  # todos comparten ventana: solo hace falta para desempatar
             return {}
         try:
-            rows = parse_rows(osascript(LIST_SCRIPT), 3)
+            rows = parse_rows(osascript(LIST_SCRIPT), 4)
         except (OSError, RuntimeError, subprocess.SubprocessError) as error:
             log.debug("Terminal no dio sus pestañas: %s", error)
             return {}
+        # Con pestañas nativas cada pestaña tiene su ventana del SO: gana la que tuvo el foco
+        # más recientemente (la última pestaña que pulsaste); luego la que se ve en pantalla
+        # (las de detrás de un grupo no están en pantalla) y luego el orden de las ventanas.
+        onscreen = onscreen_windows()
         rank: dict[str, tuple[int, ...]] = {}
-        for index, shown, tty in rows:
-            rank.setdefault(tty, (0 if shown == "1" else 1, int(index)))
+        for index, shown, tty, window in rows:
+            window_id = int(window) if window.isdigit() else 0
+            visible = shown == "1" and (onscreen is None or window_id in onscreen)
+            rank.setdefault(tty, (-self._ctx.recency.last_seen(window_id),
+                                  0 if visible else 1, int(index)))
         by_pid = {}
         for proc in procs:
             try:

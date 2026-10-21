@@ -125,6 +125,11 @@ en la línea de órdenes) y lee su **entorno**, que delata el panel exacto: `TMU
   más de un Claude): primero la sesión que se ve (pestaña seleccionada / `current session`),
   luego el índice de su ventana (1 = la delantera). Sin permiso de Automatización, sin
   desempate. Antes se pegaba en el primero que listara psutil y Terminal cambiaba de pestaña.
+- Terminal.app con pestañas nativas: cada pestaña es una ventana con una pestaña siempre
+  `selected` (y `visible` aunque esté detrás), así que eso no desempata. `LIST_SCRIPT` da
+  también el `id` de la ventana, que es su `CGWindowID` (el de `screencapture -l` y de AX):
+  primero la recencia de esa ventana (la última pestaña pulsada), luego si está en pantalla
+  (`CGWindowListCopyWindowInfo` en pantalla: las de detrás de un grupo no lo están) y el índice.
 - Terminal.app con pestañas nativas de macOS: AppleScript ve cada pestaña como una ventana
   con una sola pestaña (`count of tabs` = 1). Para volver a tu pestaña se reordena la
   ventana (`set index of window id ... to 1`), no `selected of tab`. Limitación: si estabas

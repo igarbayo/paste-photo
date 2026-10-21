@@ -7,6 +7,14 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Fixed
+- **macOS, Terminal.app**: con Claude Code en varias pestañas, tras pulsar una (p. ej. la 3.ª)
+  e irse a otra app, la captura se pegaba en otra pestaña (la 1.ª). Las pestañas de Terminal
+  son pestañas nativas de macOS: AppleScript ve cada una como una ventana con su única pestaña
+  seleccionada y "visible", así que todas empataban y ganaba la primera de la lista. Ahora
+  gana la pestaña que tuvo el foco más recientemente (cada pestaña es una ventana del SO con
+  su propio `CGWindowID`) y, si PastePhoto no la vio, la que está en pantalla.
+
 ## [0.4.1] - 2026-10-21
 
 ### Fixed
