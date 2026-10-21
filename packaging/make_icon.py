@@ -3,12 +3,14 @@
 
 """Genera los iconos de la app (PNG para la bandeja, ICO para el .exe y el instalador).
 
-Uso: python packaging/make_icon.py   (los escribe en paste_photo/resources/)
+Uso: python packaging/make_icon.py          (los escribe en paste_photo/resources/)
+     python packaging/make_icon.py --icns   (solo packaging/macos/icon.icns, para el .app)
 Se dibujan por código para que cualquiera pueda regenerarlos o retocarlos sin un editor.
 """
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw
@@ -17,6 +19,7 @@ SIZE = 256
 BACKGROUND = (217, 119, 87, 255)  # naranja tipo Claude
 FOREGROUND = (255, 255, 255, 255)
 OUT = Path(__file__).resolve().parent.parent / "paste_photo" / "resources"
+ICNS = Path(__file__).resolve().parent / "macos" / "icon.icns"
 
 
 def draw(size: int = SIZE) -> Image.Image:
@@ -43,6 +46,11 @@ def sorted_box(x0: float, y0: float, x1: float, y1: float) -> tuple[float, float
 
 
 def main() -> None:
+    if "--icns" in sys.argv:  # se genera al construir el .app: no se guarda en el repo
+        ICNS.parent.mkdir(parents=True, exist_ok=True)
+        draw(1024).save(ICNS)  # Pillow genera todos los tamaños del .icns a partir de este
+        print(f"Icono escrito en {ICNS}")
+        return
     OUT.mkdir(parents=True, exist_ok=True)
     icon = draw()
     icon.save(OUT / "icon.png")

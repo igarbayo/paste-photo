@@ -4,8 +4,10 @@ Recuerda la regla obligatoria del CLAUDE.md raíz: todo cambio lleva entrada en 
 
 ```
 packaging/
-  build.py               punto de entrada único (local y CI): .exe y, con --installer, instalador
-  make_icon.py           genera paste_photo/resources/icon.png e icon.ico
+  build.py               punto de entrada único (local y CI): .exe y, con --installer, instalador;
+                         en macOS, PastePhoto.app y, con --dmg, el .dmg
+  make_icon.py           genera paste_photo/resources/icon.png e icon.ico (--icns:
+                         packaging/macos/icon.icns, se genera al construir y no se guarda)
   make_brand.py          docs/assets/logo.png (README) y social-preview.png (1280x640, se
                          sube a mano en Settings → Social preview) a partir del icono
   demo/demo.py           graba docs/assets/demo.gif con PastePhoto y Claude Code reales
@@ -18,6 +20,11 @@ packaging/
                          y paste-photo-native-host.exe (lo lanza el navegador)
     entry.py             script de entrada común: el nombre del .exe decide el papel
     installer.iss        Inno Setup 6, por usuario
+  macos/
+    paste-photo.spec     PyInstaller + BUNDLE: PastePhoto.app con paste-photo (barra de menús
+                         y CLI) y paste-photo-native-host en Contents/MacOS (usa
+                         windows/entry.py)
+    rthook_env.py        hook de arranque: PATH de Homebrew y LANG (Finder no los da)
   winget/
     make_manifests.py    manifiestos de winget (igarbayo.paste-photo)
   linux/
@@ -25,10 +32,10 @@ packaging/
                          resto de dependencias de Debian (Depends), lanzadores en /usr/bin
 .github/workflows/
   ci.yml                 lint + tests (Windows, macOS y Linux), integración X11 (Xvfb) y
-                         macOS (runner real), .exe y .deb
+                         macOS (runner real), .exe, .deb y .app/.dmg
   release.yml            tag vX.Y.Z → .deb + zip de la extensión + .xpi de Firefox (job
-                         linux) → instalador, sha256 y manifiestos (job release) → GitHub
-                         Release (+ winget)
+                         linux) y .dmg (job macos) → instalador, sha256 y manifiestos
+                         (job release) → GitHub Release (+ winget)
 ```
 
 ## Versión: una sola fuente
@@ -99,14 +106,26 @@ captura real con Win+Shift+S y monta `docs/assets/demo.gif`; luego cierra todo s
   inicio automático). Probado: `apt install ./paste-photo_X_all.deb` en Debian 13 y en CI.
 - pipx: `pipx install --system-site-packages ...` (AppIndicator vía `python3-gi` del sistema).
 
-## macOS: pipx (aún sin .app)
-- Se instala con `pipx install git+https://github.com/igarbayo/paste-photo` (pyobjc llega como
-  dependencia con marcador `darwin`). No hay `.app`, `.dmg` ni Homebrew todavía.
-- Siguiente paso natural: `.app` con PyInstaller (`BUNDLE`, `LSUIElement` para no salir en el
-  Dock) en un job `macos` de `release.yml`. Sin firma ni notarización (cuenta de Apple
-  Developer), Gatekeeper lo bloquea (`xattr -d com.apple.quarantine`); con un `.app`, los
-  permisos de Accesibilidad irían a la app y no al Python que la lanza.
+## macOS: .app y pipx
+- `python packaging/build.py --dmg` (en macOS, con `.[build]`): `dist/PastePhoto.app` y
+  `dist/PastePhoto-X.Y.Z-macos-<arch>.dmg` (`hdiutil`, con enlace a /Applications). Solo
+  para la arquitectura del runner: `macos-latest` es arm64. Intel: pipx.
+- Prueba de humo: `--version`, `--list-targets` (`terminal_app`, `browser_extension`), host
+  nativo con stdin cerrado y `codesign --verify`. Lo que pide permisos (bandeja, foco,
+  AppleScript) **no** se prueba en CI: verificar en un Mac real; hasta entonces, "Experimental".
+- **Firma**: PyInstaller firma ad hoc; `third_party.write_notices` escribe en
+  `Contents/Resources` después y rompe el sello → `build.py` vuelve a firmar ad hoc
+  (`codesign --force --deep --sign -`). Sin Developer ID ni notarización, Gatekeeper bloquea
+  la primera apertura ("Abrir igualmente" o `xattr -dr com.apple.quarantine`).
+- **Permisos (TCC)**: con el `.app`, Accesibilidad y Automatización van a la app
+  (`io.github.igarbayo.paste-photo`), no al Python ni a la terminal. Con firma ad hoc el
+  permiso va ligado al hash del binario: cada versión nueva hay que quitarla y volver a
+  añadirla en Accesibilidad. Se arregla con un Developer ID (siguiente paso: cuenta de Apple
+  Developer, `codesign` con hardened runtime + `notarytool`, secretos en GitHub).
+- `NSAppleEventsUsageDescription` en el `Info.plist`: el texto del aviso de Automatización.
+- pipx: `pipx install git+https://github.com/igarbayo/paste-photo` (pyobjc llega como
+  dependencia con marcador `darwin`).
 
 ## Otro SO (futuro)
-`build.py` sale con error fuera de Windows. Para otro SO: añadir `packaging/<so>/` y una
-rama en `build.py`, más un job en `release.yml`.
+`build.py` sale con error fuera de Windows y macOS (Linux usa `linux/build_deb.py`). Para
+otro SO: añadir `packaging/<so>/` y una rama en `build.py`, más un job en `release.yml`.

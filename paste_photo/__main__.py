@@ -152,8 +152,18 @@ def _run_tray(service, config, factory, command: str) -> None:
 
 
 def _tell_user_already_running(message: str, *, interactive: bool) -> None:
-    """Sin consola (doble clic en el .exe) el usuario no vería el error: ventana nativa."""
-    if interactive or sys.platform != "win32" or sys.stderr is not None:
+    """Sin consola (doble clic en el .exe o el .app) el usuario no vería el error: ventana
+    nativa."""
+    if interactive:
+        return
+    if sys.platform == "darwin" and getattr(sys, "frozen", False):
+        import subprocess
+
+        script = ('on run argv\n display dialog (item 1 of argv) with title "PastePhoto" '
+                  'buttons {"OK"} default button 1 with icon note\nend run')
+        subprocess.run(["osascript", "-e", script, message], check=False, timeout=120)
+        return
+    if sys.platform != "win32" or sys.stderr is not None:
         return
     import ctypes
 

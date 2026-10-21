@@ -7,3 +7,4 @@ dist/
 .pytest_cache/
 .ruff_cache/
 .claude/settings.local.json
+packaging/macos/icon.icns

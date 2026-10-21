@@ -66,9 +66,9 @@ FIREFOX_MIN_VERSION = "128.0"
 
 def host_executable() -> Path:
     """Ruta absoluta de `paste-photo-native-host` (el navegador no admite argumentos)."""
-    if getattr(sys, "frozen", False):  # .exe de PyInstaller: va junto a los demás
-        return Path(sys.executable).with_name("paste-photo-native-host.exe")
     name = "paste-photo-native-host" + (".exe" if sys.platform == "win32" else "")
+    if getattr(sys, "frozen", False):  # .exe o .app de PyInstaller: va junto a los demás
+        return Path(sys.executable).with_name(name)
     beside = Path(sys.executable).with_name(name)  # venv / pipx: misma carpeta bin
     if beside.exists():
         return beside

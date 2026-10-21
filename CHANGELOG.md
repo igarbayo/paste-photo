@@ -7,6 +7,22 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+- **macOS: PastePhoto.app** (Apple silicon, Experimental). La release incluye
+  `PastePhoto-X.Y.Z-macos-arm64.dmg`: se arrastra a Aplicaciones y se abre con doble clic; vive
+  en la barra de menús (`LSUIElement`, sin icono en el Dock). Sin firma de desarrollador ni
+  notarización (firma ad hoc): la primera vez hay que pulsar "Abrir igualmente" en Ajustes →
+  Privacidad y seguridad o quitar la cuarentena con `xattr`. `packaging/build.py` construye
+  el `.app` y, con `--dmg`, la imagen de disco en macOS, con prueba de humo; CI la construye
+  en cada push (`build-macos`) y `release.yml` la publica (job `macos`). Desde la app, el
+  inicio automático, el host de la extensión, `doctor` y el aviso "ya se está ejecutando"
+  (diálogo nativo) usan los ejecutables del `.app`, y se añade el PATH de Homebrew para
+  encontrar `tmux`, `kitty` y `wezterm` al abrirla desde Finder.
+
+### Changed
+- CI: `actions/upload-artifact` v5 → v6 y `actions/download-artifact` v5 → v7 (Node 24),
+  para quitar el aviso de Node 20 obsoleto.
+
 ## [0.4.2] - 2026-10-21
 
 ### Fixed

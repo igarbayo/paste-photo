@@ -48,8 +48,9 @@ topics) se cambia con `gh` y se anota en el CHANGELOG.
 El proyecto es **MIT** (`LICENSE`, `LICENSES/MIT.txt`). Archivo `.py`/`.js` nuevo → cabecera
 `SPDX-FileCopyrightText: 2026 igarbayo` + `SPDX-License-Identifier: MIT`.
 Dependencia nueva → comprobar su licencia **antes** de añadirla (GPL/AGPL: no sin consultar,
-cambiaría la licencia del instalador; LGPL: `module_collection_mode` del spec en Windows y,
-en Linux, mejor paquete de Debian en `DEPENDS`) y actualizar `docs/COMPONENTS_LICENSE.md`.
+cambiaría la licencia del instalador; LGPL: `module_collection_mode` de los specs de Windows
+y macOS y, en Linux, mejor paquete de Debian en `DEPENDS`) y actualizar
+`docs/COMPONENTS_LICENSE.md`.
 Los avisos de terceros del instalador los genera `packaging/third_party.py`.
 
 ## Git
@@ -76,8 +77,9 @@ paste_photo/
   imaging.py     conversión a PNG (DIB de Windows, formatos de Linux, TIFF de macOS)
   resources/     default_config.toml, iconos, extension/ (Chromium), gnome_extension/
   __main__.py    CLI: [tray|run|doctor|setup browser|gnome] --probe --list-targets
-packaging/       build.py, PyInstaller, Inno Setup, winget, linux/build_deb.py → packaging/CLAUDE.md
-.github/workflows/  ci.yml (tests Win/macOS/Linux, integración X11 y macOS, .exe, .deb) y
+packaging/       build.py, PyInstaller, Inno Setup, winget, linux/build_deb.py, macos/ (.app)
+                 → packaging/CLAUDE.md
+.github/workflows/  ci.yml (tests Win/macOS/Linux, integración X11 y macOS, .exe, .deb, .dmg) y
                  release.yml
 tests/           pytest con fakes; tests/integration: Linux/X11 y macOS reales
                  (PASTE_PHOTO_INTEGRATION=1)
@@ -118,6 +120,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -e ".[dev,build]"   
 .venv/Scripts/python -m paste_photo --probe        # ¿dónde pegaría? (no pega)
 .venv/Scripts/python packaging/build.py            # .exe en dist/paste-photo
 python3 packaging/linux/build_deb.py               # .deb (en Linux, con dpkg-deb)
+python packaging/build.py --dmg                    # PastePhoto.app + .dmg (en macOS)
 ```
 Logs: `%LOCALAPPDATA%\paste-photo\logs` (Windows), `~/Library/Logs/paste-photo` (macOS),
 `~/.local/state/paste-photo/logs` (Linux).

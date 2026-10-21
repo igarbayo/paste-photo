@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: 2026 igarbayo
 # SPDX-License-Identifier: MIT
 
-"""Construye los artefactos de distribución. Lo usan tanto los desarrolladores como CI.
+"""Construye los artefactos de distribución (Windows y macOS). Lo usan tanto los desarrolladores como CI.
 
     python packaging/build.py               # .exe (carpeta dist/paste-photo)
     python packaging/build.py --installer   # .exe + instalador (requiere Inno Setup 6)
+    python packaging/build.py --dmg         # macOS: PastePhoto.app + .dmg (sin firmar)
     python packaging/build.py --version     # imprime la versión y sale
 
 Una sola fuente de versión: `paste_photo/__init__.py` (`__version__`).
@@ -14,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -26,6 +28,8 @@ BUILD = ROOT / "build"
 APP_DIR = DIST / "paste-photo"
 SPEC = ROOT / "packaging" / "windows" / "paste-photo.spec"
 ISS = ROOT / "packaging" / "windows" / "installer.iss"
+MAC_SPEC = ROOT / "packaging" / "macos" / "paste-photo.spec"
+MAC_APP = DIST / "PastePhoto.app"
 
 
 def version() -> str:
@@ -93,6 +97,54 @@ def build_exe(ver: str) -> Path:
     return APP_DIR
 
 
+def build_app(ver: str) -> Path:
+    """macOS: dist/PastePhoto.app (PyInstaller le pone una firma ad hoc, no de desarrollador)."""
+    shutil.rmtree(MAC_APP, ignore_errors=True)
+    run([sys.executable, str(ROOT / "packaging" / "make_icon.py"), "--icns"])
+    os.environ["PASTE_PHOTO_VERSION"] = ver
+    run([sys.executable, "-m", "PyInstaller", str(MAC_SPEC), "--noconfirm", "--clean",
+         "--distpath", str(DIST), "--workpath", str(BUILD / "pyinstaller")])
+    sys.path.insert(0, str(ROOT / "packaging"))
+    from third_party import write_notices
+
+    print(f"OK: {write_notices(MAC_APP / 'Contents' / 'Resources')}")
+    if not any(MAC_APP.rglob("pystray/__init__.py")):  # requisito LGPL: pystray sustituible
+        raise SystemExit("pystray debe ir como código fuente dentro de PastePhoto.app")
+    macos = MAC_APP / "Contents" / "MacOS"
+    # Humo: el ejecutable arranca, conoce su versión y encuentra los destinos de macOS.
+    out = run([str(macos / "paste-photo"), "--version"], capture=True)
+    if ver not in out:
+        raise SystemExit(f"La app no informa la versión esperada {ver}: {out!r}")
+    host = subprocess.run([str(macos / "paste-photo-native-host"), "chrome-extension://test/"],
+                          input=b"", capture_output=True, timeout=30)
+    if host.returncode != 0:
+        raise SystemExit(f"El host nativo falló: {host.stderr.decode(errors='replace')}")
+    targets = run([str(macos / "paste-photo"), "--list-targets"], capture=True)
+    if "terminal_app" not in targets or "browser_extension" not in targets:
+        raise SystemExit(f"Faltan destinos en la app: {targets!r}")
+    # Los avisos se añadieron tras la firma ad hoc de PyInstaller: volver a firmar (ad hoc).
+    run(["codesign", "--force", "--deep", "--sign", "-", str(MAC_APP)])
+    run(["codesign", "--verify", "--deep", "--strict", str(MAC_APP)])
+    print(f"OK: {MAC_APP}")
+    return MAC_APP
+
+
+def build_dmg(ver: str) -> Path:
+    """Imagen de disco con la app y un acceso a /Applications (arrastrar para instalar)."""
+    arch = platform.machine()  # arm64 o x86_64: el .app solo vale para la arquitectura de CI
+    dmg = DIST / f"PastePhoto-{ver}-macos-{arch}.dmg"
+    stage = BUILD / "dmg"
+    shutil.rmtree(stage, ignore_errors=True)
+    stage.mkdir(parents=True)
+    run(["ditto", str(MAC_APP), str(stage / MAC_APP.name)])  # conserva firma y enlaces
+    (stage / "Applications").symlink_to("/Applications")
+    dmg.unlink(missing_ok=True)
+    run(["hdiutil", "create", "-volname", "PastePhoto", "-srcfolder", str(stage),
+         "-format", "UDZO", "-ov", str(dmg)])
+    print(f"OK: {dmg}")
+    return dmg
+
+
 def find_iscc() -> Path | None:
     found = shutil.which("iscc") or shutil.which("ISCC")
     if found:
@@ -129,14 +181,20 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--installer", action="store_true", help="crear también el instalador")
+    parser.add_argument("--dmg", action="store_true", help="macOS: crear también el .dmg")
     parser.add_argument("--version", action="store_true", help="imprimir la versión y salir")
     args = parser.parse_args()
     ver = version()
     if args.version:
         print(ver)
         return
+    if sys.platform == "darwin":
+        build_app(ver)
+        if args.dmg:
+            build_dmg(ver)
+        return
     if sys.platform != "win32":
-        raise SystemExit("Por ahora solo hay empaquetado para Windows.")
+        raise SystemExit("Aquí no hay empaquetado: en Linux, packaging/linux/build_deb.py.")
     build_exe(ver)
     if args.installer:
         build_installer(ver)

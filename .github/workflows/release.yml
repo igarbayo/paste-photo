@@ -1,5 +1,5 @@
-# Release: al subir un tag vX.Y.Z se construyen el instalador de Windows, el .deb de Linux y
-# el zip de la extensión del navegador, se generan los manifiestos de winget y se publica
+# Release: al subir un tag vX.Y.Z se construyen el instalador de Windows, el .deb de Linux,
+# el .dmg de macOS (sin firmar) y el zip de la extensión del navegador, se generan los manifiestos de winget y se publica
 # una release de GitHub con todo.
 #
 # Envío automático a winget (microsoft/winget-pkgs), opcional:
@@ -63,8 +63,27 @@ jobs:
             dist/*.zip
             dist/*.xpi
 
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Comprobar que el tag coincide con __version__
+        run: |
+          version=$(python packaging/build.py --version)
+          [ "v$version" = "$GITHUB_REF_NAME" ] || { echo "::error::tag distinto de __version__"; exit 1; }
+      - run: python -m pip install -e ".[build]"
+      - name: PastePhoto.app y .dmg (sin firmar; con prueba de humo)
+        run: python packaging/build.py --dmg
+      - uses: actions/upload-artifact@v6
+        with:
+          name: macos
+          path: dist/*.dmg
+
   release:
-    needs: linux
+    needs: [linux, macos]
     runs-on: windows-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -119,6 +138,10 @@ jobs:
         with:
           name: linux
           path: dist
+      - uses: actions/download-artifact@v7
+        with:
+          name: macos
+          path: dist
 
       - name: Publicar release
         shell: bash
@@ -134,6 +157,7 @@ jobs:
             "dist/paste-photo_${VERSION}_all.deb" \
             "dist/paste-photo-extension-$VERSION.zip" \
             "dist/paste-photo-firefox-$VERSION.xpi" \
+            dist/PastePhoto-"$VERSION"-macos-*.dmg \
             --title "PastePhoto $VERSION" --notes-file notes.md
 
   winget:

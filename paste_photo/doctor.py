@@ -72,6 +72,12 @@ def _macos(factory) -> list[str]:
         windows = factory.create_window_system()
         count = len(windows.list_windows()) if windows is not None else 0
         lines.append(f"{OK} Permiso de Accesibilidad concedido: {count} ventanas visibles")
+    elif getattr(sys, "frozen", False):  # PastePhoto.app: el permiso es de la propia app
+        lines.append(f"{FAIL} Falta el permiso de Accesibilidad (enfocar ventanas y pulsar la "
+                     "tecla de pegado). Ajustes del Sistema → Privacidad y seguridad → "
+                     "Accesibilidad: activa PastePhoto (si ya estaba, quítalo con − y vuelve "
+                     "a añadirlo: cada versión nueva sin firmar cuenta como otra app). Siguen "
+                     "funcionando la extensión del navegador, iTerm2, tmux, kitty y WezTerm.")
     else:
         app = Path(sys.executable).resolve()
         lines.append(f"{FAIL} Falta el permiso de Accesibilidad (enfocar ventanas y pulsar la "

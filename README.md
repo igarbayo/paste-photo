@@ -135,8 +135,28 @@ paste-photo doctor
 
 ### macOS
 
-There is no app bundle yet: install it with [pipx](https://pipx.pypa.io/) (`brew install
-pipx`) and start it from a terminal. Its icon appears in the menu bar.
+**App (Apple silicon, Experimental).** Download `PastePhoto-X.Y.Z-macos-arm64.dmg` from
+[Releases](https://github.com/igarbayo/paste-photo/releases), open it and drag **PastePhoto**
+to **Applications**. Then open it from Applications or Launchpad: its icon appears in the menu
+bar (not in the Dock). Intel Macs: use pipx (below).
+
+The app is not signed or notarized by Apple yet, so the first time macOS blocks it ("Apple
+could not verify PastePhoto…"). Click **Done**, then go to **System Settings → Privacy &
+Security**, scroll down and click **Open Anyway** next to PastePhoto. Or remove the quarantine
+flag in a terminal:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/PastePhoto.app
+```
+
+The app includes the command line tools. Run them with their full path, for example:
+
+```bash
+/Applications/PastePhoto.app/Contents/MacOS/paste-photo doctor
+```
+
+**With pipx** (any Mac, also Intel). Install [pipx](https://pipx.pypa.io/) (`brew install
+pipx`) and start PastePhoto from a terminal. Its icon appears in the menu bar.
 
 ```bash
 pipx install git+https://github.com/igarbayo/paste-photo
@@ -148,10 +168,12 @@ macOS asks for two permissions:
 
 - **Accessibility** (System Settings → Privacy & Security → Accessibility), to bring a window
   to the front and press the paste key: Terminal, other terminals and browsers without the
-  extension need it. Turn it on for the app you start PastePhoto from (for example Terminal)
-  and, for **Iniciar al iniciar sesión** (start at login), for the Python program that
-  `paste-photo doctor` shows. iTerm2, tmux, kitty, WezTerm, Orca and the browser extension
-  work without it.
+  extension need it. With the app, turn it on for **PastePhoto**. Because the app is not
+  signed, macOS treats each new version as a different app: after updating, remove PastePhoto
+  from the list (**−**) and turn it on again. With pipx, turn it on for the app you start
+  PastePhoto from (for example Terminal) and, for **Iniciar al iniciar sesión** (start at
+  login), for the Python program that `paste-photo doctor` shows. iTerm2, tmux, kitty,
+  WezTerm, Orca and the browser extension work without it.
 - **Automation**: the first time PastePhoto controls Terminal, iTerm2, Safari or Chrome,
   macOS asks whether to allow it. Say yes (you can change it later in System Settings →
   Privacy & Security → Automation).
@@ -165,6 +187,7 @@ background tabs. Run this once:
 
 ```bash
 paste-photo setup browser        # paste-photo-cli setup browser on Windows
+# macOS app: /Applications/PastePhoto.app/Contents/MacOS/paste-photo setup browser
 ```
 
 It registers PastePhoto with your browsers and prints where the extension is.
@@ -206,8 +229,9 @@ python -m venv .venv
 
 ## Use
 
-1. Start **PastePhoto** from your applications menu (on macOS, run `paste-photo` in a
-   terminal). Its icon appears in the system tray (menu bar on macOS).
+1. Start **PastePhoto** from your applications menu (on macOS, open it from Applications,
+   or run `paste-photo` in a terminal if you installed it with pipx). Its icon appears in
+   the system tray (menu bar on macOS).
 2. Open Claude: Claude Code in a terminal, or claude.ai in your browser.
 3. Take a screenshot (**Win+Shift+S** on Windows, **PrtSc** or your usual tool on Linux). The
    image shows up in the Claude prompt (`[Image #1]` in the terminal). Add your message and
@@ -240,7 +264,8 @@ Right-click the tray icon (click it on macOS):
 ### Command line
 
 On Windows the installer includes `paste-photo-cli` for terminals; on macOS and Linux use
-`paste-photo`.
+`paste-photo` (with the macOS app,
+`/Applications/PastePhoto.app/Contents/MacOS/paste-photo`).
 
 ```bash
 paste-photo doctor          # what works on this computer, and how to fix the rest
@@ -354,13 +379,16 @@ the core.
 | macOS: nothing gets pasted in Terminal, Ghostty or the browser | Give PastePhoto the **Accessibility** permission (see [macOS](#macos)) and run `paste-photo doctor`. iTerm2, tmux and the browser extension don't need it. |
 | macOS: "not allowed to send Apple events" in the log | You declined the **Automation** prompt: allow it in System Settings → Privacy & Security → Automation. |
 | macOS: a Cmd+Shift+4 screenshot takes a few seconds to appear | macOS writes the file when the floating thumbnail goes away. Use Cmd+Ctrl+Shift+4, or turn off the thumbnail in Cmd+Shift+5 → Options. |
+| macOS: "Apple could not verify PastePhoto" | The app is not notarized yet: System Settings → Privacy & Security → **Open Anyway**, or `xattr -dr com.apple.quarantine /Applications/PastePhoto.app`. |
+| macOS: Terminal stopped working after updating the app | Each unsigned version counts as a new app: in System Settings → Privacy & Security → Accessibility, remove PastePhoto (**−**) and turn it on again. |
 | "Windows protected your PC" | The installer is not code-signed yet: **More info → Run anyway**. |
 
 ## Uninstall
 
 - **Windows**: **Settings → Apps → Installed apps → PastePhoto → Uninstall**. This removes the
   start with Windows entry and the PATH entry.
-- **macOS**: `pipx uninstall paste-photo`. Turn off "Iniciar al iniciar sesión" first, or
+- **macOS**: quit PastePhoto and drag it from Applications to the Trash, or
+  `pipx uninstall paste-photo`. Turn off "Iniciar al iniciar sesión" first, or
   delete `~/Library/LaunchAgents/io.github.igarbayo.paste-photo.plist`.
 - **Linux**: `sudo apt remove paste-photo` or `pipx uninstall paste-photo`. Turn off "Iniciar al
   iniciar sesión" first, or delete `~/.config/autostart/paste-photo.desktop`.

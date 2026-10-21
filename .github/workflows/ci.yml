@@ -1,5 +1,5 @@
 # CI: lint y tests en Windows, macOS y Linux, integración real en Linux y macOS, y
-# construcción del .exe y del .deb.
+# construcción del .exe, del .deb y del .app/.dmg de macOS.
 name: CI
 
 on:
@@ -111,4 +111,23 @@ jobs:
         with:
           name: paste-photo-windows
           path: dist/paste-photo
+          retention-days: 7
+
+  build-macos:
+    name: Build .app y .dmg
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e ".[build]"
+      - name: Build (incluye prueba de humo de la app)
+        run: python packaging/build.py --dmg
+      - uses: actions/upload-artifact@v6
+        with:
+          name: paste-photo-macos
+          path: dist/*.dmg
           retention-days: 7

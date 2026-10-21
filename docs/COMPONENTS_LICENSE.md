@@ -72,7 +72,7 @@ macOS-only dependencies (`sys_platform == 'darwin'` markers):
 
 | Component | Version | License (SPDX) | What we use it for | How it reaches users |
 |---|---|---|---|---|
-| [PyObjC](https://github.com/ronaldoussoren/pyobjc) (`pyobjc-framework-Cocoa`, `-Quartz`, `-ApplicationServices`, and `pyobjc-core`) | ≥ 10 | MIT | Clipboard (`NSPasteboard`), windows and focus (Accessibility API), keys (Quartz events), menu bar icon (also required by pystray) | pip/pipx dependency (not bundled: there is no macOS installer yet) |
+| [PyObjC](https://github.com/ronaldoussoren/pyobjc) (`pyobjc-framework-Cocoa`, `-Quartz`, `-ApplicationServices`, and `pyobjc-core`) | ≥ 10 | MIT | Clipboard (`NSPasteboard`), windows and focus (Accessibility API), keys (Quartz events), menu bar icon (also required by pystray) | pip/pipx dependency; bundled in `PastePhoto.app` |
 
 The `.deb` uses Debian's own packages for Pillow, psutil, python-xlib, jeepney, tomlkit and
 six (declared in `Depends`), so it does not redistribute them. It only ships **pystray**,
@@ -197,6 +197,14 @@ licenses\python\LICENSE.txt   CPython + OpenSSL, libffi, bzip2...
 _internal\pystray\*.py     replaceable LGPL library
 ```
 
+### The macOS app (`PastePhoto.app`)
+
+Same build tool and the same obligations as the Windows installer: `packaging/build.py` writes
+`LICENSE`, `THIRD-PARTY-NOTICES.txt` and `licenses/` into `PastePhoto.app/Contents/Resources`,
+and `packaging/macos/paste-photo.spec` ships pystray as plain `.py` files
+(`module_collection_mode`), which `build.py` checks. PyObjC (MIT) is bundled too. The Pillow
+check of section 3 applies to its macOS wheel as well.
+
 ### The Linux `.deb`
 
 | Obligation | How the `.deb` meets it |
@@ -216,7 +224,7 @@ _internal\pystray\*.py     replaceable LGPL library
 3. Add it to `pyproject.toml`. `packaging/third_party.py` picks up its license files
    automatically on the next build.
 4. If it is LGPL, add it to `module_collection_mode` in `packaging/windows/paste-photo.spec`
-   and add a notice like pystray's in `third_party.py`. For Linux, prefer the Debian package
+   and `packaging/macos/paste-photo.spec`, and add a notice like pystray's in `third_party.py`. For Linux, prefer the Debian package
    in `DEPENDS` (`packaging/linux/build_deb.py`); if you must vendor it, add a `Files:` stanza
    to the `.deb` copyright text.
 5. If it ships native libraries (like Pillow), list them in section 2.2.
