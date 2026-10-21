@@ -7,6 +7,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-21
+
 ### Fixed
 - **macOS**: con varios Claude Code abiertos a la vez en iTerm2 o Terminal.app, PastePhoto
   elegía uno cualquiera (todos comparten la misma ventana del SO para la prioridad por uso
@@ -253,7 +255,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Configuración `config.toml` y CLI con `--probe`, `--list-targets`, `--debug` y `--config`.
 - Documentación: README, CLAUDE.md (raíz, `core/`, `platforms/`, `targets/`), ADR 0001.
 
-[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/igarbayo/paste-photo/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/igarbayo/paste-photo/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/igarbayo/paste-photo/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/igarbayo/paste-photo/compare/v0.2.0...v0.2.1
