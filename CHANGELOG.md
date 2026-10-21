@@ -7,6 +7,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-10-21
+
 ### Fixed
 - **macOS, Terminal.app**: con Claude Code en varias pestañas, tras pulsar una (p. ej. la 3.ª)
   e irse a otra app, la captura se pegaba en otra pestaña (la 1.ª). Las pestañas de Terminal
@@ -274,7 +276,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Configuración `config.toml` y CLI con `--probe`, `--list-targets`, `--debug` y `--config`.
 - Documentación: README, CLAUDE.md (raíz, `core/`, `platforms/`, `targets/`), ADR 0001.
 
-[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/igarbayo/paste-photo/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/igarbayo/paste-photo/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/igarbayo/paste-photo/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/igarbayo/paste-photo/compare/v0.2.1...v0.3.0
