@@ -73,6 +73,7 @@ class Orchestrator:
             return None
         self._mark_seen(event.image_hash)
 
+        failures: list[tuple[str, str]] = []
         for target, handle in self.candidates():
             log.info("Pegando imagen %s en %s (%s)", short, target.name, handle.label)
             try:
@@ -81,13 +82,14 @@ class Orchestrator:
                         target.paste(handle, event)
                 else:
                     target.paste(handle, event)
-            except Exception:
+            except Exception as error:
                 log.exception("Error pegando en %s; se prueba el siguiente", target.name)
+                failures.append((target.name, str(error)))
                 continue
             return Pasted(event.image_hash, target.name, handle.label)
 
         log.info("Imagen %s: no se pudo pegar en ninguna sesión de Claude", short)
-        return NotPasted(event.image_hash)
+        return NotPasted(event.image_hash, tuple(failures))
 
     def candidates(self) -> list[tuple[TargetStrategy, TargetHandle]]:
         """Destinos con Claude abierto, en el orden en que se intentará pegar."""

@@ -383,7 +383,8 @@ the core.
 | Linux: nothing happens in GNOME Terminal on Wayland | Run `paste-photo setup gnome` and sign out and in, or use tmux. |
 | Linux: the image never reaches Claude Code | Install `xclip` (X11) or `wl-clipboard` (Wayland); Claude Code needs it to read images. |
 | macOS: nothing gets pasted in Terminal, Ghostty or the browser | Give PastePhoto the **Accessibility** permission (see [macOS](#macos)) and run `paste-photo doctor`. iTerm2, tmux and the browser extension don't need it. |
-| macOS: "not allowed to send Apple events" in the log | You declined the **Automation** prompt: allow it in System Settings → Privacy & Security → Automation. |
+| "Captura detectada, pero no se pudo pegar en …" (screenshot detected, but it could not be pasted into …) | PastePhoto found Claude but pasting failed; the notification says why, usually a missing macOS permission (see the rows below). "…no hay ningún Claude abierto" means it found no Claude at all. |
+| macOS: "falta el permiso de Automatización" or "not allowed to send Apple events" in the log | You declined the **Automation** prompt: allow it in System Settings → Privacy & Security → Automation. |
 | macOS: a Cmd+Shift+4 screenshot takes a few seconds to appear | macOS writes the file when the floating thumbnail goes away. Use Cmd+Ctrl+Shift+4, or turn off the thumbnail in Cmd+Shift+5 → Options. |
 | macOS: "Apple could not verify PastePhoto" | The app is not notarized yet: System Settings → Privacy & Security → **Open Anyway**, or `xattr -dr com.apple.quarantine /Applications/PastePhoto.app`. |
 | macOS: Terminal stopped working after updating the app | Each unsigned version counts as a new app: in System Settings → Privacy & Security → Accessibility, remove PastePhoto (**−**) and turn it on again. |

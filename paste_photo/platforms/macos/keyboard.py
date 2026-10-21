@@ -59,8 +59,8 @@ class MacKeyboard:
         from paste_photo.platforms.macos.accessibility import is_trusted
 
         if not is_trusted():
-            raise RuntimeError("macOS no deja simular teclas: falta el permiso de "
-                               "Accesibilidad (paste-photo doctor)")
+            raise RuntimeError("falta el permiso de Accesibilidad (Ajustes del Sistema → "
+                               "Privacidad y seguridad → Accesibilidad → PastePhoto)")
         q = self._quartz
         # Fuente propia: las flags del evento no se mezclan con las teclas que el usuario
         # tenga pulsadas en ese momento.

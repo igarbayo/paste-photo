@@ -39,9 +39,15 @@ class Pasted:
 
 @dataclass(frozen=True)
 class NotPasted:
-    """Había una captura nueva pero ningún Claude abierto (o falló el pegado en todos)."""
+    """Había una captura nueva pero ningún Claude abierto (o falló el pegado en todos).
+
+    `failures` = (tipo de destino, error) de cada Claude encontrado en el que falló el pegado;
+    vacío si no se encontró ninguno. Sin distinguirlos, la falta de un permiso de macOS se
+    anunciaba como "no hay ningún Claude abierto".
+    """
 
     image_hash: str
+    failures: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)

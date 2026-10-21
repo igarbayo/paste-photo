@@ -46,6 +46,7 @@ TARGET_NAMES = {"windows_terminal": "Windows Terminal", "browser": "el navegador
                 "macos_browser": "el navegador", "terminal_app": "Terminal",
                 "iterm2": "iTerm2"}
 MAX_LABEL = 60
+MAX_ERROR = 140  # cabe el aviso de un permiso con su ruta en Ajustes
 
 
 class TrayApp:
@@ -179,7 +180,7 @@ class TrayApp:
         if isinstance(event, Pasted):
             self._toast(f"Captura pegada en {_target_name(event.target)}:\n{_short(event.label)}")
         elif isinstance(event, NotPasted):
-            self._toast("Captura detectada, pero no hay ningún Claude abierto.")
+            self._toast(not_pasted_message(event))
         elif isinstance(event, StateChanged) and self._icon is not None:
             self._icon.icon = self._images[event.active]
             self._icon.title = f"{APP_TITLE} ({'activo' if event.active else 'en pausa'})"
@@ -214,9 +215,17 @@ def _icon_images() -> dict[bool, Image.Image]:
     return {True: active, False: gray}
 
 
+def not_pasted_message(event: NotPasted) -> str:
+    if not event.failures:
+        return "Captura detectada, pero no hay ningún Claude abierto."
+    target, error = event.failures[0]
+    return (f"Captura detectada, pero no se pudo pegar en {_target_name(target)}:\n"
+            f"{_short(error, MAX_ERROR)}")
+
+
 def _target_name(target: str) -> str:
     return TARGET_NAMES.get(target, target)
 
 
-def _short(label: str) -> str:
-    return label if len(label) <= MAX_LABEL else label[: MAX_LABEL - 1] + "…"
+def _short(label: str, limit: int = MAX_LABEL) -> str:
+    return label if len(label) <= limit else label[: limit - 1] + "…"

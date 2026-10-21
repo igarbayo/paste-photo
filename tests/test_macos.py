@@ -163,6 +163,17 @@ def test_parse_rows():
                                    "Nuevo chat\tcon tab"]]
 
 
+
+def test_osascript_without_automation_says_which_permission(monkeypatch):
+    # Visto en PastePhoto.app: sin el permiso, la bandeja decía "no hay ningún Claude".
+    from paste_photo.targets import _applescript
+
+    denied = SimpleNamespace(returncode=1, stdout="", stderr=(
+        "execution error: Not authorized to send Apple events to Terminal. (-1743)"))
+    monkeypatch.setattr(_applescript.subprocess, "run", lambda *a, **k: denied)
+    with pytest.raises(RuntimeError, match="permiso de Automatización"):
+        _applescript.osascript("return 1")
+
 def test_macos_targets_only_on_macos():
     from paste_photo.targets import supports
 

@@ -7,6 +7,14 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Fixed
+- **La notificación decía "no hay ningún Claude abierto" aunque lo hubiera.** Si PastePhoto
+  encontraba Claude pero el pegado fallaba (p. ej. en `PastePhoto.app` con Terminal, sin el
+  permiso de Accesibilidad o de Automatización, que se pierden al actualizar una app sin
+  firmar), avisaba como si no hubiera ninguno. Ahora dice dónde falló y por qué: "no se pudo
+  pegar en Terminal: falta el permiso de Accesibilidad (Ajustes del Sistema → …)". `NotPasted`
+  lleva `failures` (destino, error) y `osascript` traduce el error -1743 a qué permiso falta.
+
 ## [0.4.4] - 2026-10-21
 
 ### Fixed

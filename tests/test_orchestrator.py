@@ -73,6 +73,15 @@ def test_failed_image_is_not_retried():
     assert orch.handle(shot("x")) is None  # misma imagen: ni se reintenta ni se notifica
 
 
+
+def test_not_pasted_says_why_when_claude_was_found():
+    orch = Orchestrator([FakeTarget("absent", None), FakeTarget("bad", 10, fail_paste=True)],
+                        FakeFocus())
+
+    assert orch.handle(shot("x")) == NotPasted("x", (("bad", "boom"),))
+    assert Orchestrator([FakeTarget("absent", None)], FakeFocus()).handle(shot("y")) == \
+        NotPasted("y")
+
 def test_different_images_are_both_pasted():
     target = FakeTarget("t", 10)
     orch = Orchestrator([target], FakeFocus())

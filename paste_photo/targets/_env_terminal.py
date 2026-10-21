@@ -115,7 +115,9 @@ class EnvTerminalTarget:
             except (OSError, subprocess.SubprocessError, RuntimeError) as error:
                 log.info("%s: no se pudo pegar en %r: %s", self.name, candidate.label, error)
                 errors.append(str(error))
-        raise RuntimeError(f"{self.name}: " + "; ".join(errors))
+        # Sin el nombre del destino delante: el Orchestrator ya lo sabe y la bandeja enseña
+        # este texto tal cual.
+        raise RuntimeError("; ".join(dict.fromkeys(errors)))
 
     # --- helpers -----------------------------------------------------------
 

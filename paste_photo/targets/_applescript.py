@@ -13,13 +13,20 @@ import subprocess
 
 TIMEOUT_S = 5
 FIELD_SEP = "\t"
+# errAEEventNotPermitted: "Not authorized to send Apple events to Terminal. (-1743)"
+AUTOMATION_DENIED = "(-1743)"
+AUTOMATION_HINT = ("falta el permiso de Automatización (Ajustes del Sistema → Privacidad y "
+                   "seguridad → Automatización → PastePhoto)")
 
 
 def osascript(script: str, *args: str, timeout: float = TIMEOUT_S) -> str:
     result = subprocess.run(["osascript", "-", *args], input=script, capture_output=True,
                             text=True, timeout=timeout)
     if result.returncode != 0:
-        raise RuntimeError(f"osascript: {result.stderr.strip() or result.returncode}")
+        stderr = result.stderr.strip()
+        if AUTOMATION_DENIED in stderr:
+            raise RuntimeError(AUTOMATION_HINT)
+        raise RuntimeError(f"osascript: {stderr or result.returncode}")
     return result.stdout.rstrip("\n")
 
 

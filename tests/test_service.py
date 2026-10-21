@@ -96,3 +96,15 @@ def test_startup_error_is_raised_in_start(monkeypatch):
     service, factory, events, got = make_service()  # tipo "fake" sin registrar
     with pytest.raises(ValueError, match="desconocido"):
         service.start()
+
+
+def test_tray_message_tells_missing_claude_from_failed_paste():
+    try:
+        from paste_photo.ui import tray
+    except Exception as error:  # pystray sin escritorio (Linux sin DISPLAY) no se importa
+        pytest.skip(f"sin bandeja: {error}")
+
+    assert "ningún Claude" in tray.not_pasted_message(NotPasted("a"))
+    message = tray.not_pasted_message(NotPasted("a", (("terminal_app", "falta el permiso"),)))
+    assert "Terminal" in message and "falta el permiso" in message
+    assert "ningún Claude" not in message
