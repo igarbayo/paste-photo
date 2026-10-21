@@ -40,6 +40,10 @@ IPC_ENV_MARKERS = (("TMUX", "TMUX_PANE"), ("KITTY_WINDOW_ID", "KITTY_LISTEN_ON")
                    ("ORCA_TERMINAL_HANDLE",))
 
 
+# Sesiones de las que el destino no sabe si están a la vista: detrás de las que sí.
+UNRANKED: tuple[int, ...] = (1 << 30,)
+
+
 def handled_by_ipc(environ: Mapping[str, str]) -> bool:
     return any(all(environ.get(var) for var in marker) for marker in IPC_ENV_MARKERS)
 
@@ -64,6 +68,12 @@ class EnvTerminalTarget:
         """Ventana que aloja ese Claude (por defecto, la del emulador: un ancestro)."""
         return owning_window(proc.ancestors, windows)
 
+    def session_rank(self, procs: list[ClaudeProcess]) -> dict[int, tuple[int, ...]]:
+        """PID → posición de su sesión dentro de la app (menor = más a la vista: pestaña
+        seleccionada, ventana delantera). Desempata los Claude que comparten ventana del SO
+        (iTerm2, Terminal.app). Por defecto, ninguna: solo cuenta la ventana."""
+        return {}
+
     # --- TargetStrategy ----------------------------------------------------
 
     def matches(self, proc: ClaudeProcess) -> bool:
@@ -82,8 +92,11 @@ class EnvTerminalTarget:
             label = self.describe(proc) + (f" · {window.title}" if window else "")
             handles.append(TargetHandle(window_id=window.id if window else 0, label=label,
                                         extra={"proc": proc}))
-        # El orquestador ordena destinos entre sí; aquí, el de la ventana más reciente.
-        handles.sort(key=lambda h: self._ctx.recency.last_seen(h.window_id), reverse=True)
+        # El orquestador ordena destinos entre sí; aquí, el de la ventana más reciente y,
+        # dentro de una misma ventana, la sesión que el usuario tiene a la vista.
+        rank = self.session_rank(procs) if len(procs) > 1 else {}
+        handles.sort(key=lambda h: (-self._ctx.recency.last_seen(h.window_id),
+                                    rank.get(h.extra["proc"].pid, UNRANKED)))
         best = handles[0]
         return TargetHandle(best.window_id, best.label, {**best.extra, "candidates": handles})
 

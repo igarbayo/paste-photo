@@ -357,3 +357,52 @@ class _FakeProc:
 ])
 def test_is_claude_by_name_argv0_and_npm_path(name, cmdline, expected):
     assert _processes.is_claude(_FakeProc(name, cmdline)) is expected
+
+
+# --- varios Claude en el mismo terminal: gana el que está a la vista -----------------------
+
+
+def test_tmux_prefers_the_pane_in_view(procs, monkeypatch):
+    from paste_photo.targets import tmux
+
+    def fake_run(cmd, env=None):
+        if "list-panes" in cmd:
+            return ("%0\tuno\t1\t1\t0\n%1\tuno\t1\t1\t1\n"  # %1: panel activo, sesión conectada
+                    "%2\tdos\t1\t1\t1\n%3\ttres\t0\t1\t1\n")  # dos: cliente más antiguo
+        return "uno\t200\ndos\t100\n"
+
+    monkeypatch.setattr(tmux, "run", fake_run)
+    procs += [claude(pid, TMUX="/s,1,0", TMUX_PANE=f"%{pid}") for pid in (3, 0, 2, 1)]
+    handle = tmux.TmuxTarget(ctx()).locate()
+    assert [c.extra["proc"].pid for c in handle.extra["candidates"]] == [1, 2, 0, 3]
+
+
+def test_kitty_prefers_the_focused_window(procs, monkeypatch):
+    from paste_photo.targets import kitty
+
+    listing = [
+        {"tabs": [{"is_active": True, "windows": [{"id": 1, "is_active": True}]}]},
+        {"tabs": [{"is_active": False, "windows": [{"id": 2, "is_active": True}]},
+                  {"is_active": True, "windows": [{"id": 3, "is_active": True,
+                                                   "is_focused": True}]}]},
+    ]
+    monkeypatch.setattr(kitty, "run", lambda cmd, env=None: json.dumps(listing))
+    procs += [claude(pid, KITTY_WINDOW_ID=str(pid), KITTY_LISTEN_ON="unix:@kitty")
+              for pid in (2, 1, 3)]
+    handle = kitty.KittyTarget(ctx()).locate()
+    assert [c.extra["proc"].pid for c in handle.extra["candidates"]] == [3, 1, 2]
+
+
+def test_wezterm_prefers_the_focused_pane(procs, monkeypatch):
+    from paste_photo.targets import wezterm
+
+    def fake_run(cmd, env=None):
+        if "list-clients" in cmd:
+            return json.dumps([{"focused_pane_id": 2}])
+        return json.dumps([{"pane_id": 0, "is_active": False}, {"pane_id": 1, "is_active": True},
+                           {"pane_id": 2, "is_active": True}])
+
+    monkeypatch.setattr(wezterm, "run", fake_run)
+    procs += [claude(pid, WEZTERM_PANE=str(pid)) for pid in (0, 1, 2)]
+    handle = wezterm.WezTermTarget(ctx()).locate()
+    assert [c.extra["proc"].pid for c in handle.extra["candidates"]] == [2, 1, 0]

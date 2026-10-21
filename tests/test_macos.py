@@ -201,6 +201,53 @@ def test_iterm2_writes_ctrl_v_into_its_session(procs, monkeypatch):
     assert calls == [("6A1B-UUID", "\x16")]
 
 
+def test_iterm2_prefers_the_session_in_view(procs, monkeypatch):
+    """Varios Claude en iTerm2 comparten ventana del SO: gana la sesión que se ve en la
+    ventana delantera, no la que liste antes el sistema (cambiaba de sesión al pegar)."""
+    from paste_photo.targets import iterm2
+
+    sessions = "1\t0\tFONDO\n1\t1\tVISIBLE\n2\t1\tOTRA-VENTANA\n"
+    calls = []
+
+    def fake_osascript(script, *args):
+        calls.append(args)
+        return sessions if script is iterm2.LIST_SCRIPT else "ok"
+
+    monkeypatch.setattr(iterm2, "osascript", fake_osascript)
+    procs += [claude(pid, TERM_PROGRAM="iTerm.app", ITERM_SESSION_ID=f"w0t{pid}p0:{uuid}")
+              for pid, uuid in [(1, "OTRA-VENTANA"), (2, "FONDO"), (3, "VISIBLE"), (4, "NUEVA")]]
+    target = iterm2.ITerm2Target(ctx())
+    handle = target.locate()
+    assert [c.extra["proc"].pid for c in handle.extra["candidates"]] == [3, 1, 2, 4]
+    target.paste(handle)
+    assert calls[-1] == ("VISIBLE", "\x16")
+
+
+def test_iterm2_without_automation_keeps_every_session(procs, monkeypatch):
+    from paste_photo.targets import iterm2
+
+    def fake_osascript(script, *args):
+        raise RuntimeError("no autorizado")
+
+    monkeypatch.setattr(iterm2, "osascript", fake_osascript)
+    procs += [claude(1, TERM_PROGRAM="iTerm.app", ITERM_SESSION_ID="w0t0p0:A"),
+              claude(2, TERM_PROGRAM="iTerm.app", ITERM_SESSION_ID="w0t1p0:B")]
+    handle = iterm2.ITerm2Target(ctx()).locate()
+    assert [c.extra["proc"].pid for c in handle.extra["candidates"]] == [1, 2]
+
+
+def test_terminal_app_prefers_the_selected_tab(procs, monkeypatch):
+    from paste_photo.targets import terminal_app
+
+    tabs = "1\t0\t/dev/ttys001\n1\t1\t/dev/ttys002\n2\t1\t/dev/ttys003\n"
+    monkeypatch.setattr(terminal_app, "osascript",
+                        lambda script, *args: tabs if script is terminal_app.LIST_SCRIPT else "")
+    monkeypatch.setattr(terminal_app, "tty_of", lambda pid: f"/dev/ttys00{pid}")
+    procs += [claude(pid, TERM_PROGRAM="Apple_Terminal") for pid in (3, 1, 2)]
+    handle = terminal_app.TerminalAppTarget(ctx(), settle_ms=0).locate()
+    assert [c.extra["proc"].pid for c in handle.extra["candidates"]] == [2, 3, 1]
+
+
 def test_terminal_app_selects_tab_pastes_and_restores(procs, monkeypatch):
     from paste_photo.targets import terminal_app
 

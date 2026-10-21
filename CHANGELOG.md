@@ -7,6 +7,21 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Fixed
+- **macOS**: con varios Claude Code abiertos a la vez en iTerm2 o Terminal.app, PastePhoto
+  elegía uno cualquiera (todos comparten la misma ventana del SO para la prioridad por uso
+  reciente) y podía cambiar de pestaña para pegar en otro. Ahora gana la sesión que tienes a
+  la vista: la pestaña seleccionada (en iTerm2, el panel con el foco) de la ventana delantera
+  de la app, luego las de las demás ventanas por orden. Nuevo punto de extensión
+  `EnvTerminalTarget.session_rank()`.
+- **Linux y macOS**: lo mismo con varios Claude en **tmux**, **kitty** o **WezTerm** (todos
+  sus paneles compartían ventana del SO, o ninguna en tmux). Ahora gana el panel a la vista:
+  tmux, el panel activo de la ventana activa de una sesión conectada (y, entre sesiones, la
+  del cliente con la última tecla); kitty, la ventana con el foco y luego la activa de cada
+  pestaña activa (`kitty @ ls`); WezTerm, el panel con el foco de la GUI y luego el activo de
+  cada pestaña (`wezterm cli list`/`list-clients`). En Windows, Windows Terminal y los
+  navegadores ya preferían la pestaña seleccionada; Konsole y Orca siguen sin desempate.
+
 ### Changed
 - README: en Windows sin la extensión, PastePhoto trae al frente un momento la pestaña de
   Claude del navegador y vuelve a la tuya; con la extensión no cambia de pestaña. También

@@ -16,6 +16,7 @@ Terminal antes de seleccionar la de Claude y después se vuelve a poner delante.
 from __future__ import annotations
 
 import logging
+import subprocess
 import time
 from collections.abc import Mapping
 from typing import Any
@@ -75,6 +76,32 @@ on run argv
 end run
 """
 
+# Todas las pestañas: índice de su ventana (1 = la delantera), si es la que se ve (pestaña
+# seleccionada de una ventana visible; con pestañas nativas, la ventana delantera del grupo)
+# y su `tty`.
+LIST_SCRIPT = """
+on run argv
+    set sep to character id 9
+    set out to ""
+    tell application id "com.apple.Terminal"
+        set i to 0
+        repeat with w in windows
+            set i to i + 1
+            set shownWindow to true
+            try
+                set shownWindow to visible of w
+            end try
+            repeat with t in tabs of w
+                set shown to 0
+                if shownWindow and selected of t then set shown to 1
+                set out to out & i & sep & shown & sep & (tty of t) & linefeed
+            end repeat
+        end repeat
+    end tell
+    return out
+end run
+"""
+
 
 def tty_of(pid: int) -> str:
     try:
@@ -120,6 +147,25 @@ class TerminalAppTarget(EnvTerminalTarget):
                 osascript(RESTORE_SCRIPT, window, tab, front)
             except (OSError, RuntimeError) as error:
                 log.debug("No se pudo volver a la pestaña anterior: %s", error)
+
+    def session_rank(self, procs: list[ClaudeProcess]) -> dict[int, tuple[int, ...]]:
+        try:
+            rows = parse_rows(osascript(LIST_SCRIPT), 3)
+        except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+            log.debug("Terminal no dio sus pestañas: %s", error)
+            return {}
+        rank: dict[str, tuple[int, ...]] = {}
+        for index, shown, tty in rows:
+            rank.setdefault(tty, (0 if shown == "1" else 1, int(index)))
+        by_pid = {}
+        for proc in procs:
+            try:
+                tty = tty_of(proc.pid)
+            except RuntimeError:
+                continue
+            if tty in rank:
+                by_pid[proc.pid] = rank[tty]
+        return by_pid
 
     def window_of(self, proc: ClaudeProcess, windows: list[WindowInfo]) -> WindowInfo | None:
         # Todas las ventanas son del mismo proceso: la usada más recientemente.

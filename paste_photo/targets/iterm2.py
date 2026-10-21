@@ -10,14 +10,18 @@ se tecleara, sin traerla al frente; Claude Code inserta `[Image #N]` en su curso
 
 from __future__ import annotations
 
+import logging
+import subprocess
 from collections.abc import Mapping
 from typing import Any
 
 from paste_photo.core.ports import WindowInfo
-from paste_photo.targets._applescript import osascript
+from paste_photo.targets._applescript import osascript, parse_rows
 from paste_photo.targets._env_terminal import CTRL_V, EnvTerminalTarget
 from paste_photo.targets._processes import ClaudeProcess, process_name
 from paste_photo.targets.registry import TargetContext, register_target
+
+log = logging.getLogger(__name__)
 
 APP_PROCESS = "iterm2"
 WRITE_SCRIPT = """
@@ -37,6 +41,35 @@ on run argv
         end repeat
     end tell
     error "sesión de iTerm2 no encontrada: " & wanted
+end run
+"""
+
+# Todas las sesiones: índice de su ventana (1 = la delantera), si es la que se ve en ella
+# (pestaña actual, panel con el foco) y su `unique id`.
+LIST_SCRIPT = """
+on run argv
+    -- dentro del tell, `tab` es la clase "pestaña" de iTerm2, no el tabulador
+    set sep to character id 9
+    set out to ""
+    tell application id "com.googlecode.iterm2"
+        set i to 0
+        repeat with w in windows
+            set i to i + 1
+            set cur to ""
+            try
+                set cur to unique id of current session of w
+            end try
+            repeat with t in tabs of w
+                repeat with s in sessions of t
+                    set sid to unique id of s
+                    set shown to 0
+                    if sid is cur then set shown to 1
+                    set out to out & i & sep & shown & sep & sid & linefeed
+                end repeat
+            end repeat
+        end repeat
+    end tell
+    return out
 end run
 """
 
@@ -60,6 +93,20 @@ class ITerm2Target(EnvTerminalTarget):
 
     def send_ctrl_v(self, proc: ClaudeProcess) -> None:
         osascript(WRITE_SCRIPT, session_uuid(proc.environ["ITERM_SESSION_ID"]), CTRL_V)
+
+    def session_rank(self, procs: list[ClaudeProcess]) -> dict[int, tuple[int, ...]]:
+        try:
+            rows = parse_rows(osascript(LIST_SCRIPT), 3)
+        except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+            log.debug("iTerm2 no dio sus sesiones: %s", error)
+            return {}
+        rank = {uuid: (0 if shown == "1" else 1, int(index)) for index, shown, uuid in rows}
+        by_pid = {}
+        for proc in procs:
+            uuid = session_uuid(proc.environ["ITERM_SESSION_ID"])
+            if uuid in rank:
+                by_pid[proc.pid] = rank[uuid]
+        return by_pid
 
     def window_of(self, proc: ClaudeProcess, windows: list[WindowInfo]) -> WindowInfo | None:
         # Las sesiones cuelgan de iTermServer, no de la ventana: la de iTerm2 usada más

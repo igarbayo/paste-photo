@@ -85,6 +85,12 @@ en la línea de órdenes) y lee su **entorno**, que delata el panel exacto: `TMU
 - `linux_terminal` solo atiende procesos que **no** cubre ningún IPC (`handled_by_ipc`).
 - La ventana de un proceso = primera ventana cuyo PID es un ancestro (`owning_window`);
   un destino puede cambiarlo con `window_of()` (Orca: sus PTY cuelgan del daemon).
+- Varios Claude en el mismo terminal empatan en la recencia por ventana (kitty, WezTerm y
+  Konsole tienen todas sus ventanas en un proceso; los paneles de tmux cuelgan del servidor,
+  sin ventana). Desempata `session_rank()` (pid → tupla, menor = más a la vista; solo con más
+  de un Claude): tmux `list-panes -a` + `list-clients` (`client_activity`), kitty `@ ls`
+  (`is_focused`, `is_active`), WezTerm `cli list` + `cli list-clients` (`focused_pane_id`).
+  Si la consulta falla, sin desempate. Konsole y Orca no lo implementan.
 
 ## Orca (`orca.py`, Windows, macOS y Linux)
 - Orca exporta `ORCA_TERMINAL_HANDLE` (y `ORCA_CLI_COMMAND`) a sus terminales; está en
@@ -106,7 +112,11 @@ en la línea de órdenes) y lee su **entorno**, que delata el panel exacto: `TMU
   bundle id va literal en el texto (nunca una variable) y nunca se usa `tell` con una app
   que no esté abierta (la abriría).
 - Las sesiones de iTerm2 cuelgan de `iTermServer` y todas las ventanas de Terminal son del
-  mismo proceso: la recencia usa la ventana de la app usada más recientemente.
+  mismo proceso: la recencia usa la ventana de la app usada más recientemente, así que todos
+  sus Claude empatan. Desempata `session_rank()` (un `LIST_SCRIPT` por AppleScript, solo si hay
+  más de un Claude): primero la sesión que se ve (pestaña seleccionada / `current session`),
+  luego el índice de su ventana (1 = la delantera). Sin permiso de Automatización, sin
+  desempate. Antes se pegaba en el primero que listara psutil y Terminal cambiaba de pestaña.
 - Terminal.app con pestañas nativas de macOS: AppleScript ve cada pestaña como una ventana
   con una sola pestaña (`count of tabs` = 1). Para volver a tu pestaña se reordena la
   ventana (`set index of window id ... to 1`), no `selected of tab`. Limitación: si estabas

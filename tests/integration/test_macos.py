@@ -165,7 +165,9 @@ def _installed(app: str) -> bool:
 @pytest.mark.parametrize(("app", "script"), [
     ("Terminal", "terminal_app.SELECT_SCRIPT"),
     ("Terminal", "terminal_app.RESTORE_SCRIPT"),
+    ("Terminal", "terminal_app.LIST_SCRIPT"),
     ("iTerm", "iterm2.WRITE_SCRIPT"),
+    ("iTerm", "iterm2.LIST_SCRIPT"),
     ("Safari", "safari.list"),
     ("Safari", "safari.select"),
     ("Google Chrome", "chromium.list"),
