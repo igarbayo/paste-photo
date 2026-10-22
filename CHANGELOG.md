@@ -7,6 +7,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.4.6] - 2026-10-22
+
 ### Fixed
 - **Orca: la captura iba a otra pestaña de Claude, no a la que tenías a la vista.** Todas las
   terminales de Orca comparten su ventana del SO, así que empataban en "la usada más
@@ -331,7 +333,8 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Configuración `config.toml` y CLI con `--probe`, `--list-targets`, `--debug` y `--config`.
 - Documentación: README, CLAUDE.md (raíz, `core/`, `platforms/`, `targets/`), ADR 0001.
 
-[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.4.5...HEAD
+[Unreleased]: https://github.com/igarbayo/paste-photo/compare/v0.4.6...HEAD
+[0.4.6]: https://github.com/igarbayo/paste-photo/compare/v0.4.5...v0.4.6
 [0.4.5]: https://github.com/igarbayo/paste-photo/compare/v0.4.4...v0.4.5
 [0.4.4]: https://github.com/igarbayo/paste-photo/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/igarbayo/paste-photo/compare/v0.4.2...v0.4.3
