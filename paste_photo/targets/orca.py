@@ -7,12 +7,19 @@ Orca exporta a sus terminales `ORCA_TERMINAL_HANDLE` (el handle exacto de esa te
 trae una CLI: `orca terminal send --terminal <handle> --text <bytes>` escribe en el PTY sin
 foco ni pestaña visible. Se envía la tecla de pegado de Claude Code (Alt+V en Windows,
 Ctrl+V en macOS y Linux) y Claude inserta `[Image #N]` en su cursor. Nunca `--enter`.
+
+Todas las terminales de Orca viven en la misma ventana del SO y empatan en la recencia:
+desempata la pestaña seleccionada (`activeTabId`) y su panel activo (`activeLeafId`) de
+`orca terminal list --include-visual-layouts`.
 """
 
 from __future__ import annotations
 
+import json
+import logging
 import os
 import shutil
+import subprocess
 import sys
 from collections.abc import Mapping
 from pathlib import Path
@@ -22,6 +29,8 @@ from paste_photo.core.ports import WindowInfo
 from paste_photo.targets._env_terminal import CTRL_V, EnvTerminalTarget, run
 from paste_photo.targets._processes import ClaudeProcess, process_name
 from paste_photo.targets.registry import TargetContext, register_target
+
+log = logging.getLogger(__name__)
 
 ALT_V = "\x1bv"  # en un PTY, Alt+V llega como ESC + v
 # Proceso de la ventana de Orca (Electron). El daemon que aloja los PTY y la CLI se llaman
@@ -77,6 +86,24 @@ class OrcaTarget(EnvTerminalTarget):
         run([self.cli_for(proc), "terminal", "send", "--terminal",
              proc.environ["ORCA_TERMINAL_HANDLE"], "--text", self._paste_text, "--json"])
 
+    def session_rank(self, procs: list[ClaudeProcess]) -> dict[int, tuple[int, ...]]:
+        # Sin esto ganaba el primer `claude` listado, no la pestaña que el usuario mira.
+        if len(procs) < 2:
+            return {}
+        try:
+            output = run([self.cli_for(procs[0]), "terminal", "list", "--json",
+                          "--include-visual-layouts"])
+            layouts = json.loads(output)["result"]["visualLayouts"]
+        except (OSError, RuntimeError, subprocess.SubprocessError, ValueError, KeyError,
+                TypeError) as error:
+            log.debug("Orca no dio sus pestañas: %s", error)
+            return {}
+        by_handle: dict[str, tuple[int, ...]] = {}
+        for layout in layouts:
+            _rank_layout(layout.get("root"), by_handle)
+        return {p.pid: by_handle[handle] for p in procs
+                if (handle := p.environ["ORCA_TERMINAL_HANDLE"]) in by_handle}
+
     def cli_for(self, proc: ClaudeProcess) -> str:
         """La CLI configurada, la del PATH de esa terminal (Orca lo añade y exporta su
         nombre en `ORCA_CLI_COMMAND`), la del nuestro o la de la ruta de instalación."""
@@ -104,6 +131,34 @@ class OrcaTarget(EnvTerminalTarget):
     def _list_windows(self) -> list[WindowInfo]:
         windows = _win32_windows() if self._ctx.platform == "windows" else super()._list_windows()
         return [w for w in windows if process_name(w.pid) in self._app_names]
+
+
+def _rank_layout(node: Any, by_handle: dict[str, tuple[int, ...]]) -> None:
+    """Recorre la topología de un worktree (grupos de pestañas, quizá divididos): cada
+    terminal → (0 si su pestaña es la seleccionada del grupo, 0 si es su panel activo)."""
+    if isinstance(node, list):
+        for child in node:
+            _rank_layout(child, by_handle)
+    elif isinstance(node, dict):
+        if "activeTabId" in node and "tabs" in node:
+            for tab in node["tabs"]:
+                shown = 0 if tab.get("tabId") == node["activeTabId"] else 1
+                for pane in _terminal_panes(tab.get("panes")):
+                    by_handle[pane["handle"]] = (
+                        shown, 0 if pane.get("leafId") == tab.get("activeLeafId") else 1)
+        else:
+            for value in node.values():
+                _rank_layout(value, by_handle)
+
+
+def _terminal_panes(node: Any) -> list[dict[str, Any]]:
+    if isinstance(node, list):
+        return [pane for child in node for pane in _terminal_panes(child)]
+    if not isinstance(node, dict):
+        return []
+    if node.get("handle"):
+        return [node]
+    return [pane for value in node.values() for pane in _terminal_panes(value)]
 
 
 def _win32_windows() -> list[WindowInfo]:

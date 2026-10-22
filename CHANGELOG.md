@@ -7,6 +7,13 @@ y el proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Fixed
+- **Orca: la captura iba a otra pestaña de Claude, no a la que tenías a la vista.** Todas las
+  terminales de Orca comparten su ventana del SO, así que empataban en "la usada más
+  recientemente" y ganaba la primera de la lista de procesos (a menudo la que estaba
+  trabajando). Ahora desempata la pestaña seleccionada y su panel activo, que da `orca terminal
+  list --include-visual-layouts`. Afectaba a Windows, macOS y Linux (el código es común).
+
 ### Changed
 - **README: la app de macOS sigue siendo Experimental, ahora con el motivo.** Con
   PastePhoto.app, pegar en Claude Code en Terminal tarda de un par de segundos a más de 20

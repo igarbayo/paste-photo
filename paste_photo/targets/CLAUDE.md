@@ -96,8 +96,9 @@ en la línea de órdenes) y lee su **entorno**, que delata el panel exacto: `TMU
   puede dejarle datos): tmux `list-panes -a` + `list-clients` (`client_activity`), kitty
   `@ ls` (`is_focused`, `is_active`), WezTerm `cli list` + `cli list-clients`
   (`focused_pane_id`), Konsole D-Bus `currentSession` de `KONSOLE_DBUS_WINDOW`. Si la
-  consulta falla, sin desempate. Orca no lo implementa (`orca terminal list --json` no
-  documenta el foco). Lo que solo desempata (AppleScript, D-Bus) no se consulta con un único
+  consulta falla, sin desempate. Orca: `orca terminal list --json
+  --include-visual-layouts` (`activeTabId` del grupo, `activeLeafId` de la pestaña; sigue los
+  clics, comprobado en 1.4.237 en macOS); entre worktrees distintos, sin desempate. Lo que solo desempata (AppleScript, D-Bus) no se consulta con un único
   Claude.
 
 ## Orca (`orca.py`, Windows, macOS y Linux)
@@ -109,6 +110,7 @@ en la línea de órdenes) y lee su **entorno**, que delata el panel exacto: `TMU
   `ORCA_CLI_COMMAND`). Opción `cli` para fijarla.
 - Bytes: `\x1bv` (Alt+V) en Windows, `\x16` en Linux (`paste_text`). Sin `--enter`.
 - Recencia: cualquier ventana del proceso `orca.exe`/`orca-ide` (la usada más recientemente).
+  Todas sus terminales empatan ahí: desempata la pestaña seleccionada (`session_rank`).
 
 ## macOS (`iterm2`, `terminal_app`, `macos_terminal`, `macos_browser`)
 - `TERM_PROGRAM` (lo fija el terminal más interno: `iTerm.app`, `Apple_Terminal`, `tmux`,

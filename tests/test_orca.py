@@ -80,7 +80,7 @@ def test_falls_back_to_next_terminal(procs, sent):
               claude(2, ORCA_TERMINAL_HANDLE=HANDLE)]
     target = orca.OrcaTarget(ctx(), cli="orca", paste_text="\x16")
     target.paste(target.locate())
-    assert [cmd[4] for cmd in sent] == ["term_cerrada", HANDLE]
+    assert [cmd[4] for cmd in sent if "send" in cmd] == ["term_cerrada", HANDLE]
 
 
 def test_uses_most_recent_orca_window(procs, monkeypatch):
@@ -110,3 +110,51 @@ def test_cli_missing_is_an_error(monkeypatch):
     monkeypatch.setattr(orca, "known_cli_paths", lambda: [])
     with pytest.raises(RuntimeError):
         orca.OrcaTarget(ctx()).cli_for(claude(1, ORCA_TERMINAL_HANDLE=HANDLE))
+
+
+def layouts(active_tab, *tabs, active_leaf=None):
+    """Topología como la de `orca terminal list --include-visual-layouts` (Orca 1.4.237)."""
+    return {"ok": True, "result": {"terminals": [], "visualLayouts": [{"root": {
+        "type": "group", "activeTabId": active_tab, "tabs": [
+            {"tabId": tab, "activeLeafId": active_leaf or f"leaf-{handle}",
+             "panes": {"type": "terminal", "handle": handle, "leafId": f"leaf-{handle}"}}
+            for tab, handle in tabs]}}]}}
+
+
+def test_prefers_selected_tab_over_busy_one(procs, monkeypatch):
+    # Dos Claude en la misma ventana de Orca: gana la pestaña seleccionada, no la primera.
+    import json
+    monkeypatch.setattr(orca, "run", lambda cmd, env=None: json.dumps(
+        layouts("tab-b", ("tab-a", "term_a"), ("tab-b", "term_b"))))
+    procs += [claude(1, ORCA_TERMINAL_HANDLE="term_a"), claude(2, ORCA_TERMINAL_HANDLE="term_b")]
+    target = orca.OrcaTarget(ctx(), cli="orca")
+    target._list_windows = lambda: []
+    handle = target.locate()
+    assert [c.extra["proc"].pid for c in handle.extra["candidates"]] == [2, 1]
+
+
+def test_active_pane_of_split_tab_wins(procs, monkeypatch):
+    import json
+    data = {"ok": True, "result": {"visualLayouts": [{"root": {
+        "type": "group", "activeTabId": "tab", "tabs": [{
+            "tabId": "tab", "activeLeafId": "leaf-b", "panes": {"type": "split", "children": [
+                {"type": "terminal", "handle": "term_a", "leafId": "leaf-a"},
+                {"type": "terminal", "handle": "term_b", "leafId": "leaf-b"}]}}]}}]}}
+    monkeypatch.setattr(orca, "run", lambda cmd, env=None: json.dumps(data))
+    procs += [claude(1, ORCA_TERMINAL_HANDLE="term_a"), claude(2, ORCA_TERMINAL_HANDLE="term_b")]
+    target = orca.OrcaTarget(ctx(), cli="orca")
+    assert target.session_rank(list(procs)) == {1: (0, 1), 2: (0, 0)}
+
+
+def test_no_rank_query_with_single_claude_or_failing_cli(procs, monkeypatch):
+    calls = []
+
+    def failing(cmd, env=None):
+        calls.append(cmd)
+        raise RuntimeError("orca falló (1)")
+
+    monkeypatch.setattr(orca, "run", failing)
+    target = orca.OrcaTarget(ctx(), cli="orca")
+    one = [claude(1, ORCA_TERMINAL_HANDLE="term_a")]
+    assert target.session_rank(one) == {} and calls == []
+    assert target.session_rank(one + [claude(2, ORCA_TERMINAL_HANDLE="term_b")]) == {}
